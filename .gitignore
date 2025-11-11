@@ -1,0 +1,19 @@
+# Ignore log files
+logs/
+*.log
+
+# Ignore Python cache / build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore Jupyter / temp files
+.ipynb_checkpoints/
+*.tmp
+
+# Ignore virtual environments
+venv/
+.env/
+.env.bak/
+.venv/
