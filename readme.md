@@ -27,12 +27,21 @@
 - [x] Chuẩn hóa dữ liệu.
 - [x] Mã hóa các biến phân loại.
 - [ ] Tạo đặc trưng mới (đéo biết tạo cc gì).
-- [ ] Tự động phát hiện kiểu dữ liệu và áp dụng phương pháp xử lí phù hợp.
+- [x] Tự động phát hiện kiểu dữ liệu và áp dụng phương pháp xử lí phù hợp.
 - [x] Ghi dữ liệu ra file mới.
 
 
 ## ModelTrainer
-* Chưa làm
+- [ ] Nạp dữ liệu đã chuẩn hóa.
+- [ ] Chia train/test bằng train_test_split.
+- [ ] Huấn luyện mô hình. 
+- [ ] Tối ưu siêu tham số. (GridSearchCV, RandomizedSearchCV, ổng kêu Bayes gì đó mới nên thử nghiên cứu).
+- [ ] Đánh giá mô hình theo thước đo phù hợp.
+- [ ] Lưu và nạp mô hình bằng joblib hoặc pickle.
+- [ ] Ghi lại các kết quả thực nghiệm (MSE, MAE, R2) vào file CSV hoặc JSON.
+- [ ] So sánh kết quả giữa các mô hình và lưu biểu đồ đánh giá (barplot performance).
+- [ ] Có cơ chế tự động thử nhiều mô hình và chọn mô hình tốt nhất. (Hạn chế sử dụng SVM tại vì tao thấy nó train hơi lâu, sử dụng cái tìm tham số mệt).
+- [ ] Cố định random seed.
 
 ## EDA
 - [x] Thực hiện trực quan dữ liệu đầu vào (và sau khi xử lí).
@@ -41,7 +50,7 @@
 - [ ] Có ít nhất một phần thể hiện việc phân tích đặc trưng quan trọng (Feature Importance, SHAP, hoặc Partial Dependence Plot). (đéo biết cái này là cái mẹ gì).
 
 ## Parser và hướng dẫn chạy
-- Chưa làm
+- Chưa làm, để tao nghiên cứu sau.
 
 # Colab version
 [Colab](https://colab.research.google.com/drive/1wnFwnhGz468_KIYh5ZvwIaOxmUbZdGJc?usp=sharing) (cái này tao để gemini nó sửa khúc logging để chạy cho đúng nên không biết nó có sửa bậy gì không)
