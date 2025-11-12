@@ -2,6 +2,9 @@
 - Tất cả hàm phải sử dụng docstring numpy format.
 - Sử dụng seaborn để trực quan hóa.
 
+# Link dataset: 
+[Kaggle](https://www.kaggle.com/datasets/tan5577/nutritonal-fast-food-dataset)
+
 # Mô tả dữ liệu
 | Cột | Mô tả |
 |:----|:-----|
