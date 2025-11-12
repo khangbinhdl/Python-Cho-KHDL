@@ -17,3 +17,7 @@ venv/
 .env/
 .env.bak/
 .venv/
+
+# OS generated files
+.DS_Store
+Thumbs.db

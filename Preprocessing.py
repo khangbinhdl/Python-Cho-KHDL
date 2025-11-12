@@ -715,6 +715,34 @@ class DataPreprocessor:
 			self.data[self.numeric_cols] = self.scaler.fit_transform(self.data[self.numeric_cols])  # Áp dụng chuẩn hóa cho các cột số
 
 		return self
+	
+	def drop_features(self, features_to_drop):
+		"""
+		Xóa các cột không cần thiết khỏi DataFrame
+		
+		Parameters
+		----------
+		features_to_drop : list of str
+			Danh sách tên các cột cần xóa
+
+		Returns
+		-------
+		self
+			Trả về chính đối tượng để có thể chain methods
+
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded.")
+
+		self._log(f"Dropping features: {features_to_drop}")
+		self.data = self.data.drop(columns=features_to_drop, errors='ignore')  # Xóa các cột không cần thiết
+		# Cập nhật lại phân loại cột sau khi xóa
+		self.auto_detect_columns()
+		return self
 
 	def get_processed_data(self):
 		"""

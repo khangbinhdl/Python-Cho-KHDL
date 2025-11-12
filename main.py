@@ -50,10 +50,21 @@ if __name__ == "__main__":
 	processed_data = preprocessor.get_processed_data()
 
 	# 3 EDA trước khi làm sạch
-	eda_before = EDA(processed_data)
-	eda_before.perform_eda()
+	# eda_before = EDA(processed_data)
+	# eda_before.perform_eda()
+
+	# Dựa vào biểu có thể thấy cột calories_from_fat và total_fat_g có mối tương quan rất cao (1)
+	# Nên ta sẽ loại bỏ một trong hai cột này để tránh đa cộng tuyến
+	# Thực tế calcories_from_fat = total_fat_g * 9
+
+	# Ngoài ra, còn có weight_watchers_pnts và calories (cột target) cũng có tương quan khá cao (1)
+	# Nên ta cũng sẽ loại bỏ weight_watchers_pnts, vì calories là cột mục tiêu cần dự đoán
+	# Thực tế weight_watchers_pnts được tính dựa trên calories
+
+	# Ngoài ra ta sẽ bỏ 2 cột company, item vì không cần thiết cho huấn luyện mô hình
 
 	# 4 Làm sạch tiếp
+	preprocessor.drop_features(['calories_from_fat', 'weight_watchers_pnts', 'company', 'item'])
 	preprocessor.clean_negative_values()
 	preprocessor.handle_missing_values(num_strategy='median', cat_strategy='drop', dt_strategy='drop')
 	preprocessor.handle_outliers(exclude_features=['trans_fat_g'], outlier_strategy='clip')
