@@ -11,9 +11,6 @@ if not LOGGER.handlers:
 	LOGGER.propagate = True
 	LOGGER.setLevel(logging.INFO)
 
-# Thiết lập Pandas để không hiển thị số khoa học
-pd.set_option('display.float_format', '{:.6f}'.format)
-
 class DataPreprocessor:
 	"""
 	Class đóng gói các bước tiền xử lý dữ liệu
@@ -100,6 +97,7 @@ class DataPreprocessor:
 			Thông điệp cần ghi log
 		"""
 		LOGGER.info(message)
+	
 	def _clean_column_names(self):
 		"""
 		Chuẩn hóa tên cột của DataFrame
@@ -145,6 +143,7 @@ class DataPreprocessor:
 
 		self.data.columns = [dedup(c) for c in cols]
 		self._log("Column names cleaned successfully.")
+	
 	def convert_columns_to_numeric(self, start_col=2):
 		"""
 		Chuyển đổi các cột từ vị trí chỉ định trở đi trong DataFrame thành kiểu số
@@ -339,7 +338,8 @@ class DataPreprocessor:
 			self.data[col] = np.abs(self.data[col])
 
 		return self
-	def handle_missing_values(self, num_strategy=None, cat_strategy=None, dt_strategy="drop"):
+	
+	def handle_missing_values(self, data=None, num_strategy=None, cat_strategy=None, dt_strategy="drop", exclude_features=None, fit=False):
 		"""
 		Xử lý giá trị bị thiếu với phương pháp riêng cho từng loại cột
 		
@@ -348,6 +348,10 @@ class DataPreprocessor:
 
 		Parameters
 		----------
+		data : DataFrame or None
+			DataFrame cần xử lý. 
+			- None: dùng self.data như cũ.
+			- Khác None: xử lý trực tiếp trên DataFrame truyền vào và trả về DataFrame đó.
 		num_strategy : str, optional
 			Chiến lược xử lý cho cột số.
 			Các giá trị hợp lệ: 'mean', 'median', 'mode', 'ffill', 'bfill', 'drop'.
@@ -360,6 +364,12 @@ class DataPreprocessor:
 			Chiến lược xử lý cho cột datetime.
 			Các giá trị hợp lệ: 'ffill', 'bfill', 'drop'.
 			Mặc định là 'drop'
+		exclude_features : list of str, optional
+			Danh sách tên các cột muốn bỏ qua không xử lý missing values.
+			Mặc định là None (xử lý tất cả các cột)
+		fit : bool, optional
+			- True : fit và tính toán tham số dựa trên 'data' (thường là train).
+			- False: chỉ apply tham số đã fit (thường là test/val).
 
 		Returns
 		-------
@@ -371,120 +381,141 @@ class DataPreprocessor:
 		ValueError
 			Nếu dữ liệu chưa được nạp
 		"""
-		if self.data is None:
-			raise ValueError("Data not loaded.")
+
+		# Chọn target DataFrame
+		if data is None:
+			if self.data is None:
+				raise ValueError("Data not loaded.")
+			target = self.data
+		else:
+			target = data
+
+		if exclude_features is None:
+			exclude_features = []
 
 		# Mặc định kế thừa self.missing_strategy nếu không được truyền riêng
 		num_strategy = num_strategy or self.missing_strategy
 		cat_strategy = cat_strategy or self.missing_strategy
 
 		self._log(
-			f"Handling missing values | num: '{num_strategy}', cat: '{cat_strategy}', dt: '{dt_strategy}'"
+			f"Handling missing values fit={fit} | num: '{num_strategy}', cat: '{cat_strategy}', dt: '{dt_strategy}'"
 		)
+		# Lưu lại chiến lược datetime (để biết test nên xử lý kiểu gì, mặc dù dt không cần thống kê)
+		if fit:
+			self.missing_dt_strategy = dt_strategy
 
-		# Đếm số giá trị thiếu trước khi xử lý
-		initial_rows = len(self.data)
-		missing_before = self.data.isnull().sum()
-		total_missing_before = missing_before.sum()
-		
-		self._log(f"Total missing values before handling: {total_missing_before} across all columns")
-		
-		# Log chi tiết từng cột có giá trị thiếu
-		if total_missing_before > 0:
-			for col in missing_before[missing_before > 0].index:
-				col_type = 'numeric' if col in self.numeric_cols else ('categorical' if col in self.categorical_cols else 'datetime')
-				self._log(f"  - Column '{col}' ({col_type}): {missing_before[col]} missing values")
-
-		# Xử lý cột Datetime
-		if self.datetime_cols: # Kiểm tra xem có cột datetime nào không
-			if dt_strategy == "drop":
-				# Bỏ bất kỳ hàng nào có giá trị ngày giờ bị thiếu
-				self.data = self.data.dropna(subset=self.datetime_cols)
-			elif dt_strategy == "ffill":
-				# Điền giá trị của hàng ngay trước đó
-				self.data[self.datetime_cols] = self.data[self.datetime_cols].ffill()
-			elif dt_strategy == "bfill":
-				# Điền giá trị của hàng ngay sau đó
-				self.data[self.datetime_cols] = self.data[self.datetime_cols].bfill()
-
-		# Xử lý cột Numeric
-		if self.numeric_cols: # Kiểm tra xem có cột số nào không
-			if num_strategy == "drop":
-				# Drop theo hàng nếu bất kỳ numeric col nào bị thiếu
-				self.data = self.data.dropna(subset=self.numeric_cols)
-			elif num_strategy in ("mean", "median", "mode"):
+		# ======== FIT THAM SỐ TRÊN TRAIN (fit=True) ======== #
+		if fit:
+			# Numeric
+			self.missing_num_values = {}
+			if self.numeric_cols and num_strategy in ("mean", "median", "mode"):
 				for col in self.numeric_cols:
-					# Tính toán giá trị điền
-					if self.data[col].isna().any():
+					if col in exclude_features:
+						continue
+					if target[col].isna().any():
 						if num_strategy == "mean":
-							#tính giá trị trung bình cộng của cột
-							val = self.data[col].mean()
+							val = target[col].mean()
 						elif num_strategy == "median":
-							#tính giá trị trung vị của cột
-							val = self.data[col].median()
+							val = target[col].median()
 						else:
-							# lấy giá trị xuất hiện nhiều nhất
-							# .mode() trả về một Series (vì có thể có nhiều mode), .iloc[0] lấy mode đầu tiên
-							# Phòng trường hợp cột không có mode (ví dụ: toàn NaN đã bị lọc), dùng median làm dự phòng
-							val = self.data[col].mode().iloc[0] if not self.data[col].mode().empty else self.data[col].median()
-						# Áp dụng điền
-						self.data[col] = self.data[col].fillna(val)
+							mode = target[col].mode()
+							val = mode.iloc[0] if not mode.empty else target[col].median()
+						self.missing_num_values[col] = val
+
+			# Categorical
+			self.missing_cat_values = {}
+			if self.categorical_cols and cat_strategy in ("mode", "constant"):
+				for col in self.categorical_cols:
+					if col in exclude_features:
+						continue
+					if target[col].isna().any():
+						if cat_strategy == "mode":
+							mode = target[col].mode()
+							val = mode.iloc[0] if not mode.empty else "Unknown"
+						else:  # constant
+							val = "Unknown"
+						self.missing_cat_values[col] = val
+
+		# ======== ÁP DỤNG THAM SỐ ======== #
+
+		# Datetime
+		if self.datetime_cols:
+			use_dt_strategy = dt_strategy if fit else (self.missing_dt_strategy or dt_strategy)
+			if use_dt_strategy == "drop":
+				target = target.dropna(subset=self.datetime_cols)
+			elif use_dt_strategy == "ffill":
+				for col in self.datetime_cols:
+					target[col] = target[col].ffill()
+			elif use_dt_strategy == "bfill":
+				for col in self.datetime_cols:
+					target[col] = target[col].bfill()
+
+		# Numeric
+		if self.numeric_cols:
+			numeric_cols_to_process = [c for c in self.numeric_cols if c not in exclude_features]
+			if num_strategy == "drop":
+				if numeric_cols_to_process:
+					target = target.dropna(subset=numeric_cols_to_process)
+			elif num_strategy in ("mean", "median", "mode"):
+				for col in numeric_cols_to_process:
+					# Lấy giá trị đã fit nếu có
+					val = self.missing_num_values.get(col, None)
+					if val is not None:
+						target[col] = target[col].fillna(val)
 			elif num_strategy == "ffill":
-				#Điền giá trị của hàng ngay trước đó
-				self.data[self.numeric_cols] = self.data[self.numeric_cols].ffill()
+				if numeric_cols_to_process:
+					for col in numeric_cols_to_process:
+						target[col] = target[col].ffill()
 			elif num_strategy == "bfill":
-				#Điền giá trị của hàng ngay sau đó
-				self.data[self.numeric_cols] = self.data[self.numeric_cols].bfill()
+				if numeric_cols_to_process:
+					for col in numeric_cols_to_process:
+						target[col] = target[col].bfill()
 
-		# Xử lý cột Categorical
-		if self.categorical_cols: # Kiểm tra xem có cột phân loại nào không
+		# Categorical
+		if self.categorical_cols:
+			categorical_cols_to_process = [c for c in self.categorical_cols if c not in exclude_features]
 			if cat_strategy == "drop":
-				#Xóa bất kỳ hàng nào có giá trị NaN trong cột phân loại
-				self.data = self.data.dropna(subset=self.categorical_cols)
+				if categorical_cols_to_process:
+					target = target.dropna(subset=categorical_cols_to_process)
 			elif cat_strategy == "mode":
-				for col in self.categorical_cols: # Lặp qua từng cột phân loại
-					if self.data[col].isna().any(): # Chỉ xử lý nếu cột có giá trị thiếu
-						mode = self.data[col].mode() # Tìm mode của cột đó (có thể trả về nhiều giá trị)
-						# Điền bằng mode đầu tiên. Nếu cột không có mode (ví dụ: toàn NaN),
-						# Điền bằng một giá trị mặc định là "Unknown".
-						self.data[col] = self.data[col].fillna(mode.iloc[0] if not mode.empty else "Unknown")
+				for col in categorical_cols_to_process:
+					val = self.missing_cat_values.get(col, None)
+					if val is None:
+						mode = target[col].mode()
+						val = mode.iloc[0] if not mode.empty else "Unknown"
+					target[col] = target[col].fillna(val)
 			elif cat_strategy == "ffill":
-				#Điền giá trị của hàng ngay trước đó
-				self.data[self.categorical_cols] = self.data[self.categorical_cols].ffill()
+				if categorical_cols_to_process:
+					for col in categorical_cols_to_process:
+						target[col] = target[col].ffill()
 			elif cat_strategy == "bfill":
-				#Điền giá trị của hàng ngay sau đó
-				self.data[self.categorical_cols] = self.data[self.categorical_cols].bfill()
+				if categorical_cols_to_process:
+					for col in categorical_cols_to_process:
+						target[col] = target[col].bfill()
 			elif cat_strategy == "constant":
-				#Chiến lược 'constant': Điền một giá trị hằng số (ở đây là "Unknown")
-				self.data[self.categorical_cols] = self.data[self.categorical_cols].fillna("Unknown")
-
-		# Đếm số giá trị thiếu sau khi xử lý
-		missing_after = self.data.isnull().sum()
-		total_missing_after = missing_after.sum()
-		rows_after = len(self.data)
-		
-		# Báo cáo kết quả
-		values_filled = total_missing_before - total_missing_after
-		rows_dropped = initial_rows - rows_after
-		
-		self._log(f"Missing values handled: {values_filled} values filled")
-		if rows_dropped > 0:
-			self._log(f"Rows dropped due to missing values: {rows_dropped} ({rows_dropped/initial_rows*100:.2f}%)")
-		self._log(f"Remaining missing values: {total_missing_after}")
-		
-		# Cập nhật lại phân loại cột vì sau xử lý khi số hàng/cột có thể thay đổi
-		self.auto_detect_columns()
-		return self
-
-	def handle_outliers(self, exclude_features=None, outlier_strategy='drop'):
+				for col in categorical_cols_to_process:
+					val = self.missing_cat_values.get(col, "Unknown")
+					target[col] = target[col].fillna(val)		# Cập nhật lại phân loại cột chỉ khi làm việc với self.data
+		if data is None:
+			self.auto_detect_columns()
+			return self
+		else:
+			return target
+	def handle_outliers(self, data=None, exclude_features=None, outlier_strategy='drop'):
 		"""
 		Phát hiện và xử lý các ngoại lai (outliers) trong dữ liệu
 		
 		Sử dụng một trong ba phương pháp: IQR, Z-score hoặc Isolation Forest
 		để phát hiện outliers, sau đó loại bỏ hàng (drop) hoặc cắt giá trị (clip).
+		
+		LƯU Ý: Chỉ nên áp dụng trên tập TRAIN, KHÔNG nên xử lý outlier trên tập test
+		để tránh data leakage và đảm bảo đánh giá mô hình chính xác.
 
 		Parameters
 		----------
+		data : DataFrame or None
+			DataFrame cần xử lý outlier. 
+			None -> dùng self.data như cũ.
 		exclude_features : list of str, optional
 			Danh sách tên các cột muốn bỏ qua không xử lý ngoại lai.
 			Mặc định là None (xử lý tất cả các cột số)
@@ -493,17 +524,20 @@ class DataPreprocessor:
 			- 'drop': Xóa các hàng chứa outliers
 			- 'clip': Cắt giá trị outliers về ngưỡng min/max (giữ lại tất cả dữ liệu)
 			Mặc định là 'drop'
-
+			
 		Returns
 		-------
-		self
-			Trả về chính đối tượng để có thể chain methods
+		self hoặc DataFrame
+			Nếu data=None: trả về self
+			Nếu data được cung cấp: trả về DataFrame đã xử lý
 
 		Raises
 		------
 		ValueError
 			Nếu dữ liệu chưa được nạp
-
+		NotImplementedError
+			Nếu chọn chiến lược 'clip' với phương pháp Isolation Forest
+	
 		Notes
 		-----
 		Phương pháp phát hiện:
@@ -515,116 +549,95 @@ class DataPreprocessor:
 		- drop: Xóa hàng chứa outliers (giảm số lượng dữ liệu)
 		- clip: Cắt giá trị về ngưỡng (giữ nguyên số lượng dữ liệu, thay đổi giá trị)
 		"""
-		if self.data is None:
-			raise ValueError("Data not loaded.")
+		if data is None:
+			if self.data is None:
+				raise ValueError("Data not loaded.")
+			target = self.data
+		else:
+			target = data
 
 		if exclude_features is None:
 			exclude_features = []
 
-		self._log(f"Handling outliers using method: '{self.outlier_method}', strategy: '{outlier_strategy}'")
-		initial_rows = len(self.data)
+		self._log(f"[Outlier] method='{self.outlier_method}', strategy='{outlier_strategy}'")
+		initial_rows = len(target)
 		clipped_values_count = 0
 
-		# XỬ LÝ CHO IQR VÀ Z-SCORE
+		# ====== IQR & Z-SCORE ====== #
 		if self.outlier_method in ('iqr', 'zscore'):
 			if outlier_strategy == 'drop':
-				# Tạo mask để giữ lại các hàng không phải outlier
-				mask = pd.Series([True] * len(self.data), index=self.data.index)
-				
+				mask = pd.Series(True, index=target.index)
 				for col in self.numeric_cols:
 					if col in exclude_features:
-						self._log(f"Skipping outlier handling for excluded feature: {col}")
 						continue
-					
-					# Phát hiện và loại bỏ ngoại lai bằng phương pháp IQR (Interquartile Range)
+					# Tính ngưỡng trực tiếp từ dữ liệu
 					if self.outlier_method == 'iqr':
-						Q1 = self.data[col].quantile(0.25)
-						Q3 = self.data[col].quantile(0.75)
+						Q1 = target[col].quantile(0.25)
+						Q3 = target[col].quantile(0.75)
 						IQR = Q3 - Q1
 						lower_bound = Q1 - 1.5 * IQR
 						upper_bound = Q3 + 1.5 * IQR
-						# Cập nhật mask: giữ lại hàng nằm trong khoảng hợp lệ
-						mask &= (self.data[col] >= lower_bound) & (self.data[col] <= upper_bound)
-
-					# Phát hiện và loại bỏ ngoại lai bằng Z-score
-					elif self.outlier_method == 'zscore':
-						mean = self.data[col].mean()
-						std = self.data[col].std()
+					else:  # zscore
+						mean = target[col].mean()
+						std = target[col].std()
 						lower_bound = mean - 3 * std
 						upper_bound = mean + 3 * std
-						# Cập nhật mask: giữ lại hàng nằm trong khoảng hợp lệ
-						mask &= (self.data[col] >= lower_bound) & (self.data[col] <= upper_bound)
-				
-				# Áp dụng mask để loại bỏ outliers
-				self.data = self.data[mask]
-			
+
+					mask &= (target[col] >= lower_bound) & (target[col] <= upper_bound)
+
+				target = target[mask]
+
 			elif outlier_strategy == 'clip':
-				# Cắt giá trị outliers về ngưỡng min/max
 				for col in self.numeric_cols:
 					if col in exclude_features:
-						self._log(f"Skipping outlier handling for excluded feature: {col}")
 						continue
-					
+					# Tính ngưỡng trực tiếp từ dữ liệu
 					if self.outlier_method == 'iqr':
-						Q1 = self.data[col].quantile(0.25)
-						Q3 = self.data[col].quantile(0.75)
+						Q1 = target[col].quantile(0.25)
+						Q3 = target[col].quantile(0.75)
 						IQR = Q3 - Q1
 						lower_bound = Q1 - 1.5 * IQR
 						upper_bound = Q3 + 1.5 * IQR
-					
-					elif self.outlier_method == 'zscore':
-						mean = self.data[col].mean()
-						std = self.data[col].std()
+					else:  # zscore
+						mean = target[col].mean()
+						std = target[col].std()
 						lower_bound = mean - 3 * std
 						upper_bound = mean + 3 * std
-					
-					# Đếm số giá trị bị cắt
-					clipped_values_count += ((self.data[col] < lower_bound) | (self.data[col] > upper_bound)).sum()
-					
-					# Cắt giá trị về ngưỡng
-					self.data[col] = self.data[col].clip(lower=lower_bound, upper=upper_bound)
 
-		# XỬ LÝ CHO ISOLATION FOREST
+					clipped_values_count += ((target[col] < lower_bound) | (target[col] > upper_bound)).sum()
+					target[col] = target[col].clip(lower=lower_bound, upper=upper_bound)
+
+		# ====== ISOLATION FOREST ====== #
 		elif self.outlier_method == 'isolation_forest':
 			numeric_cols_for_isolation = [col for col in self.numeric_cols if col not in exclude_features]
-			if numeric_cols_for_isolation:  # Đảm bảo chạy trên cột số
-				iso = IsolationForest(contamination=0.1, random_state=42)
-				# Fit trên tất cả các cột số cùng lúc
-				yhat = iso.fit_predict(self.data[numeric_cols_for_isolation])
+
+			if not numeric_cols_for_isolation:
+				self._log("Isolation Forest: No numeric columns to process after excluding specified features.")
+			else:
+				# Tạo model mới và fit trực tiếp (không lưu lại)
+				iso_model = IsolationForest(contamination=0.1, random_state=42)
+				yhat = iso_model.fit_predict(target[numeric_cols_for_isolation])
 
 				if outlier_strategy == 'drop':
-					# Giữ lại các hàng không phải là ngoại lai (yhat == 1, outlier là -1)
-					self.data = self.data[yhat == 1]
+					target = target[yhat == 1]
 				elif outlier_strategy == 'clip':
-					# Với Isolation Forest + clip: cắt từng cột về ngưỡng IQR
-					outlier_mask = yhat == -1
-					for col in numeric_cols_for_isolation:
-						Q1 = self.data[col].quantile(0.25)
-						Q3 = self.data[col].quantile(0.75)
-						IQR = Q3 - Q1
-						lower_bound = Q1 - 1.5 * IQR
-						upper_bound = Q3 + 1.5 * IQR
-						
-						# Chỉ cắt giá trị của các hàng bị đánh dấu là outlier
-						clipped_values_count += ((self.data.loc[outlier_mask, col] < lower_bound) | 
-												(self.data.loc[outlier_mask, col] > upper_bound)).sum()
-						self.data.loc[outlier_mask, col] = self.data.loc[outlier_mask, col].clip(
-							lower=lower_bound, upper=upper_bound
-						)
-			else:
-				self._log("Isolation Forest: No numeric columns to process after excluding specified features.")
+					raise NotImplementedError("Clipping not implemented for Isolation Forest method.")
 
-		# Báo cáo kết quả
+		# ====== LOG KẾT QUẢ ====== #
 		if outlier_strategy == 'drop':
-			rows_removed = initial_rows - len(self.data)
-			self._log(f"Removed {rows_removed} rows ({rows_removed/initial_rows*100:.2f}% of data) as outliers")
-			# Reset index sau khi loại bỏ hàng
-			self.data = self.data.reset_index(drop=True)
+			rows_removed = initial_rows - len(target)
+			self._log(f"Removed {rows_removed} rows ({rows_removed / initial_rows * 100:.2f}% of data) as outliers")
+			target = target.reset_index(drop=True)
 		elif outlier_strategy == 'clip':
 			self._log(f"Clipped {clipped_values_count} outlier values to bounds (no rows removed)")
 
-		return self
-
+		# nếu đang xử lý self.data thì update self.data, ngược lại trả về DataFrame
+		if data is None:
+			self.data = target
+			return self
+		else:
+			return target
+		
 	def encode_categorical(self, strategy='onehot'):
 		"""
 		Mã hóa các cột phân loại (categorical) thành dạng số
@@ -675,12 +688,24 @@ class DataPreprocessor:
 
 		return self
 
-	def scale_features(self):
+	def scale_features(self, data=None, exclude_features=None, fit=False):
 		"""
 		Chuẩn hóa các giá trị trong các cột số (numeric columns)
 		
 		Áp dụng StandardScaler hoặc MinMaxScaler để đưa các giá trị số
 		về cùng một thang đo, giúp cải thiện hiệu suất của các thuật toán ML.
+
+		Parameters
+		----------
+		data : DataFrame or None
+			DataFrame cần scale. 
+			None -> dùng self.data như cũ.
+		exclude_features : list of str, optional
+			Danh sách tên các cột muốn bỏ qua không scale.
+			Mặc định là None (scale tất cả các cột số)
+		fit : bool
+			True: fit scaler trên dữ liệu này.
+			False: chỉ transform bằng scaler đã fit.
 
 		Returns
 		-------
@@ -697,24 +722,53 @@ class DataPreprocessor:
 		- StandardScaler: Chuẩn hóa về phân phối chuẩn (mean=0, std=1)
 		- MinMaxScaler: Chuẩn hóa về khoảng [0, 1]
 		"""
-		if self.data is None:
-			raise ValueError("Data not loaded.")
-
-		self._log(f"Scaling numeric features using: '{self.scaling_strategy}'")
-
-		# Chọn chiến lược chuẩn hóa (StandardScaler hoặc MinMaxScaler)
-		if self.scaling_strategy == 'standard':
-			self.scaler = StandardScaler()  # Chuẩn hóa với StandardScaler (đưa dữ liệu về trung bình 0, độ lệch chuẩn 1)
-		elif self.scaling_strategy == 'minmax':
-			self.scaler = MinMaxScaler()  # Chuẩn hóa với MinMaxScaler (đưa dữ liệu về phạm vi [0, 1])
+		if data is None:
+			if self.data is None:
+				raise ValueError("Data not loaded.")
+			target = self.data
 		else:
-			self._log("Unknown scaling strategy. Defaulting to StandardScaler.")
-			self.scaler = StandardScaler()  # Mặc định dùng StandardScaler nếu chiến lược không hợp lệ
+			target = data
 
-		if self.numeric_cols:
-			self.data[self.numeric_cols] = self.scaler.fit_transform(self.data[self.numeric_cols])  # Áp dụng chuẩn hóa cho các cột số
+		if exclude_features is None:
+			exclude_features = []
 
-		return self
+		self._log(f"[Scale] strategy='{self.scaling_strategy}', fit={fit}")
+
+		# Chọn chiến lược chuẩn hóa
+		numeric_cols_to_scale = [c for c in self.numeric_cols if c not in exclude_features]
+		
+		if fit or self.scaler is None:
+			if self.scaling_strategy == 'standard':
+				self.scaler = StandardScaler()
+			elif self.scaling_strategy == 'minmax':
+				self.scaler = MinMaxScaler()
+			else:
+				self._log("Unknown scaling strategy. Defaulting to StandardScaler.")
+				self.scaler = StandardScaler()
+
+			# FIT scaler trên tập hiện tại (thường là train)
+			if numeric_cols_to_scale:
+				target[numeric_cols_to_scale] = self.scaler.fit_transform(target[numeric_cols_to_scale])
+				# Lưu danh sách cột đã scale để dùng khi transform
+				self.scaled_cols_ = numeric_cols_to_scale
+
+			# Nếu là MinMaxScaler thì lưu min/max theo cột
+			if isinstance(self.scaler, MinMaxScaler) and numeric_cols_to_scale:
+				self.scale_min_ = dict(zip(numeric_cols_to_scale, self.scaler.data_min_))
+				self.scale_max_ = dict(zip(numeric_cols_to_scale, self.scaler.data_max_))
+		else:
+			# Chỉ transform với scaler đã fit (cho test/val)
+			# Sử dụng danh sách cột đã được fit
+			cols_to_transform = [c for c in self.scaled_cols_ if c in target.columns and c not in exclude_features]
+			if cols_to_transform:
+				target[cols_to_transform] = self.scaler.transform(target[cols_to_transform])
+
+		# Cập nhật lại phân loại cột chỉ khi làm trên self.data
+		if data is None:
+			self.data = target
+			return self
+		else:
+			return target
 	
 	def drop_features(self, features_to_drop):
 		"""
