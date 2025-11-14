@@ -18,7 +18,7 @@ if not LOGGER.handlers:
 SEP_LEN = 60
 SEP = "=" * SEP_LEN
 
-class EDA:
+class EDAData:
 	"""
 	Class thực hiện phân tích dữ liệu khám phá (Exploratory Data Analysis)
 	
@@ -291,6 +291,7 @@ class EDA:
 			plt.ylabel('Density', fontsize=12)
 			plt.tight_layout()
 			plt.show()
+	
 	def boxplot_analysis(self):
 		"""
 		Trực quan hóa các boxplot để phát hiện ngoại lai (outliers)
