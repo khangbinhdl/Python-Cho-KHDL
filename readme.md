@@ -38,7 +38,7 @@
 - [ ] Nạp dữ liệu đã chuẩn hóa.
 - [ ] Chia train/test bằng train_test_split.
 - [ ] Huấn luyện mô hình. 
-- [ ] Tối ưu siêu tham số. (GridSearchCV, RandomizedSearchCV, ổng kêu Bayes gì đó mới nên thử nghiên cứu).
+- [ ] Tối ưu siêu tham số. (Sử dụng file notebook ở 'Bayesian_Hyperparameters_tuning.ipynb' chạy local mới nhanh do colab có 2 nhân CPU).
 - [ ] Đánh giá mô hình theo thước đo phù hợp.
 - [ ] Lưu và nạp mô hình bằng joblib hoặc pickle.
 - [ ] Ghi lại các kết quả thực nghiệm (MSE, MAE, R2) vào file CSV hoặc JSON.
@@ -50,7 +50,7 @@
 - [x] Thực hiện trực quan dữ liệu đầu vào (và sau khi xử lí).
 - [ ] Thực hiện trực quan kết quả mô hình.
 - [ ] Phân tích, nhận xét, và trình bày ý nghĩa kết quả theo hướng giải thích được mô hình.
-- [ ] Có ít nhất một phần thể hiện việc phân tích đặc trưng quan trọng (Feature Importance, SHAP, hoặc Partial Dependence Plot). (đéo biết cái này là cái mẹ gì).
+- [ ] Có ít nhất một phần thể hiện việc phân tích đặc trưng quan trọng (Feature Importance, SHAP, hoặc Partial Dependence Plot). (Sử dụng Decision Tree hoặc Random Forest [thamkhảo](https://scikit-learn.org/stable/auto_examples/ensemble/plot_forest_importances.html)).
 
 ## Parser và hướng dẫn chạy
 - Chưa làm, để tao nghiên cứu sau.
