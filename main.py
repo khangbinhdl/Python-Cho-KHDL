@@ -1,9 +1,10 @@
 from Preprocessing import DataPreprocessor
-from EDA import EDA
+from EDA import EDAData
 import logging
 from logging import StreamHandler, FileHandler, Formatter
 from datetime import datetime
 import os
+import numpy as np
 
 def setup_logging():
 	# Tạo thư mục logs nếu chưa có
@@ -50,7 +51,7 @@ if __name__ == "__main__":
 	processed_data = preprocessor.get_processed_data()
 
 	# 3 EDA trước khi làm sạch
-	# eda_before = EDA(processed_data)
+	# eda_before = EDAData(processed_data)
 	# eda_before.perform_eda()
 
 	# Dựa vào biểu có thể thấy cột calories_from_fat và total_fat_g có mối tương quan rất cao (1)
@@ -63,17 +64,83 @@ if __name__ == "__main__":
 
 	# Ngoài ra ta sẽ bỏ 2 cột company, item vì không cần thiết cho huấn luyện mô hình
 
-	# 4 Làm sạch tiếp
+	# 4 Làm sạch cơ bản
 	preprocessor.drop_features(['calories_from_fat', 'weight_watchers_pnts', 'company', 'item'])
 	preprocessor.clean_negative_values()
-	preprocessor.handle_missing_values(num_strategy='median', cat_strategy='drop', dt_strategy='drop')
-	preprocessor.handle_outliers(exclude_features=['trans_fat_g'], outlier_strategy='clip')
-	preprocessor.scale_features()
+
 	processed_data = preprocessor.get_processed_data()
 
 	# 5 EDA sau khi làm sạch
-	eda_after = EDA(processed_data)
-	eda_after.perform_eda()
+	# eda_after = EDAData(processed_data)
+	# eda_after.summary_statistics()
+	# eda_after.correlation_analysis()
+
+	# Khúc class Model
+	from sklearn.model_selection import train_test_split
+	from sklearn.linear_model import LinearRegression
+	from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 	
-    # 6 Xuất ra file đã xử lý
-	processed_data.to_csv('cleaned_dataset.csv', index=False)
+	train, test = train_test_split(processed_data, test_size=0.2, random_state=42)
+	
+	# 6 Áp dụng tiền xử lý lên tập huấn luyện (FIT)
+
+	# Cập nhật lại danh sách cột cho preprocessor
+	preprocessor.data = train.copy()
+	preprocessor.auto_detect_columns()
+	
+	# Xử lý missing values (FIT trên train)
+	train_processed = preprocessor.handle_missing_values(
+		data=train,
+		num_strategy='median',
+		fit=True
+	)
+	
+	# Xử lý outliers
+	train_processed = preprocessor.handle_outliers(
+		data=train_processed,
+		exclude_features=['trans_fat_g', 'calories'],
+		outlier_strategy='isolation_forest',
+	)
+	
+	train_processed = preprocessor.scale_features(
+		data=train_processed,
+		exclude_features=['calories'],
+		fit=True
+	)
+
+	X_train = train_processed.drop(columns=['calories'])
+	y_train = train_processed['calories']
+	
+	# Xử lý missing values (TRANSFORM trên test)
+	test = preprocessor.handle_missing_values(
+		data=test,
+		num_strategy='median',
+		fit=False
+	)
+	
+	# Scale features (TRANSFORM trên test)
+	test = preprocessor.scale_features(
+		data=test,
+		exclude_features=['calories'],
+		fit=False
+	)
+	
+	X_test = test.drop(columns=['calories'])
+	y_test = test['calories']
+
+
+	print("train shape:", X_train.shape)
+	print("test shape:", X_test.shape)
+
+	model = LinearRegression()
+	model.fit(X_train, y_train)
+
+	y_pred = model.predict(X_test)
+	mse = mean_squared_error(y_test, y_pred)
+	r2 = r2_score(y_test, y_pred)
+	mae = mean_absolute_error(y_test, y_pred)
+
+	print("Mean Squared Error (MSE):", mse)
+	print("R-squared (R2 ):", r2)
+	print("Mean Absolute Error (MAE):", mae)
+
