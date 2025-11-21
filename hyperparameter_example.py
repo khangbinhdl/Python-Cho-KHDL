@@ -1,5 +1,5 @@
 """
-Minh họa cách sử dụng ModelTrainer.hyperparameter_tuning() method, dùng cho ExtraTrees
+Minh họa cách sử dụng ModelTrainer.hyperparameter_tuning() method
 """
 
 from Preprocessing import DataPreprocessor
@@ -56,8 +56,14 @@ def main():
     
     clean_data = preprocessor.get_processed_data()
     
-    # Split data first to avoid data leakage
-    train_data, test_data = train_test_split(clean_data, test_size=0.2, random_state=42)
+    # Split into train/val/test (60/20/20) to avoid data leakage
+    # First split: separate test set (20%)
+    train_val_data, test_data = train_test_split(clean_data, test_size=0.2, random_state=42)
+    
+    # Second split: separate train and validation from remaining 80%
+    train_data, val_data = train_test_split(train_val_data, test_size=0.25, random_state=42)  # 0.25 * 0.8 = 0.2 of total
+    
+    print(f"Data splits - Train: {len(train_data)}, Val: {len(val_data)}, Test: {len(test_data)}")
     
     # Apply preprocessing to train data (FIT)
     preprocessor.data = train_data.copy()
@@ -81,6 +87,19 @@ def main():
         fit=True
     )
     
+    # Apply preprocessing to validation data (TRANSFORM only)
+    val_processed = preprocessor.handle_missing_values(
+        data=val_data,
+        num_strategy='median',
+        fit=False
+    )
+    
+    val_processed = preprocessor.scale_features(
+        data=val_processed,
+        exclude_features=['calories'],
+        fit=False
+    )
+    
     # Apply preprocessing to test data (TRANSFORM only)
     test_processed = preprocessor.handle_missing_values(
         data=test_data,
@@ -94,15 +113,26 @@ def main():
         fit=False
     )
     
-    # Combine processed data
-    processed_data = pd.concat([train_processed, test_processed], ignore_index=True)
+    # Combine train+val for model training and hyperparameter tuning
+    train_val_data = pd.concat([train_processed, val_processed], ignore_index=True)
     
-    print(f"Processed data shape: {processed_data.shape}")
+    print(f"Train+Val shape: {train_val_data.shape}, Test shape: {test_processed.shape}")
     
-    # Initialize ModelTrainer
+    # Initialize ModelTrainer with train+val data
     trainer = ModelTrainer(random_state=42)
-    trainer.load_data(processed_data, target_column='calories')
-    trainer.split_data(test_size=0.2)
+    trainer.load_data(train_val_data, target_column='calories')
+    
+    # Create manual validation split for hyperparameter tuning
+    # We'll use the validation data we already separated
+    X_train = train_processed.drop(columns=['calories'])
+    y_train = train_processed['calories']
+    X_val = val_processed.drop(columns=['calories'])
+    y_val = val_processed['calories']
+    X_test = test_processed.drop(columns=['calories'])
+    y_test = test_processed['calories']
+    
+    # For ModelTrainer, we'll use the combined train+val and let it split again
+    trainer.split_data(test_size=0.25)  # This will separate our validation set
     
     # Initialize models
     trainer.initialize_models()
