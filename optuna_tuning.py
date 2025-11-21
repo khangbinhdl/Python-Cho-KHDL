@@ -304,11 +304,18 @@ def main_optuna_example():
     
     clean_data = preprocessor.get_processed_data()
     
-    # Split and preprocess
+    # Split into train/val/test (60/20/20)
     from sklearn.model_selection import train_test_split
-    train_data, test_data = train_test_split(clean_data, test_size=0.2, random_state=42)
     
-    # Apply preprocessing
+    # First split: separate test set (20%)
+    train_val_data, test_data = train_test_split(clean_data, test_size=0.2, random_state=42)
+    
+    # Second split: separate train and validation from remaining 80%
+    train_data, val_data = train_test_split(train_val_data, test_size=0.25, random_state=42)  # 0.25 * 0.8 = 0.2 of total
+    
+    print(f"Data splits - Train: {len(train_data)}, Val: {len(val_data)}, Test: {len(test_data)}")
+    
+    # Apply preprocessing (FIT on train only)
     preprocessor.data = train_data.copy()
     preprocessor.auto_detect_columns()
     
@@ -316,19 +323,26 @@ def main_optuna_example():
     train_processed = preprocessor.handle_outliers(data=train_processed, exclude_features=['trans_fat_g', 'calories'], outlier_strategy='drop')
     train_processed = preprocessor.scale_features(data=train_processed, exclude_features=['calories'], fit=True)
     
-    # Prepare data for Optuna - Use FULL PROCESSED DATA like notebook
+    # Transform validation and test sets (no fitting)
+    val_processed = preprocessor.handle_missing_values(data=val_data, num_strategy='median', fit=False)
+    val_processed = preprocessor.scale_features(data=val_processed, exclude_features=['calories'], fit=False)
+    
     test_processed = preprocessor.handle_missing_values(data=test_data, num_strategy='median', fit=False)
     test_processed = preprocessor.scale_features(data=test_processed, exclude_features=['calories'], fit=False)
     
-    processed_data = pd.concat([train_processed, test_processed], ignore_index=True)
+    # Prepare data for Optuna - Use TRAIN + VAL for hyperparameter optimization
+    train_val_data = pd.concat([train_processed, val_processed], ignore_index=True)
     
-    X = processed_data.drop(columns=['calories']).values
-    y = processed_data['calories'].values
+    X_train_val = train_val_data.drop(columns=['calories']).values
+    y_train_val = train_val_data['calories'].values
     
-    print(f"Full dataset shape: {X.shape}")
+    X_test = test_processed.drop(columns=['calories']).values
+    y_test = test_processed['calories'].values
     
-    # Initialize Optuna tuner with FULL dataset (like notebook)
-    tuner = OptunaTuner(X, y, random_state=42)
+    print(f"Train+Val shape: {X_train_val.shape}, Test shape: {X_test.shape}")
+    
+    # Initialize Optuna tuner with TRAIN+VAL data only
+    tuner = OptunaTuner(X_train_val, y_train_val, random_state=42)
     
     # Run optimization with more trials for stability
     print("Starting Optuna optimization...")
@@ -345,21 +359,32 @@ def main_optuna_example():
         random_state=42
     )
     
-    # Train on ENTIRE dataset (like notebook cell 6)
-    final_et.fit(X, y)
+    # Train on TRAIN+VAL dataset (hyperparameter optimization set)
+    final_et.fit(X_train_val, y_train_val)
     
-    # Evaluate on ENTIRE dataset (like notebook cell 7-8)  
-    y_pred = final_et.predict(X)
-    mae = mean_absolute_error(y, y_pred)
-    mse = mean_squared_error(y, y_pred)
-    r2 = r2_score(y, y_pred)
+    # Evaluate on TEST dataset (truly unseen data)
+    y_test_pred = final_et.predict(X_test)
+    test_mae = mean_absolute_error(y_test, y_test_pred)
+    test_mse = mean_squared_error(y_test, y_test_pred)
+    test_r2 = r2_score(y_test, y_test_pred)
     
-    print("\nFinal model performance on the entire dataset:")
+    # Also evaluate on train+val for comparison
+    y_train_val_pred = final_et.predict(X_train_val)
+    train_val_mae = mean_absolute_error(y_train_val, y_train_val_pred)
+    train_val_mse = mean_squared_error(y_train_val, y_train_val_pred)
+    train_val_r2 = r2_score(y_train_val, y_train_val_pred)
+    
+    print("\nFinal model performance:")
     print(f"  Best RMSE (CV): {tuner.best_score:.4f}")
-    print(f"  Mean Absolute Error (MAE): {mae:.4f}")
-    print(f"  Mean Squared Error (MSE): {mse:.4f}")
-    print(f"  R² Score: {r2:.4f}")
-    print(f"  Best parameters: {best_params}")
+    print(f"\nTRAIN+VAL SET:")
+    print(f"  MAE: {train_val_mae:.4f}")
+    print(f"  MSE: {train_val_mse:.4f}")
+    print(f"  R² Score: {train_val_r2:.4f}")
+    print(f"\nTEST SET (Unseen Data):")
+    print(f"  MAE: {test_mae:.4f}")
+    print(f"  MSE: {test_mse:.4f}")
+    print(f"  R² Score: {test_r2:.4f}")
+    print(f"\nBest parameters: {best_params}")
     
     # Get parameter importances
     tuner.get_param_importances()
