@@ -808,7 +808,7 @@ class ModelTrainer:
             
         plt.show()
         
-    def run_full_pipeline(self, test_size=0.2, tune_best_model=True, save_artifacts=True):
+    def run_full_pipeline(self, test_size=0.2, tune_best_model=False, save_artifacts=True, skip_split=False):
         """
         Chạy toàn bộ pipeline training từ đầu đến cuối
         
@@ -823,6 +823,9 @@ class ModelTrainer:
         save_artifacts : bool, optional
             Có lưu mô hình và kết quả hay không.
             Mặc định là True
+        skip_split : bool, optional
+            Có bỏ qua việc chia dữ liệu hay không (khi đã có train/test data).
+            Mặc định là False
             
         Returns
         -------
@@ -841,8 +844,11 @@ class ModelTrainer:
         self._log("Starting Full ML Pipeline")
         self._log("="*50)
         
-        # 1. Chia dữ liệu
-        self.split_data(test_size=test_size)
+        # 1. Chia dữ liệu (chỉ khi chưa có train/test data)
+        if not skip_split:
+            self.split_data(test_size=test_size)
+        else:
+            self._log("Skipping data split - using existing train/test data")
         
         # 2. Khởi tạo và huấn luyện mô hình
         self.initialize_models()
@@ -855,8 +861,19 @@ class ModelTrainer:
         if tune_best_model and self.best_model_name:
             self._log(f"Attempting hyperparameter tuning for {self.best_model_name}...")
             
-            # Định nghĩa param_grids cho một số mô hình
+            # Định nghĩa param_grids cho tất cả các mô hình
             param_grids = {
+                'Lasso': {
+                    'alpha': [0.001, 0.01, 0.1, 1.0, 10.0, 100.0],
+                    'max_iter': [1000, 2000, 3000, 5000],
+                    'tol': [1e-4, 1e-3, 1e-2],
+                    'selection': ['cyclic', 'random']
+                },
+                'ElasticNet': {
+                    'alpha': [0.01, 0.1, 1.0, 10.0],
+                    'l1_ratio': [0.1, 0.3, 0.5, 0.7, 0.9],
+                    'max_iter': [1000, 2000, 3000]
+                },
                 'RandomForest': {
                     'n_estimators': [100, 200, 300],
                     'max_depth': [10, 20, None],
@@ -875,26 +892,27 @@ class ModelTrainer:
             }
             
             if self.best_model_name in param_grids:
+                search_type = 'random' if self.best_model_name in ['Lasso', 'ElasticNet'] else 'grid'
                 self.hyperparameter_tuning(
                     self.best_model_name, 
                     param_grids[self.best_model_name],
-                    cv=3,  # Giảm CV để nhanh hơn
-                    search_type='grid'
+                    cv=5 if self.best_model_name in ['Lasso', 'ElasticNet'] else 3,  # Lasso và ElasticNet dùng CV=5
+                    search_type=search_type
                 )
                 # Huấn luyện lại với tham số tối ưu
                 self.train_models([self.best_model_name])
                 self.evaluate_models()
         
-        # 5. Vẽ biểu đồ so sánh
-        self.plot_model_comparison(save_path='plots/model_comparison.png')
+        # 5. Vẽ biểu đồ so sánh (comment để tránh trùng với main2.py)
+        # self.plot_model_comparison(save_path='plots/model_comparison.png')
         
-        # 6. Vẽ feature importance nếu có thể
-        try:
-            self.plot_feature_importance(save_path='plots/feature_importance.png')
-        except:
-            pass
+        # 6. Vẽ feature importance nếu có thể (comment để tránh trùng với main2.py)  
+        # try:
+        #     self.plot_feature_importance(save_path='plots/feature_importance.png')
+        # except:
+        #     pass
         
-        # 7. Lưu artifacts
+        # 7. Lưu artifacts (comment để tránh trùng với main2.py)
         if save_artifacts:
             model_path = self.save_model()
             results_path = self.save_results()

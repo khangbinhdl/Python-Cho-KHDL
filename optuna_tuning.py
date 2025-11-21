@@ -1,5 +1,5 @@
 """
-Minh họa cách áp dụng Bayesian optimization cho ExtraTreesRegressor (model tốt nhất)
+Minh họa cách áp dụng Bayesian optimization cho Lasso (model tốt nhất)
 """
 
 import numpy as np
@@ -13,7 +13,7 @@ from datetime import datetime
 import os
 
 from sklearn.model_selection import KFold, cross_val_score
-from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.linear_model import ElasticNet
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
 from Preprocessing import DataPreprocessor
@@ -22,7 +22,7 @@ warnings.filterwarnings('ignore')
 
 class OptunaTuner:
     """
-    Tối ưu hóa siêu tham số nâng cao sử dụng Optuna Bayesian Optimization cho ExtraTrees
+    Tối ưu hóa siêu tham số nâng cao sử dụng Optuna Bayesian Optimization cho ElasticNet
     
     Cung cấp tìm kiếm siêu tham số tinh vi với pruning và 
     khả năng thực thi song song.
@@ -66,9 +66,9 @@ class OptunaTuner:
         # Thiết lập logging
         self.logger = logging.getLogger("OPTUNA_TUNER")
         
-    def et_objective(self, trial):
+    def elasticnet_objective(self, trial):
         """
-        Hàm mục tiêu cho tối ưu hóa ExtraTrees
+        Hàm mục tiêu cho tối ưu hóa ElasticNet
         
         Tham số
         -------
@@ -80,21 +80,20 @@ class OptunaTuner:
         float
             Điểm RMSE (để tối thiểu hóa)
         """
-        # Đề xuất siêu tham số với trọng tâm vào tính ổn định
-        n_estimators = trial.suggest_int("n_estimators", 100, 300, step=50)  # Phạm vi hẹp hơn
-        max_depth = trial.suggest_int("max_depth", 15, 35)  # Tập trung vào cây sâu hơn
-        min_samples_split = trial.suggest_int("min_samples_split", 2, 10)
-        min_samples_leaf = trial.suggest_int("min_samples_leaf", 1, 5)
-        max_features = trial.suggest_categorical("max_features", ['sqrt', 'log2', None])  # Categorical thay vì float
+        # Đề xuất siêu tham số cho ElasticNet
+        alpha = trial.suggest_float("alpha", 0.001, 100.0, log=True)  # Regularization strength
+        l1_ratio = trial.suggest_float("l1_ratio", 0.01, 0.99)  # Mix ratio between L1 and L2 penalties
+        max_iter = trial.suggest_int("max_iter", 1000, 10000)  # Maximum iterations
+        tol = trial.suggest_float("tol", 1e-5, 1e-2, log=True)  # Tolerance for optimization
+        selection = trial.suggest_categorical("selection", ['cyclic', 'random'])  # Selection method
         
         # Tạo model với tham số được đề xuất
-        et = ExtraTreesRegressor(
-            n_estimators=n_estimators,
-            max_depth=max_depth,
-            min_samples_split=min_samples_split,
-            min_samples_leaf=min_samples_leaf,
-            max_features=max_features,
-            n_jobs=-1,
+        elasticnet = ElasticNet(
+            alpha=alpha,
+            l1_ratio=l1_ratio,
+            max_iter=max_iter,
+            tol=tol,
+            selection=selection,
             random_state=self.random_state
         )
         
@@ -109,8 +108,8 @@ class OptunaTuner:
             y_fold_valid = self.y_train.iloc[valid_idx] if isinstance(self.y_train, pd.Series) else self.y_train[valid_idx]
             
             # Huấn luyện và dự đoán
-            et.fit(X_fold_train, y_fold_train)
-            y_pred = et.predict(X_fold_valid)
+            elasticnet.fit(X_fold_train, y_fold_train)
+            y_pred = elasticnet.predict(X_fold_valid)
             
             # Tính RMSE
             rmse = np.sqrt(mean_squared_error(y_fold_valid, y_pred))
@@ -125,9 +124,9 @@ class OptunaTuner:
         
         return np.mean(scores)  # Trả về RMSE trung bình (để tối thiểu hóa)
     
-    def optimize_et(self, n_trials=100, timeout=3600):
+    def optimize_elasticnet(self, n_trials=100, timeout=3600):
         """
-        Tối ưu hóa siêu tham số ExtraTrees sử dụng Optuna
+        Tối ưu hóa siêu tham số ElasticNet sử dụng Optuna
         
         Tham số
         -------
@@ -145,7 +144,7 @@ class OptunaTuner:
         
         # Tạo study
         self.study = optuna.create_study(
-            study_name=f"et_nutrition_opt_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            study_name=f"elasticnet_nutrition_opt_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             direction="minimize",  # Tối thiểu hóa RMSE
             sampler=TPESampler(seed=self.random_state),
             pruner=MedianPruner(n_startup_trials=10, n_warmup_steps=5),
@@ -153,7 +152,7 @@ class OptunaTuner:
         
         # Tối ưu hóa
         self.study.optimize(
-            self.et_objective,
+            self.elasticnet_objective,
             n_trials=n_trials,
             timeout=timeout,
             n_jobs=-1  # Sử dụng tất cả CPU cores
@@ -171,25 +170,24 @@ class OptunaTuner:
     
     def get_best_model(self):
         """
-        Lấy model ExtraTrees tốt nhất với tham số được tối ưu hóa
+        Lấy model ElasticNet tốt nhất với tham số được tối ưu hóa
         
         Trả về
         ------
-        ExtraTreesRegressor
+        ElasticNet
             Model được tối ưu hóa đã huấn luyện trên dữ liệu training
         """
         if self.best_params is None:
-            raise ValueError("Chưa thực hiện tối ưu hóa. Gọi optimize_et() trước.")
+            raise ValueError("Chưa thực hiện tối ưu hóa. Gọi optimize_elasticnet() trước.")
             
         # Tạo và huấn luyện model tốt nhất
-        best_et = ExtraTreesRegressor(
+        best_elasticnet = ElasticNet(
             **self.best_params,
-            n_jobs=-1,
             random_state=self.random_state
         )
         
-        best_et.fit(self.X_train, self.y_train)
-        return best_et
+        best_elasticnet.fit(self.X_train, self.y_train)
+        return best_elasticnet
     
     def save_study(self, filepath=None):
         """
@@ -212,7 +210,7 @@ class OptunaTuner:
         
         if filepath is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filepath = f"optuna_studies/et_study_{timestamp}.pkl"
+            filepath = f"optuna_studies/elasticnet_study_{timestamp}.pkl"
             
         joblib.dump(self.study, filepath)
         self.logger.info(f"Study đã lưu vào: {filepath}")
@@ -277,7 +275,7 @@ class OptunaTuner:
 def main_optuna_example():
     """
     Hàm chính minh họa tối ưu hóa Optuna cho dự đoán dinh dưỡng fast food
-    Theo đúng phương pháp từ [Bayesian]_Hyperparameters_tuning.ipynb
+    Tập trung vào ElasticNet - model tốt nhất
     """
     # Thiết lập logging
     logging.basicConfig(
@@ -289,7 +287,7 @@ def main_optuna_example():
     np.random.seed(42)
     
     print("="*60)
-    print("TỐI ƯU HÓA BAYESIAN OPTUNA CHO EXTRATREES")
+    print("TỐI ƯU HÓA BAYESIAN OPTUNA CHO ELASTICNET")
     print("="*60)
     
     # Tải và tiền xử lý dữ liệu (giống main2.py)
@@ -304,72 +302,98 @@ def main_optuna_example():
     
     clean_data = preprocessor.get_processed_data()
     
-    # Chia dữ liệu thành train/val/test (60/20/20)
-    from sklearn.model_selection import train_test_split
+    # Import ModelTrainer để sử dụng split_data
+    from model import ModelTrainer
     
-    # Chia đầu tiên: tách test set (20%)
-    train_val_data, test_data = train_test_split(clean_data, test_size=0.2, random_state=42)
+    # Khởi tạo ModelTrainer và split dữ liệu 1 lần duy nhất
+    temp_trainer = ModelTrainer(random_state=42)
+    temp_trainer.load_data(clean_data, target_column='calories')
+    temp_trainer.split_data(test_size=0.2)
     
-    # Chia thứ hai: tách train và validation từ 80% còn lại
-    train_data, val_data = train_test_split(train_val_data, test_size=0.25, random_state=42)  # 0.25 * 0.8 = 0.2 của tổng
+    # Lấy train và test data từ ModelTrainer
+    train_val_data = pd.concat([temp_trainer.X_train, temp_trainer.y_train], axis=1)
+    test_data = pd.concat([temp_trainer.X_test, temp_trainer.y_test], axis=1)
     
-    print(f"Chia dữ liệu - Train: {len(train_data)}, Val: {len(val_data)}, Test: {len(test_data)}")
+    print(f"Chia dữ liệu - Train: {len(train_val_data)}, Test: {len(test_data)}")
     
     # Áp dụng tiền xử lý (FIT chỉ trên train)
-    preprocessor.data = train_data.copy()
+    preprocessor.data = train_val_data.copy()
     preprocessor.auto_detect_columns()
     
-    train_processed = preprocessor.handle_missing_values(data=train_data, num_strategy='median', fit=True)
-    train_processed = preprocessor.handle_outliers(data=train_processed, exclude_features=['trans_fat_g', 'calories'], outlier_strategy='drop')
-    train_processed = preprocessor.scale_features(data=train_processed, exclude_features=['calories'], fit=True)
+    # Xử lý missing values (FIT trên train)
+    train_processed = preprocessor.handle_missing_values(
+        data=train_val_data,
+        num_strategy='median',
+        fit=True
+    )
     
-    # Transform validation và test sets (không fitting)
-    val_processed = preprocessor.handle_missing_values(data=val_data, num_strategy='median', fit=False)
-    val_processed = preprocessor.scale_features(data=val_processed, exclude_features=['calories'], fit=False)
+    # Xử lý outliers chỉ trên TRAIN (không áp dụng cho test)
+    train_processed = preprocessor.handle_outliers(
+        data=train_processed,
+        exclude_features=['trans_fat_g', 'calories'],
+        outlier_strategy='drop'  # Đổi từ isolation_forest sang drop
+    )
     
-    test_processed = preprocessor.handle_missing_values(data=test_data, num_strategy='median', fit=False)
-    test_processed = preprocessor.scale_features(data=test_processed, exclude_features=['calories'], fit=False)
+    # Scaling features (FIT trên train)
+    train_processed = preprocessor.scale_features(
+        data=train_processed,
+        exclude_features=['calories'],
+        fit=True
+    )
     
-    # Chuẩn bị dữ liệu cho Optuna - Sử dụng TRAIN + VAL cho tối ưu siêu tham số
-    train_val_data = pd.concat([train_processed, val_processed], ignore_index=True)
+    # Xử lý test data (chỉ TRANSFORM)
+    # Xử lý missing values (TRANSFORM trên test)
+    test_processed = preprocessor.handle_missing_values(
+        data=test_data,
+        num_strategy='median',
+        fit=False
+    )
     
-    X_train_val = train_val_data.drop(columns=['calories']).values
-    y_train_val = train_val_data['calories'].values
+    # KHÔNG xử lý outliers trên test để tránh data leakage
+    
+    # Scale features (TRANSFORM trên test)
+    test_processed = preprocessor.scale_features(
+        data=test_processed,
+        exclude_features=['calories'],
+        fit=False
+    )
+    
+    X_train_val = train_processed.drop(columns=['calories']).values
+    y_train_val = train_processed['calories'].values
     
     X_test = test_processed.drop(columns=['calories']).values
     y_test = test_processed['calories'].values
     
-    print(f"Kích thước Train+Val: {X_train_val.shape}, Test: {X_test.shape}")
+    print(f"Kích thước Train: {X_train_val.shape}, Test: {X_test.shape}")
     
     # Khởi tạo Optuna tuner chỉ với dữ liệu TRAIN+VAL
     tuner = OptunaTuner(X_train_val, y_train_val, random_state=42)
     
     # Chạy tối ưu hóa với nhiều trials để ổn định
     print("Bắt đầu tối ưu hóa Optuna...")
-    best_params = tuner.optimize_et(n_trials=100, timeout=3600)  # Tăng trials
+    best_params = tuner.optimize_elasticnet(n_trials=100, timeout=3600)  # Tăng trials
     
     # Theo phương pháp notebook: Tạo model cuối cùng với tham số tốt nhất
     print("\n" + "="*60)
     print("TẠO MODEL CUỐI CÙNG VỚI THAM SỐ TỐT NHẤT")
     print("="*60)
     
-    final_et = ExtraTreesRegressor(
+    final_elasticnet = ElasticNet(
         **best_params,
-        n_jobs=-1,
         random_state=42
     )
     
     # Huấn luyện trên dataset TRAIN+VAL (bộ tối ưu siêu tham số)
-    final_et.fit(X_train_val, y_train_val)
+    final_elasticnet.fit(X_train_val, y_train_val)
     
     # Đánh giá trên dataset TEST (dữ liệu thực sự chưa thấy)
-    y_test_pred = final_et.predict(X_test)
+    y_test_pred = final_elasticnet.predict(X_test)
     test_mae = mean_absolute_error(y_test, y_test_pred)
     test_mse = mean_squared_error(y_test, y_test_pred)
     test_r2 = r2_score(y_test, y_test_pred)
     
     # Cũng đánh giá trên train+val để so sánh
-    y_train_val_pred = final_et.predict(X_train_val)
+    y_train_val_pred = final_elasticnet.predict(X_train_val)
     train_val_mae = mean_absolute_error(y_train_val, y_train_val_pred)
     train_val_mse = mean_squared_error(y_train_val, y_train_val_pred)
     train_val_r2 = r2_score(y_train_val, y_train_val_pred)
@@ -392,9 +416,9 @@ def main_optuna_example():
     # Lưu study và model
     study_path = tuner.save_study()
     
-    model_path = f"models/optuna_best_et_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
+    model_path = f"models/optuna_best_elasticnet_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
     os.makedirs("models", exist_ok=True)
-    joblib.dump(final_et, model_path)
+    joblib.dump(final_elasticnet, model_path)
     print(f"Model tốt nhất đã lưu vào: {model_path}")
     
     # Thử vẽ lịch sử tối ưu hóa

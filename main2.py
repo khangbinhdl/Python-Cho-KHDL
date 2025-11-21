@@ -7,7 +7,6 @@ from datetime import datetime
 import os
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
 
 def setup_logging():
 	# Tạo thư mục logs nếu chưa có
@@ -70,8 +69,14 @@ if __name__ == "__main__":
 	# eda_after.summary_statistics()
 	# eda_after.correlation_analysis()
 
-	# 6. CHIA DỮ LIỆU TRƯỚC KHI XỬ LÝ (Tránh data leakage)
-	train_data, test_data = train_test_split(clean_data, test_size=0.2, random_state=42)
+	# 6. CHIA DỮ LIỆU TRƯỚC KHI XỬ LÝ (Tránh data leakage) - Sử dụng ModelTrainer
+	temp_trainer = ModelTrainer(random_state=42)
+	temp_trainer.load_data(clean_data, target_column='calories')
+	temp_trainer.split_data(test_size=0.2)
+	
+	# Lấy train và test data từ ModelTrainer split
+	train_data = pd.concat([temp_trainer.X_train, temp_trainer.y_train], axis=1)
+	test_data = pd.concat([temp_trainer.X_test, temp_trainer.y_test], axis=1)
 	
 	# 7. Áp dụng preprocessing trên train (FIT) và test (TRANSFORM)
 	# Cập nhật lại danh sách cột cho preprocessor
@@ -116,30 +121,34 @@ if __name__ == "__main__":
 		fit=False
 	)
 
-	# 8. Chuẩn bị dữ liệu cho ModelTrainer
-	# Gộp lại train và test đã được xử lý
-	processed_data = pd.concat([train_processed, test_processed], ignore_index=True)
-	
+	# 8. In thông tin về dữ liệu đã xử lý
 	print(f"Original data shape: {clean_data.shape}")
-	print(f"Processed data shape: {processed_data.shape}")
 	print(f"Train processed shape: {train_processed.shape}")
 	print(f"Test processed shape: {test_processed.shape}")
 
-	# 9. Sử dụng ModelTrainer
-	trainer = ModelTrainer(random_state=42)
+	# 9. Sử dụng lại temp_trainer với dữ liệu đã xử lý
+	# Cập nhật dữ liệu đã xử lý vào temp_trainer
+	temp_trainer.X_train = train_processed.drop(columns=['calories'])
+	temp_trainer.X_test = test_processed.drop(columns=['calories'])
+	temp_trainer.y_train = train_processed['calories']
+	temp_trainer.y_test = test_processed['calories']
 	
-	# Nạp dữ liệu đã xử lý
-	trainer.load_data(processed_data, target_column='calories')
-	
-	# Chia lại dữ liệu với cùng tỷ lệ và random_state
-	trainer.split_data(test_size=0.2)
-	
-	# Chạy full pipeline
-	summary = trainer.run_full_pipeline(
+	# Chạy custom pipeline (bỏ qua split vì đã làm rồi)
+	summary = temp_trainer.run_full_pipeline(
 		test_size=0.2,
-		tune_best_model=True,  # Tối ưu siêu tham số cho model tốt nhất
-		save_artifacts=True    # Lưu model và kết quả
+		tune_best_model=False,  # Tối ưu siêu tham số cho model tốt nhất
+		save_artifacts=True,   # Lưu model và kết quả
+		skip_split=True       # Bỏ qua split vì đã có train/test data
 	)
+	
+	# 10. Vẽ biểu đồ và visualizations
+	temp_trainer.plot_model_comparison(save_path='plots/model_comparison.png')
+	
+	# Vẽ feature importance nếu có thể
+	try:
+		temp_trainer.plot_feature_importance(save_path='plots/feature_importance.png')
+	except Exception as e:
+		print(f"Could not plot feature importance: {e}")
 	
 	# In kết quả tổng kết
 	print("\n" + "="*50)
@@ -148,4 +157,3 @@ if __name__ == "__main__":
 	for key, value in summary.items():
 		print(f"{key}: {value}")
 	print("="*50)
-
