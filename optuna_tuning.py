@@ -22,39 +22,39 @@ warnings.filterwarnings('ignore')
 
 class OptunaTuner:
     """
-    Advanced hyperparameter tuning using Optuna Bayesian Optimization for ExtraTrees
+    Tối ưu hóa siêu tham số nâng cao sử dụng Optuna Bayesian Optimization cho ExtraTrees
     
-    Provides sophisticated hyperparameter search with pruning and 
-    parallel execution capabilities.
+    Cung cấp tìm kiếm siêu tham số tinh vi với pruning và 
+    khả năng thực thi song song.
     
-    Attributes
+    Thuộc tính
     ----------
     X_train : array-like
-        Training features
+        Đặc trưng huấn luyện
     y_train : array-like  
-        Training target
+        Mục tiêu huấn luyện
     random_state : int
-        Random seed for reproducibility
+        Seed ngẫu nhiên để tái tạo kết quả
     study : optuna.Study
-        Optuna study object
+        Đối tượng Optuna study
     best_params : dict
-        Best parameters found
+        Tham số tốt nhất được tìm thấy
     best_score : float
-        Best score achieved
+        Điểm số tốt nhất đạt được
     """
     
     def __init__(self, X_train, y_train, random_state=42):
         """
-        Initialize OptunaTuner with training data
+        Khởi tạo OptunaTuner với dữ liệu huấn luyện
         
-        Parameters
-        ----------
+        Tham số
+        -------
         X_train : array-like
-            Training features
+            Đặc trưng huấn luyện
         y_train : array-like
-            Training target  
-        random_state : int, optional
-            Random seed. Default is 42
+            Mục tiêu huấn luyện  
+        random_state : int, tùy chọn
+            Seed ngẫu nhiên. Mặc định là 42
         """
         self.X_train = X_train
         self.y_train = y_train
@@ -63,31 +63,31 @@ class OptunaTuner:
         self.best_params = None
         self.best_score = None
         
-        # Setup logging
+        # Thiết lập logging
         self.logger = logging.getLogger("OPTUNA_TUNER")
         
     def et_objective(self, trial):
         """
-        Objective function for ExtraTrees optimization
+        Hàm mục tiêu cho tối ưu hóa ExtraTrees
         
-        Parameters
-        ----------
-        trial : optuna.Trial
-            Optuna trial object
-            
-        Returns
+        Tham số
         -------
+        trial : optuna.Trial
+            Đối tượng Optuna trial
+            
+        Trả về
+        ------
         float
-            Negative RMSE score (to minimize)
+            Điểm RMSE (để tối thiểu hóa)
         """
-        # Suggest hyperparameters with focus on stability
-        n_estimators = trial.suggest_int("n_estimators", 100, 300, step=50)  # Narrower range
-        max_depth = trial.suggest_int("max_depth", 15, 35)  # Focus on deeper trees
+        # Đề xuất siêu tham số với trọng tâm vào tính ổn định
+        n_estimators = trial.suggest_int("n_estimators", 100, 300, step=50)  # Phạm vi hẹp hơn
+        max_depth = trial.suggest_int("max_depth", 15, 35)  # Tập trung vào cây sâu hơn
         min_samples_split = trial.suggest_int("min_samples_split", 2, 10)
         min_samples_leaf = trial.suggest_int("min_samples_leaf", 1, 5)
-        max_features = trial.suggest_categorical("max_features", ['sqrt', 'log2', None])  # Categorical instead of float
+        max_features = trial.suggest_categorical("max_features", ['sqrt', 'log2', None])  # Categorical thay vì float
         
-        # Create model with suggested parameters
+        # Tạo model với tham số được đề xuất
         et = ExtraTreesRegressor(
             n_estimators=n_estimators,
             max_depth=max_depth,
@@ -98,7 +98,7 @@ class OptunaTuner:
             random_state=self.random_state
         )
         
-        # Perform cross-validation
+        # Thực hiện cross-validation
         kf = KFold(n_splits=5, shuffle=True, random_state=self.random_state)
         scores = []
         
@@ -108,80 +108,80 @@ class OptunaTuner:
             y_fold_train = self.y_train.iloc[train_idx] if isinstance(self.y_train, pd.Series) else self.y_train[train_idx]
             y_fold_valid = self.y_train.iloc[valid_idx] if isinstance(self.y_train, pd.Series) else self.y_train[valid_idx]
             
-            # Fit and predict
+            # Huấn luyện và dự đoán
             et.fit(X_fold_train, y_fold_train)
             y_pred = et.predict(X_fold_valid)
             
-            # Calculate RMSE
+            # Tính RMSE
             rmse = np.sqrt(mean_squared_error(y_fold_valid, y_pred))
             scores.append(rmse)
             
-            # Report intermediate result for pruning
+            # Báo cáo kết quả trung gian cho pruning
             trial.report(np.mean(scores), step=fold)
             
-            # Check if trial should be pruned
+            # Kiểm tra xem trial có nên bị cắt tỉa không
             if trial.should_prune():
                 raise optuna.TrialPruned()
         
-        return np.mean(scores)  # Return mean RMSE (to minimize)
+        return np.mean(scores)  # Trả về RMSE trung bình (để tối thiểu hóa)
     
     def optimize_et(self, n_trials=100, timeout=3600):
         """
-        Optimize ExtraTrees hyperparameters using Optuna
+        Tối ưu hóa siêu tham số ExtraTrees sử dụng Optuna
         
-        Parameters
-        ----------
-        n_trials : int, optional
-            Maximum number of trials. Default is 100
-        timeout : int, optional
-            Time limit in seconds. Default is 3600 (1 hour)
-            
-        Returns
+        Tham số
         -------
+        n_trials : int, tùy chọn
+            Số lượng trial tối đa. Mặc định là 100
+        timeout : int, tùy chọn
+            Giới hạn thời gian tính bằng giây. Mặc định là 3600 (1 giờ)
+            
+        Trả về
+        ------
         dict
-            Best parameters found
+            Tham số tốt nhất được tìm thấy
         """
-        self.logger.info(f"Starting Optuna optimization with {n_trials} trials...")
+        self.logger.info(f"Bắt đầu tối ưu hóa Optuna với {n_trials} trials...")
         
-        # Create study
+        # Tạo study
         self.study = optuna.create_study(
             study_name=f"et_nutrition_opt_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            direction="minimize",  # Minimize RMSE
+            direction="minimize",  # Tối thiểu hóa RMSE
             sampler=TPESampler(seed=self.random_state),
             pruner=MedianPruner(n_startup_trials=10, n_warmup_steps=5),
         )
         
-        # Optimize
+        # Tối ưu hóa
         self.study.optimize(
             self.et_objective,
             n_trials=n_trials,
             timeout=timeout,
-            n_jobs=-1  # Use all CPU cores
+            n_jobs=-1  # Sử dụng tất cả CPU cores
         )
         
-        # Store results
+        # Lưu trữ kết quả
         self.best_params = self.study.best_params
         self.best_score = self.study.best_value
         
-        self.logger.info(f"Optimization completed!")
-        self.logger.info(f"Best RMSE: {self.best_score:.4f}")
-        self.logger.info(f"Best params: {self.best_params}")
+        self.logger.info(f"Tối ưu hóa hoàn thành!")
+        self.logger.info(f"RMSE tốt nhất: {self.best_score:.4f}")
+        self.logger.info(f"Tham số tốt nhất: {self.best_params}")
         
         return self.best_params
     
     def get_best_model(self):
         """
-        Get the best ExtraTrees model with optimized parameters
+        Lấy model ExtraTrees tốt nhất với tham số được tối ưu hóa
         
-        Returns
-        -------
+        Trả về
+        ------
         ExtraTreesRegressor
-            Optimized model fitted on training data
+            Model được tối ưu hóa đã huấn luyện trên dữ liệu training
         """
         if self.best_params is None:
-            raise ValueError("No optimization performed yet. Call optimize_et() first.")
+            raise ValueError("Chưa thực hiện tối ưu hóa. Gọi optimize_et() trước.")
             
-        # Create and train best model
+        # Tạo và huấn luyện model tốt nhất
         best_et = ExtraTreesRegressor(
             **self.best_params,
             n_jobs=-1,
@@ -193,20 +193,20 @@ class OptunaTuner:
     
     def save_study(self, filepath=None):
         """
-        Save Optuna study for later analysis
+        Lưu Optuna study để phân tích sau này
         
-        Parameters
-        ----------
-        filepath : str, optional
-            Path to save study. If None, auto-generate filename
-            
-        Returns
+        Tham số
         -------
+        filepath : str, tùy chọn
+            Đường dẫn để lưu study. Nếu None, tự động tạo tên file
+            
+        Trả về
+        ------
         str
-            Path to saved study
+            Đường dẫn đến study đã lưu
         """
         if self.study is None:
-            raise ValueError("No study to save. Run optimization first.")
+            raise ValueError("Không có study để lưu. Chạy tối ưu hóa trước.")
             
         os.makedirs("optuna_studies", exist_ok=True)
         
@@ -215,84 +215,84 @@ class OptunaTuner:
             filepath = f"optuna_studies/et_study_{timestamp}.pkl"
             
         joblib.dump(self.study, filepath)
-        self.logger.info(f"Study saved to: {filepath}")
+        self.logger.info(f"Study đã lưu vào: {filepath}")
         return filepath
     
     def plot_optimization_history(self, save_path=None):
         """
-        Plot optimization history using Optuna's built-in plotting
+        Vẽ biểu đồ lịch sử tối ưu hóa sử dụng plotting tích hợp của Optuna
         
-        Parameters
-        ----------
-        save_path : str, optional
-            Path to save plot. If None, just display
+        Tham số
+        -------
+        save_path : str, tùy chọn
+            Đường dẫn để lưu biểu đồ. Nếu None, chỉ hiển thị
         """
         if self.study is None:
-            raise ValueError("No study available for plotting.")
+            raise ValueError("Không có study để vẽ biểu đồ.")
             
         try:
             import optuna.visualization as vis
             import plotly.io as pio
             
-            # Create optimization history plot
+            # Tạo biểu đồ lịch sử tối ưu hóa
             fig = vis.plot_optimization_history(self.study)
-            fig.update_layout(title="Optuna Optimization History")
+            fig.update_layout(title="Lịch Sử Tối Ưu Hóa Optuna")
             
             if save_path:
                 os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else 'plots', exist_ok=True)
                 pio.write_image(fig, save_path)
-                self.logger.info(f"Optimization history saved to: {save_path}")
+                self.logger.info(f"Lịch sử tối ưu hóa đã lưu vào: {save_path}")
             
             fig.show()
             
         except ImportError:
-            self.logger.warning("Plotly not available. Cannot create optimization plots.")
+            self.logger.warning("Plotly không khả dụng. Không thể tạo biểu đồ tối ưu hóa.")
     
     def get_param_importances(self):
         """
-        Get parameter importance from the study
+        Lấy độ quan trọng của tham số từ study
         
-        Returns
-        -------
+        Trả về
+        ------
         dict
-            Parameter importance scores
+            Điểm số độ quan trọng của tham số
         """
         if self.study is None:
-            raise ValueError("No study available.")
+            raise ValueError("Không có study khả dụng.")
             
         try:
             from optuna.importance import get_param_importances
             importances = get_param_importances(self.study)
             
-            self.logger.info("Parameter importances:")
+            self.logger.info("Độ quan trọng của tham số:")
             for param, importance in importances.items():
                 self.logger.info(f"  {param}: {importance:.3f}")
                 
             return importances
             
         except ImportError:
-            self.logger.warning("Cannot calculate parameter importances.")
+            self.logger.warning("Không thể tính toán độ quan trọng tham số.")
             return {}
 
 def main_optuna_example():
     """
-    Main function demonstrating Optuna optimization for fast food nutrition prediction
-    Following the exact approach from [Bayesian]_Hyperparameters_tuning.ipynb
+    Hàm chính minh họa tối ưu hóa Optuna cho dự đoán dinh dưỡng fast food
+    Theo đúng phương pháp từ [Bayesian]_Hyperparameters_tuning.ipynb
     """
-    # Setup logging
+    # Thiết lập logging
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    # Set global random state for reproducibility
+    # Thiết lập random state toàn cục để tái tạo kết quả
     np.random.seed(42)
     
     print("="*60)
-    print("OPTUNA BAYESIAN OPTIMIZATION FOR EXTRATREES")
+    print("TỐI ƯU HÓA BAYESIAN OPTUNA CHO EXTRATREES")
     print("="*60)
     
-    # Load and preprocess data (same as main2.py)
+    # Tải và tiền xử lý dữ liệu (giống main2.py)
     file_path = 'D:\\KHDL - HCMUS\\Năm 3\\Python KHDL\\Project2\\Python-Cho-KHDL\\FastFoodNutritionMenuV3.csv'
     
     preprocessor = DataPreprocessor(missing_strategy='median',
@@ -304,18 +304,18 @@ def main_optuna_example():
     
     clean_data = preprocessor.get_processed_data()
     
-    # Split into train/val/test (60/20/20)
+    # Chia dữ liệu thành train/val/test (60/20/20)
     from sklearn.model_selection import train_test_split
     
-    # First split: separate test set (20%)
+    # Chia đầu tiên: tách test set (20%)
     train_val_data, test_data = train_test_split(clean_data, test_size=0.2, random_state=42)
     
-    # Second split: separate train and validation from remaining 80%
-    train_data, val_data = train_test_split(train_val_data, test_size=0.25, random_state=42)  # 0.25 * 0.8 = 0.2 of total
+    # Chia thứ hai: tách train và validation từ 80% còn lại
+    train_data, val_data = train_test_split(train_val_data, test_size=0.25, random_state=42)  # 0.25 * 0.8 = 0.2 của tổng
     
-    print(f"Data splits - Train: {len(train_data)}, Val: {len(val_data)}, Test: {len(test_data)}")
+    print(f"Chia dữ liệu - Train: {len(train_data)}, Val: {len(val_data)}, Test: {len(test_data)}")
     
-    # Apply preprocessing (FIT on train only)
+    # Áp dụng tiền xử lý (FIT chỉ trên train)
     preprocessor.data = train_data.copy()
     preprocessor.auto_detect_columns()
     
@@ -323,14 +323,14 @@ def main_optuna_example():
     train_processed = preprocessor.handle_outliers(data=train_processed, exclude_features=['trans_fat_g', 'calories'], outlier_strategy='drop')
     train_processed = preprocessor.scale_features(data=train_processed, exclude_features=['calories'], fit=True)
     
-    # Transform validation and test sets (no fitting)
+    # Transform validation và test sets (không fitting)
     val_processed = preprocessor.handle_missing_values(data=val_data, num_strategy='median', fit=False)
     val_processed = preprocessor.scale_features(data=val_processed, exclude_features=['calories'], fit=False)
     
     test_processed = preprocessor.handle_missing_values(data=test_data, num_strategy='median', fit=False)
     test_processed = preprocessor.scale_features(data=test_processed, exclude_features=['calories'], fit=False)
     
-    # Prepare data for Optuna - Use TRAIN + VAL for hyperparameter optimization
+    # Chuẩn bị dữ liệu cho Optuna - Sử dụng TRAIN + VAL cho tối ưu siêu tham số
     train_val_data = pd.concat([train_processed, val_processed], ignore_index=True)
     
     X_train_val = train_val_data.drop(columns=['calories']).values
@@ -339,18 +339,18 @@ def main_optuna_example():
     X_test = test_processed.drop(columns=['calories']).values
     y_test = test_processed['calories'].values
     
-    print(f"Train+Val shape: {X_train_val.shape}, Test shape: {X_test.shape}")
+    print(f"Kích thước Train+Val: {X_train_val.shape}, Test: {X_test.shape}")
     
-    # Initialize Optuna tuner with TRAIN+VAL data only
+    # Khởi tạo Optuna tuner chỉ với dữ liệu TRAIN+VAL
     tuner = OptunaTuner(X_train_val, y_train_val, random_state=42)
     
-    # Run optimization with more trials for stability
-    print("Starting Optuna optimization...")
-    best_params = tuner.optimize_et(n_trials=100, timeout=3600)  # Increase trials
+    # Chạy tối ưu hóa với nhiều trials để ổn định
+    print("Bắt đầu tối ưu hóa Optuna...")
+    best_params = tuner.optimize_et(n_trials=100, timeout=3600)  # Tăng trials
     
-    # Following notebook approach: Create final model with best params
+    # Theo phương pháp notebook: Tạo model cuối cùng với tham số tốt nhất
     print("\n" + "="*60)
-    print("CREATING FINAL MODEL WITH BEST PARAMS")
+    print("TẠO MODEL CUỐI CÙNG VỚI THAM SỐ TỐT NHẤT")
     print("="*60)
     
     final_et = ExtraTreesRegressor(
@@ -359,52 +359,52 @@ def main_optuna_example():
         random_state=42
     )
     
-    # Train on TRAIN+VAL dataset (hyperparameter optimization set)
+    # Huấn luyện trên dataset TRAIN+VAL (bộ tối ưu siêu tham số)
     final_et.fit(X_train_val, y_train_val)
     
-    # Evaluate on TEST dataset (truly unseen data)
+    # Đánh giá trên dataset TEST (dữ liệu thực sự chưa thấy)
     y_test_pred = final_et.predict(X_test)
     test_mae = mean_absolute_error(y_test, y_test_pred)
     test_mse = mean_squared_error(y_test, y_test_pred)
     test_r2 = r2_score(y_test, y_test_pred)
     
-    # Also evaluate on train+val for comparison
+    # Cũng đánh giá trên train+val để so sánh
     y_train_val_pred = final_et.predict(X_train_val)
     train_val_mae = mean_absolute_error(y_train_val, y_train_val_pred)
     train_val_mse = mean_squared_error(y_train_val, y_train_val_pred)
     train_val_r2 = r2_score(y_train_val, y_train_val_pred)
     
-    print("\nFinal model performance:")
-    print(f"  Best RMSE (CV): {tuner.best_score:.4f}")
-    print(f"\nTRAIN+VAL SET:")
+    print("\nHiệu suất model cuối cùng:")
+    print(f"  RMSE tốt nhất (CV): {tuner.best_score:.4f}")
+    print(f"\nBỘ TRAIN+VAL:")
     print(f"  MAE: {train_val_mae:.4f}")
     print(f"  MSE: {train_val_mse:.4f}")
-    print(f"  R² Score: {train_val_r2:.4f}")
-    print(f"\nTEST SET (Unseen Data):")
+    print(f"  Điểm R²: {train_val_r2:.4f}")
+    print(f"\nBỘ TEST (Dữ liệu chưa thấy):")
     print(f"  MAE: {test_mae:.4f}")
     print(f"  MSE: {test_mse:.4f}")
-    print(f"  R² Score: {test_r2:.4f}")
-    print(f"\nBest parameters: {best_params}")
+    print(f"  Điểm R²: {test_r2:.4f}")
+    print(f"\nTham số tốt nhất: {best_params}")
     
-    # Get parameter importances
+    # Lấy độ quan trọng tham số
     tuner.get_param_importances()
     
-    # Save study and model
+    # Lưu study và model
     study_path = tuner.save_study()
     
     model_path = f"models/optuna_best_et_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
     os.makedirs("models", exist_ok=True)
     joblib.dump(final_et, model_path)
-    print(f"Best model saved to: {model_path}")
+    print(f"Model tốt nhất đã lưu vào: {model_path}")
     
-    # Try to plot optimization history
+    # Thử vẽ lịch sử tối ưu hóa
     try:
         tuner.plot_optimization_history('plots/optuna_optimization_history.png')
     except:
-        print("Could not create optimization plots (plotly may not be installed)")
+        print("Không thể tạo biểu đồ tối ưu hóa (có thể plotly chưa được cài đặt)")
     
     print("="*60)
-    print("OPTUNA OPTIMIZATION COMPLETED!")
+    print("TỐI ƯU HÓA OPTUNA HOÀN THÀNH!")
     print("="*60)
 
 if __name__ == "__main__":
