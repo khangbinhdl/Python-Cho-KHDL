@@ -1,4 +1,3 @@
-# Khai báo thư viện cần thiết
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -38,7 +37,7 @@ class EDA:
 		Dữ liệu cần phân tích
 	"""
 	
-	def __init__(self, data):
+	def __init__(self, data, show_plots=True):
 		"""
 		Khởi tạo đối tượng EDA với dữ liệu
 		
@@ -46,8 +45,11 @@ class EDA:
 		----------
 		data : DataFrame
 			DataFrame chứa dữ liệu cần phân tích
+		show_plots : bool, optional
+			Quyết định có hiển thị các biểu đồ hay không. Mặc định là True.
 		"""
 		self.data = data
+		self.show_plots = show_plots
 		
 	def _log(self, message):
 		"""
@@ -149,7 +151,10 @@ class EDA:
 				plt.savefig(f'{save_path}/missing_values.png', dpi=300, bbox_inches='tight', facecolor='white')
 				self._log(f"✓ Missing values plot saved to: {save_path}/missing_values.png")
 			
-			plt.show()
+			if self.show_plots:
+				plt.show()
+			else:
+				plt.close()
 		else:
 			self._sep()
 			self._log("MISSING VALUES: No missing values found")
@@ -186,41 +191,6 @@ class EDA:
 			self._log("  - Highly skewed: |skewness| > 1")
 			self._log("  - Moderately skewed: 0.5 < |skewness| <= 1")
 			self._log("  - Fairly symmetric: |skewness| <= 0.5")
-
-			
-			# Vẽ biểu đồ skewness ngang
-			plt.figure(figsize=(8, max(5, len(numeric_cols) * 0.35)))
-			
-			# Sắp xếp theo giá trị tuyệt đối của skewness (lớn nhất ở trên)
-			skewness_sorted = skewness.sort_values(key=abs, ascending=True)
-			
-			# Tạo màu sắc gradient dựa trên giá trị skewness
-			# Normalize skewness values để map vào colormap
-			norm = plt.Normalize(vmin=skewness_sorted.min(), vmax=skewness_sorted.max())
-			colors = plt.cm.RdYlGn_r(norm(skewness_sorted.values))
-			
-			# Vẽ barh (horizontal bar)
-			bars = plt.barh(skewness_sorted.index, skewness_sorted.values, color=colors, edgecolor='black')
-			
-			# Thêm đường tham chiếu dọc
-			plt.axvline(x=0, color='black', linestyle='-', linewidth=1)
-			plt.axvline(x=1, color='gray', linestyle='--', linewidth=0.8, alpha=0.7)
-			plt.axvline(x=-1, color='gray', linestyle='--', linewidth=0.8, alpha=0.7)
-			plt.axvline(x=0.5, color='lightgray', linestyle=':', linewidth=0.8, alpha=0.7)
-			plt.axvline(x=-0.5, color='lightgray', linestyle=':', linewidth=0.8, alpha=0.7)
-			
-			plt.title('Skewness by Column', fontsize=14, fontweight='bold')
-			plt.xlabel('Skewness', fontsize=12)
-			plt.ylabel('Columns', fontsize=12)
-			plt.tight_layout()
-			
-			# Lưu biểu đồ nếu có đường dẫn
-			if save_path:
-				os.makedirs(save_path, exist_ok=True)
-				plt.savefig(f'{save_path}/skewness.png', dpi=300, bbox_inches='tight', facecolor='white')
-				self._log(f"✓ Skewness plot saved to: {save_path}/skewness.png")
-			
-			plt.show()
 
 	def correlation_analysis(self, method='pearson', save_path=None):
 		"""
@@ -281,7 +251,10 @@ class EDA:
 				plt.savefig(f'{save_path}/correlation_heatmap.png', dpi=300, bbox_inches='tight', facecolor='white')
 				self._log(f"✓ Correlation heatmap saved to: {save_path}/correlation_heatmap.png")
 			
-			plt.show()
+			if self.show_plots:
+				plt.show()
+			else:
+				plt.close()
 		else:
 			print("Không có cột số nào để tính toán tương quan.")
 
@@ -290,7 +263,7 @@ class EDA:
 		Trực quan hóa phân phối của các cột số bằng Histogram và KDE
 		
 		Vẽ biểu đồ histogram kết hợp với đường cong ước lượng mật độ hạt nhân (KDE)
-		cho từng cột số để hiểu rõ hơn về phân phối dữ liệu.
+		cho tất cả các cột số trên cùng một figure với nhiều subplots.
 
 		Parameters
 		----------
@@ -309,45 +282,82 @@ class EDA:
 		- Histogram được chuẩn hóa để tổng diện tích bằng 1
 		- KDE (Kernel Density Estimation) được tính tự động bởi seaborn
 		- Sử dụng 30 bins cho histogram
+		- Tất cả các subplots được vẽ trên cùng một figure
 		"""
 		if self.data is None:
 			raise ValueError("Data not loaded. Call load_data() first.")
 		self._log("Plotting data distributions (Histogram + KDE) for numeric columns...")
-		print("\nData Distribution for Numeric Columns (Histogram + KDE):")
-
-		for col in self.data.select_dtypes(include=np.number).columns:
-			plt.figure(figsize=(8, 5))
+		
+		# Lấy các cột số
+		numeric_cols = self.data.select_dtypes(include=np.number).columns.tolist()
+		n_cols = len(numeric_cols)
+		
+		if n_cols == 0:
+			self._log("No numeric columns found for distribution plot.")
+			return
+		
+		# Tính số hàng và cột cho subplots
+		n_rows = (n_cols + 2) // 3  # 3 subplots mỗi hàng
+		n_cols_grid = min(n_cols, 3)
+		
+		# Tạo figure với subplots
+		fig, axes = plt.subplots(n_rows, n_cols_grid, figsize=(15, 4.5 * n_rows))
+		
+		# Đảm bảo axes luôn là mảng 2D
+		if n_cols == 1:
+			axes = np.array([[axes]])
+		elif n_rows == 1:
+			axes = axes.reshape(1, -1)
+		
+		# Flatten axes để dễ iterate
+		axes_flat = axes.flatten()
+		
+		# Vẽ từng subplot
+		for idx, col in enumerate(numeric_cols):
+			ax = axes_flat[idx]
 			
 			# Vẽ histogram + KDE bằng seaborn
 			sns.histplot(data=self.data, x=col, kde=True, bins=30, 
-						color='skyblue', edgecolor='black')
+						color='skyblue', edgecolor='black', ax=ax)
 			
 			# Lấy line (KDE curve) cuối cùng và đổi màu thành đỏ
-			ax = plt.gca()
 			lines = ax.get_lines()
 			if lines:  # Nếu có đường KDE
 				lines[-1].set_color('red')
 				lines[-1].set_linewidth(2)
 			
-			plt.title(f'Distribution of {col} (with KDE)', fontsize=14, fontweight='bold')
-			plt.xlabel('Value', fontsize=12)
-			plt.ylabel('Density', fontsize=12)
-			plt.tight_layout()
-			
-			# Lưu biểu đồ nếu có đường dẫn
-			if save_path:
-				os.makedirs(save_path, exist_ok=True)
-				plt.savefig(f'{save_path}/distribution_{col}.png', dpi=300, bbox_inches='tight', facecolor='white')
-				self._log(f"✓ Distribution plot saved to: {save_path}/distribution_{col}.png")
-			
+			ax.set_title(f'{col}', fontsize=11, fontweight='bold')
+			ax.set_xlabel('Value', fontsize=9)
+			ax.set_ylabel('Density', fontsize=9)
+			ax.tick_params(axis='both', labelsize=8)
+			ax.grid(axis='y', alpha=0.3, linestyle='--')
+			ax.set_axisbelow(True)
+		
+		# Ẩn các subplot thừa
+		for idx in range(n_cols, len(axes_flat)):
+			axes_flat[idx].set_visible(False)
+		
+		# Tiêu đề chung
+		fig.suptitle('Data Distribution (Histogram + KDE)', fontsize=14, fontweight='bold', y=0.995)
+		plt.tight_layout(rect=[0, 0, 1, 0.99])
+		
+		# Lưu biểu đồ nếu có đường dẫn
+		if save_path:
+			os.makedirs(save_path, exist_ok=True)
+			plt.savefig(f'{save_path}/distribution_all.png', dpi=300, bbox_inches='tight', facecolor='white')
+			self._log(f"✓ Distribution plot saved to: {save_path}/distribution_all.png")
+		
+		if self.show_plots:
 			plt.show()
+		else:
+			plt.close()
 	
 	def boxplot_analysis(self, save_path=None):
 		"""
 		Trực quan hóa các boxplot để phát hiện ngoại lai (outliers)
 		
-		Vẽ biểu đồ boxplot cho từng cột số để dễ dàng nhận diện các giá trị
-		bất thường, phân vị và khoảng tứ phân vị (IQR) của dữ liệu.
+		Vẽ biểu đồ boxplot cho tất cả các cột số trên cùng một figure với nhiều subplots
+		để dễ dàng nhận diện các giá trị bất thường, phân vị và khoảng tứ phân vị (IQR).
 
 		Parameters
 		----------
@@ -366,28 +376,67 @@ class EDA:
 		- Outliers được xác định bằng quy tắc IQR: Q1 - 1.5*IQR và Q3 + 1.5*IQR
 		- Giá trị NaN được tự động loại bỏ trước khi vẽ
 		- Sử dụng seaborn boxplot để có giao diện đẹp hơn
+		- Tất cả các subplots được vẽ trên cùng một figure
 		"""
-		print("\nBoxplot Analysis for Numeric Columns:")
 		if self.data is None:
 			raise ValueError("Data not loaded. Call load_data() first.")
 		self._log("Boxplot analysis for numeric columns...")
-		for col in self.data.select_dtypes(include=np.number).columns:
-			plt.figure(figsize=(8, 5))
+		
+		# Lấy các cột số
+		numeric_cols = self.data.select_dtypes(include=np.number).columns.tolist()
+		n_cols = len(numeric_cols)
+		
+		if n_cols == 0:
+			self._log("No numeric columns found for boxplot.")
+			return
+		
+		# Tính số hàng và cột cho subplots
+		n_rows = (n_cols + 2) // 3  # 3 subplots mỗi hàng
+		n_cols_grid = min(n_cols, 3)
+		
+		# Tạo figure với subplots
+		fig, axes = plt.subplots(n_rows, n_cols_grid, figsize=(15, 4 * n_rows))
+		
+		# Đảm bảo axes luôn là mảng 2D
+		if n_cols == 1:
+			axes = np.array([[axes]])
+		elif n_rows == 1:
+			axes = axes.reshape(1, -1)
+		
+		# Flatten axes để dễ iterate
+		axes_flat = axes.flatten()
+		
+		# Vẽ từng subplot
+		for idx, col in enumerate(numeric_cols):
+			ax = axes_flat[idx]
 			
 			# Vẽ boxplot bằng seaborn
-			sns.boxplot(y=self.data[col], color='skyblue', width=0.5)
+			sns.boxplot(y=self.data[col], color='skyblue', width=0.5, ax=ax)
 			
-			plt.title(f'Boxplot of {col}', fontsize=14, fontweight='bold')
-			plt.ylabel('Value', fontsize=12)
-			plt.tight_layout()
-			
-			# Lưu biểu đồ nếu có đường dẫn
-			if save_path:
-				os.makedirs(save_path, exist_ok=True)
-				plt.savefig(f'{save_path}/boxplot_{col}.png', dpi=300, bbox_inches='tight', facecolor='white')
-				self._log(f"✓ Boxplot saved to: {save_path}/boxplot_{col}.png")
-			
+			ax.set_title(f'{col}', fontsize=11, fontweight='bold')
+			ax.set_ylabel('Value', fontsize=9)
+			ax.tick_params(axis='both', labelsize=8)
+			ax.grid(axis='y', alpha=0.3, linestyle='--')
+			ax.set_axisbelow(True)
+		
+		# Ẩn các subplot thừa
+		for idx in range(n_cols, len(axes_flat)):
+			axes_flat[idx].set_visible(False)
+		
+		# Tiêu đề chung
+		fig.suptitle('Boxplot Analysis for Outlier Detection', fontsize=14, fontweight='bold', y=0.995)
+		plt.tight_layout(rect=[0, 0, 1, 0.99])
+		
+		# Lưu biểu đồ nếu có đường dẫn
+		if save_path:
+			os.makedirs(save_path, exist_ok=True)
+			plt.savefig(f'{save_path}/boxplot_all.png', dpi=300, bbox_inches='tight', facecolor='white')
+			self._log(f"✓ Boxplot saved to: {save_path}/boxplot_all.png")
+		
+		if self.show_plots:
 			plt.show()
+		else:
+			plt.close()
 
 	def perform_eda(self, corr_method='pearson', save_path='EDA'):
 		"""
@@ -431,228 +480,124 @@ class EDA:
 
 class ModelVisualize:
 	"""
-	Class trực quan hóa kết quả đánh giá và phân tích mô hình Machine Learning
+	Class trực quan hóa kết quả đánh giá và phân tích mô hình Machine Learning.
 	
-	Cung cấp các phương thức để vẽ biểu đồ so sánh hiệu suất các mô hình
-	và biểu đồ độ quan trọng của features.
-
 	Attributes
 	----------
 	evaluation_results : dict
-		Dictionary chứa kết quả đánh giá từ ModelTrainer.evaluate_models()
+		Dictionary chứa 'results' (list of dicts) và 'best_model_name' (str)
 	"""
 	
-	def __init__(self, evaluation_results=None):
+	def __init__(self, evaluation_results):
 		"""
-		Khởi tạo đối tượng ModelVisualize với kết quả đánh giá
-		
 		Parameters
 		----------
-		evaluation_results : dict, optional
-			Dictionary chứa kết quả đánh giá từ ModelTrainer.evaluate_models()
-			Bao gồm: 'results', 'best_model_name', 'best_model_score'
+		evaluation_results : dict
+			Kết quả từ ModelTrainer.evaluate_models()
 		"""
 		self.evaluation_results = evaluation_results
 		
 	def _log(self, message):
-		"""
-		Ghi log thông điệp với logger của ModelVisualize
-		
-		Parameters
-		----------
-		message : str
-			Thông điệp cần ghi log
-		"""
 		MODEL_VIS_LOGGER.info(message)
 	
-	def plot_model_comparison(self, figsize=(16, 12), save_path=None):
+	def plot_model_comparison(self, save_path=None):
 		"""
-		Vẽ biểu đồ so sánh hiệu suất các mô hình với 4 subplots (MSE, RMSE, MAE, R²)
+		Vẽ 4 biểu đồ so sánh MSE, RMSE, MAE, R² của các models.
 		
 		Parameters
 		----------
-		figsize : tuple, optional
-			Kích thước figure (width, height).
-			Mặc định là (16, 12)
 		save_path : str, optional
-			Đường dẫn để lưu biểu đồ. Nếu None, chỉ hiển thị.
-			Mặc định là None
-			
-		Raises
-		------
-		ValueError
-			Nếu chưa có kết quả đánh giá
+			Đường dẫn lưu file. Nếu None, chỉ hiển thị
 		"""
-		if self.evaluation_results is None or not self.evaluation_results.get('results'):
-			raise ValueError("No evaluation results found. Provide evaluation_results when initializing.")
+		if not self.evaluation_results or not self.evaluation_results.get('results'):
+			raise ValueError("No evaluation results found.")
 			
 		results = self.evaluation_results['results']
-		best_model_name = self.evaluation_results.get('best_model_name')
-		
-		# Chuẩn bị dữ liệu
+		best_model = self.evaluation_results.get('best_model_name', 'Unknown')
 		df = pd.DataFrame(results)
 		
-		# Tạo figure với 4 subplots (2x2)
-		fig, axes = plt.subplots(2, 2, figsize=figsize)
-		axes = axes.flatten()
-		
-		# Định nghĩa các metrics và thông tin hiển thị
 		metrics = [
-			{'name': 'mse', 'title': 'Mean Squared Error (MSE)', 'ascending': True},
-			{'name': 'rmse', 'title': 'Root Mean Squared Error (RMSE)', 'ascending': True},
-			{'name': 'mae', 'title': 'Mean Absolute Error (MAE)', 'ascending': True},
-			{'name': 'r2_score', 'title': 'R² Score', 'ascending': False}
+			('mse', 'Mean Squared Error (MSE)', True),
+			('rmse', 'Root Mean Squared Error (RMSE)', True),
+			('mae', 'Mean Absolute Error (MAE)', True),
+			('r2_score', 'R² Score', False)
 		]
 		
-		# Vẽ từng subplot
-		for idx, metric_info in enumerate(metrics):
-			metric = metric_info['name']
-			title = metric_info['title']
-			ascending = metric_info['ascending']
-			
-			# Sắp xếp dữ liệu
+		fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+		axes = axes.flatten()
+		
+		for idx, (metric, title, ascending) in enumerate(metrics):
 			df_sorted = df.sort_values(by=metric, ascending=ascending)
+			palette = ['crimson' if m == best_model else 'steelblue' for m in df_sorted['model_name']]
 			
-			# Tạo color palette với highlight cho mô hình tốt nhất
-			palette = ['crimson' if name == best_model_name else 'steelblue' 
-					  for name in df_sorted['model_name']]
-			
-			# Vẽ biểu đồ
 			ax = axes[idx]
-			sns.barplot(
-				data=df_sorted, 
-				x='model_name', 
-				y=metric,
-				palette=palette,
-				hue='model_name',
-				legend=False,
-				edgecolor='black',
-				linewidth=0.8,
-				ax=ax
-			)
+			sns.barplot(data=df_sorted, x='model_name', y=metric, palette=palette, 
+						hue='model_name', legend=False, edgecolor='black', linewidth=0.8, ax=ax)
 			
-			# Thêm giá trị trên mỗi cột
-			for patch, value in zip(ax.patches, df_sorted[metric]):
-				height = patch.get_height()
-				ax.text(patch.get_x() + patch.get_width()/2, 
-					   height + abs(height) * 0.01,
-					   f'{value:.4f}', 
-					   ha='center', va='bottom', fontsize=8, fontweight='bold')
+			# Thêm giá trị
+			for patch, val in zip(ax.patches, df_sorted[metric]):
+				ax.text(patch.get_x() + patch.get_width()/2, patch.get_height(),
+						f'{val:.4f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
 			
-			# Định dạng subplot
-			ax.set_xlabel('Models', fontsize=10, fontweight='bold')
-			ax.set_ylabel(metric.replace('_', ' ').title(), fontsize=10, fontweight='bold')
-			ax.set_title(title, fontsize=12, fontweight='bold', pad=10)
-			
-			# Xoay labels và cải thiện hiển thị
+			ax.set_title(title, fontsize=12, fontweight='bold')
+			ax.set_xlabel('Models', fontsize=10)
+			ax.set_ylabel(metric.replace('_', ' ').title(), fontsize=10)
 			ax.tick_params(axis='x', rotation=45, labelsize=9)
-			ax.tick_params(axis='y', labelsize=9)
-			
-			# Thêm grid
 			ax.grid(axis='y', alpha=0.3, linestyle='--')
 			ax.set_axisbelow(True)
 		
-		# Tiêu đề chung cho toàn bộ figure
-		fig.suptitle(f'Model Performance Comparison\nBest Model: {best_model_name}', 
-					fontsize=16, fontweight='bold', y=0.995)
+		fig.suptitle(f'Model Performance Comparison | Best: {best_model}', 
+					fontsize=14, fontweight='bold', y=0.995)
+		plt.tight_layout(rect=[0, 0, 1, 0.985])
 		
-		# Tight layout
-		plt.tight_layout(rect=[0, 0, 1, 0.99])
-		
-		# Lưu biểu đồ nếu có đường dẫn
 		if save_path:
-			os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else 'plots', exist_ok=True)
+			os.makedirs(os.path.dirname(save_path) or 'plots', exist_ok=True)
 			plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
-			self._log(f"✓ Plot saved to: {save_path}")
-			
+			self._log(f"✓ Plot saved: {save_path}")
 		plt.show()
 	
-	def plot_feature_importance(self, importance_df, model_name=None, top_n=None, 
-								figsize=(10, 6), save_path=None):
+	def plot_feature_importance(self, importance_df, save_path=None):
 		"""
-		Vẽ biểu đồ độ quan trọng của features sử dụng seaborn
+		Vẽ biểu đồ feature importance.
 		
 		Parameters
 		----------
 		importance_df : DataFrame
-			DataFrame chứa 'feature' và 'importance' từ ModelTrainer.get_feature_importance()
-		model_name : str, optional
-			Tên mô hình để hiển thị trong tiêu đề. Nếu None, sử dụng best_model_name.
-			Mặc định là None
-		top_n : int, optional
-			Số lượng features quan trọng nhất để hiển thị. Nếu None, hiển thị tất cả.
-			Mặc định là None
-		figsize : tuple, optional
-			Kích thước figure (width, height).
-			Mặc định là (10, 6)
+			DataFrame với columns ['feature', 'importance'], đã sorted
 		save_path : str, optional
-			Đường dẫn để lưu biểu đồ. Nếu None, chỉ hiển thị.
-			Mặc định là None
-			
-		Raises
-		------
-		ValueError
-			Nếu importance_df không hợp lệ
+			Đường dẫn lưu file
 		"""
 		if importance_df is None or importance_df.empty:
-			raise ValueError("importance_df is empty or None")
-			
-		# Lọc top_n nếu cần
-		if top_n and top_n < len(importance_df):
-			importance_df = importance_df.head(top_n)
+			raise ValueError("importance_df is empty")
 		
-		# Xác định tên mô hình cho tiêu đề
-		if model_name is None and self.evaluation_results:
-			model_name = self.evaluation_results.get('best_model_name', 'Model')
-		elif model_name is None:
-			model_name = 'Model'
-			
-		# Sắp xếp để feature quan trọng nhất ở trên (cho horizontal plot)
+		# Lấy model name từ evaluation_results
+		model_name = self.evaluation_results.get('best_model_name', 'Model') if self.evaluation_results else 'Model'
+		
+		# Sắp xếp ascending để feature quan trọng nhất ở trên
 		importance_df = importance_df.sort_values('importance', ascending=True)
 		
-		# Vẽ biểu đồ với seaborn
-		plt.figure(figsize=figsize)
+		plt.figure(figsize=(10, max(6, len(importance_df) * 0.3)))
 		
-		# Tạo color palette gradient
 		colors = sns.color_palette("viridis", n_colors=len(importance_df))
-		
-		ax = sns.barplot(
-			data=importance_df,
-			y='feature',
-			x='importance',
-			palette=colors,
-			hue='feature',
-			legend=False,
-			edgecolor='black',
-			linewidth=0.6
-		)
+		ax = sns.barplot(data=importance_df, y='feature', x='importance', 
+						palette=colors, hue='feature', legend=False, edgecolor='black', linewidth=0.6)
 		
 		# Thêm giá trị
-		for i, (patch, value) in enumerate(zip(ax.patches, importance_df['importance'])):
-			ax.text(patch.get_width() + max(importance_df['importance']) * 0.01, 
-				   patch.get_y() + patch.get_height()/2,
-				   f'{value:.4f}', 
-				   ha='left', va='center', fontsize=9, fontweight='bold')
+		max_imp = importance_df['importance'].max()
+		for patch, val in zip(ax.patches, importance_df['importance']):
+			ax.text(patch.get_width() + max_imp * 0.01, patch.get_y() + patch.get_height()/2,
+					f'{val:.4f}', ha='left', va='center', fontsize=9, fontweight='bold')
 		
-		# Định dạng biểu đồ
-		ax.set_xlabel('Feature Importance', fontsize=12, fontweight='bold')
-		ax.set_ylabel('Features', fontsize=12, fontweight='bold')
-		ax.set_title(f'Feature Importance Analysis\n{model_name}', 
-					fontsize=14, fontweight='bold', pad=20)
-		
-		# Cải thiện hiển thị
-		ax.tick_params(axis='both', labelsize=10)
-		
-		# Thêm grid
+		ax.set_xlabel('Importance', fontsize=11, fontweight='bold')
+		ax.set_ylabel('Features', fontsize=11, fontweight='bold')
+		ax.set_title(f'Feature Importance | {model_name}', fontsize=13, fontweight='bold')
 		ax.grid(axis='x', alpha=0.3, linestyle='--')
 		ax.set_axisbelow(True)
 		
 		plt.tight_layout()
 		
-		# Lưu biểu đồ nếu có đường dẫn
 		if save_path:
-			os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else 'plots', exist_ok=True)
+			os.makedirs(os.path.dirname(save_path) or 'plots', exist_ok=True)
 			plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
-			self._log(f"✓ Feature importance plot saved to: {save_path}")
-			
+			self._log(f"✓ Feature importance saved: {save_path}")
 		plt.show()

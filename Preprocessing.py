@@ -40,16 +40,24 @@ class DataPreprocessor:
 		Dictionary lưu trữ các encoder cho từng cột
 	"""
 
-	def __init__(self, missing_strategy='mean', scaling_strategy='standard', outlier_method='iqr'):
+	def __init__(self, num_strategy='median', cat_strategy='mode', dt_strategy='drop', scaling_strategy='standard', outlier_method='iqr'):
 		"""
 		Khởi tạo đối tượng DataPreprocessor với các chiến lược xử lý
 
 		Parameters
 		----------
-		missing_strategy : str, optional
-			Phương pháp xử lý giá trị bị thiếu. 
-			Các giá trị hợp lệ: 'mean', 'median', 'mode', 'ffill', 'drop'.
-			Mặc định là 'mean'
+		num_strategy : str, optional
+			Phương pháp xử lý giá trị thiếu cho cột số.
+			Các giá trị hợp lệ: 'mean', 'median', 'mode', 'ffill', 'bfill', 'drop'.
+			Mặc định là 'median'
+		cat_strategy : str, optional
+			Phương pháp xử lý giá trị thiếu cho cột phân loại.
+			Các giá trị hợp lệ: 'mode', 'ffill', 'bfill', 'drop', 'constant'.
+			Mặc định là 'mode'
+		dt_strategy : str, optional
+			Phương pháp xử lý giá trị thiếu cho cột datetime.
+			Các giá trị hợp lệ: 'ffill', 'bfill', 'drop'.
+			Mặc định là 'drop'
 		scaling_strategy : str, optional
 			Phương pháp chuẩn hóa dữ liệu.
 			Các giá trị hợp lệ: 'standard', 'minmax'.
@@ -65,13 +73,17 @@ class DataPreprocessor:
 		self.datetime_cols = []
 
 		# Thiết lập các chiến lược xử lý
-		self.missing_strategy = missing_strategy
+		self.num_strategy = num_strategy
+		self.cat_strategy = cat_strategy
+		self.dt_strategy = dt_strategy
 		self.scaling_strategy = scaling_strategy
 		self.outlier_method = outlier_method
 
 		# Khởi tạo nơi lưu trữ các đối tượng 'fit'
 		self.scaler = None
 		self.encoders = {}
+		self.missing_num_values = {}
+		self.missing_cat_values = {}
 
 	def __repr__(self):
 		"""
@@ -82,9 +94,8 @@ class DataPreprocessor:
 		str
 			Chuỗi hiển thị các chiến lược đã chọn
 		"""
-		return (f"DataPreprocessor(missing='{self.missing_strategy}', "
-				f"scaling='{self.scaling_strategy}', "
-				f"outlier='{self.outlier_method}')")
+		return (f"DataPreprocessor(num='{self.num_strategy}', cat='{self.cat_strategy}', dt='{self.dt_strategy}', "
+				f"scaling='{self.scaling_strategy}', outlier='{self.outlier_method}')")
 
 	@staticmethod
 	def _log(message):
@@ -240,10 +251,50 @@ class DataPreprocessor:
 		self._clean_column_names()
 		# Chuyển đổi các cột từ cột thứ 3 trở đi thành kiểu số
 		self.convert_columns_to_numeric(start_col=2)
-		# Loại bỏ các cột trùng lặp
-		self.data = self.data.drop_duplicates()
 		# Tự động phân loại các cột ngay sau khi nạp
 		self.auto_detect_columns()
+		return self
+
+	def remove_duplicates(self, subset=None, keep='first'):
+		"""
+		Loại bỏ các hàng trùng lặp khỏi DataFrame
+		
+		Parameters
+		----------
+		subset : list of str, optional
+			Danh sách các cột để xét cho trùng lặp. 
+			Nếu None, xét tất cả các cột.
+			Mặc định là None
+		keep : {'first', 'last', False}, optional
+			Cách xử lý khi phát hiện trùng lặp:
+			- 'first': Giữ lại bản ghi đầu tiên, xóa những cái sau
+			- 'last': Giữ lại bản ghi cuối cùng, xóa những cái trước
+			- False: Xóa tất cả các bản ghi trùng lặp
+			Mặc định là 'first'
+
+		Returns
+		-------
+		self
+			Trả về chính đối tượng để có thể chain methods
+
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		
+		Notes
+		-----
+		- Phương thức này có thể được gọi bất kỳ lúc nào trong pipeline xử lý
+		- Index sẽ được reset sau khi xóa duplicates
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+		
+		initial_rows = len(self.data)
+		self.data = self.data.drop_duplicates(subset=subset, keep=keep).reset_index(drop=True)
+		removed_rows = initial_rows - len(self.data)
+		
+		self._log(f"Removed {removed_rows} duplicate rows (kept '{keep}'). Remaining: {len(self.data)} rows")
 		return self
 
 	def auto_detect_columns(self):
@@ -339,12 +390,11 @@ class DataPreprocessor:
 
 		return self
 	
-	def handle_missing_values(self, data=None, num_strategy=None, cat_strategy=None, dt_strategy="drop", exclude_features=None, fit=False):
+	def handle_missing_values(self, data=None, exclude_features=None, fit=False):
 		"""
 		Xử lý giá trị bị thiếu với phương pháp riêng cho từng loại cột
 		
-		Áp dụng các chiến lược khác nhau cho cột số, cột phân loại và cột datetime.
-		Nếu không truyền tham số, sẽ sử dụng giá trị mặc định từ self.missing_strategy.
+		Áp dụng các chiến lược đã được cấu hình trong __init__ cho cột số, cột phân loại và cột datetime.
 
 		Parameters
 		----------
@@ -352,18 +402,6 @@ class DataPreprocessor:
 			DataFrame cần xử lý. 
 			- None: dùng self.data như cũ.
 			- Khác None: xử lý trực tiếp trên DataFrame truyền vào và trả về DataFrame đó.
-		num_strategy : str, optional
-			Chiến lược xử lý cho cột số.
-			Các giá trị hợp lệ: 'mean', 'median', 'mode', 'ffill', 'bfill', 'drop'.
-			Mặc định lấy từ self.missing_strategy
-		cat_strategy : str, optional
-			Chiến lược xử lý cho cột phân loại.
-			Các giá trị hợp lệ: 'mode', 'ffill', 'bfill', 'drop', 'constant'.
-			Mặc định lấy từ self.missing_strategy
-		dt_strategy : str, optional
-			Chiến lược xử lý cho cột datetime.
-			Các giá trị hợp lệ: 'ffill', 'bfill', 'drop'.
-			Mặc định là 'drop'
 		exclude_features : list of str, optional
 			Danh sách tên các cột muốn bỏ qua không xử lý missing values.
 			Mặc định là None (xử lý tất cả các cột)
@@ -373,8 +411,9 @@ class DataPreprocessor:
 
 		Returns
 		-------
-		self
-			Trả về chính đối tượng để có thể chain methods
+		self hoặc DataFrame
+			Nếu data=None: trả về self
+			Nếu data được cung cấp: trả về DataFrame đã xử lý
 
 		Raises
 		------
@@ -393,29 +432,22 @@ class DataPreprocessor:
 		if exclude_features is None:
 			exclude_features = []
 
-		# Mặc định kế thừa self.missing_strategy nếu không được truyền riêng
-		num_strategy = num_strategy or self.missing_strategy
-		cat_strategy = cat_strategy or self.missing_strategy
-
 		self._log(
-			f"Handling missing values fit={fit} | num: '{num_strategy}', cat: '{cat_strategy}', dt: '{dt_strategy}'"
+			f"Handling missing values fit={fit} | num: '{self.num_strategy}', cat: '{self.cat_strategy}', dt: '{self.dt_strategy}'"
 		)
-		# Lưu lại chiến lược datetime (để biết test nên xử lý kiểu gì, mặc dù dt không cần thống kê)
-		if fit:
-			self.missing_dt_strategy = dt_strategy
 
 		# ======== FIT THAM SỐ TRÊN TRAIN (fit=True) ======== #
 		if fit:
 			# Numeric
 			self.missing_num_values = {}
-			if self.numeric_cols and num_strategy in ("mean", "median", "mode"):
+			if self.numeric_cols and self.num_strategy in ("mean", "median", "mode"):
 				for col in self.numeric_cols:
 					if col in exclude_features:
 						continue
 					if target[col].isna().any():
-						if num_strategy == "mean":
+						if self.num_strategy == "mean":
 							val = target[col].mean()
-						elif num_strategy == "median":
+						elif self.num_strategy == "median":
 							val = target[col].median()
 						else:
 							mode = target[col].mode()
@@ -424,12 +456,12 @@ class DataPreprocessor:
 
 			# Categorical
 			self.missing_cat_values = {}
-			if self.categorical_cols and cat_strategy in ("mode", "constant"):
+			if self.categorical_cols and self.cat_strategy in ("mode", "constant"):
 				for col in self.categorical_cols:
 					if col in exclude_features:
 						continue
 					if target[col].isna().any():
-						if cat_strategy == "mode":
+						if self.cat_strategy == "mode":
 							mode = target[col].mode()
 							val = mode.iloc[0] if not mode.empty else "Unknown"
 						else:  # constant
@@ -437,36 +469,42 @@ class DataPreprocessor:
 						self.missing_cat_values[col] = val
 
 		# ======== ÁP DỤNG THAM SỐ ======== #
+		initial_rows = len(target)
 
 		# Datetime
 		if self.datetime_cols:
-			use_dt_strategy = dt_strategy if fit else (self.missing_dt_strategy or dt_strategy)
-			if use_dt_strategy == "drop":
+			if self.dt_strategy == "drop":
 				target = target.dropna(subset=self.datetime_cols)
-			elif use_dt_strategy == "ffill":
+				rows_removed = initial_rows - len(target)
+				self._log(f"[datetime] Dropped {rows_removed} rows due to missing values")
+				initial_rows = len(target)
+			elif self.dt_strategy == "ffill":
 				for col in self.datetime_cols:
 					target[col] = target[col].ffill()
-			elif use_dt_strategy == "bfill":
+			elif self.dt_strategy == "bfill":
 				for col in self.datetime_cols:
 					target[col] = target[col].bfill()
 
 		# Numeric
 		if self.numeric_cols:
 			numeric_cols_to_process = [c for c in self.numeric_cols if c not in exclude_features]
-			if num_strategy == "drop":
+			if self.num_strategy == "drop":
 				if numeric_cols_to_process:
 					target = target.dropna(subset=numeric_cols_to_process)
-			elif num_strategy in ("mean", "median", "mode"):
+					rows_removed = initial_rows - len(target)
+					self._log(f"[numeric] Dropped {rows_removed} rows due to missing values")
+					initial_rows = len(target)
+			elif self.num_strategy in ("mean", "median", "mode"):
 				for col in numeric_cols_to_process:
 					# Lấy giá trị đã fit nếu có
 					val = self.missing_num_values.get(col, None)
 					if val is not None:
 						target[col] = target[col].fillna(val)
-			elif num_strategy == "ffill":
+			elif self.num_strategy == "ffill":
 				if numeric_cols_to_process:
 					for col in numeric_cols_to_process:
 						target[col] = target[col].ffill()
-			elif num_strategy == "bfill":
+			elif self.num_strategy == "bfill":
 				if numeric_cols_to_process:
 					for col in numeric_cols_to_process:
 						target[col] = target[col].bfill()
@@ -474,39 +512,49 @@ class DataPreprocessor:
 		# Categorical
 		if self.categorical_cols:
 			categorical_cols_to_process = [c for c in self.categorical_cols if c not in exclude_features]
-			if cat_strategy == "drop":
+			if self.cat_strategy == "drop":
 				if categorical_cols_to_process:
 					target = target.dropna(subset=categorical_cols_to_process)
-			elif cat_strategy == "mode":
+					rows_removed = initial_rows - len(target)
+					self._log(f"[categorical] Dropped {rows_removed} rows due to missing values")
+					initial_rows = len(target)
+			elif self.cat_strategy == "mode":
 				for col in categorical_cols_to_process:
 					val = self.missing_cat_values.get(col, None)
 					if val is None:
 						mode = target[col].mode()
 						val = mode.iloc[0] if not mode.empty else "Unknown"
 					target[col] = target[col].fillna(val)
-			elif cat_strategy == "ffill":
+			elif self.cat_strategy == "ffill":
 				if categorical_cols_to_process:
 					for col in categorical_cols_to_process:
 						target[col] = target[col].ffill()
-			elif cat_strategy == "bfill":
+			elif self.cat_strategy == "bfill":
 				if categorical_cols_to_process:
 					for col in categorical_cols_to_process:
 						target[col] = target[col].bfill()
-			elif cat_strategy == "constant":
+			elif self.cat_strategy == "constant":
 				for col in categorical_cols_to_process:
 					val = self.missing_cat_values.get(col, "Unknown")
-					target[col] = target[col].fillna(val)		# Cập nhật lại phân loại cột chỉ khi làm việc với self.data
+					target[col] = target[col].fillna(val)
+		
+		# Reset index sau khi xử lý
+		target = target.reset_index(drop=True)
+		
+		# Cập nhật lại phân loại cột chỉ khi làm việc với self.data
 		if data is None:
+			self.data = target
 			self.auto_detect_columns()
 			return self
 		else:
 			return target
-	def handle_outliers(self, data=None, exclude_features=None, outlier_strategy='drop'):
+		
+	def handle_outliers(self, data=None, exclude_features=None):
 		"""
-		Phát hiện và xử lý các ngoại lai (outliers) trong dữ liệu
+		Phát hiện và loại bỏ các ngoại lai (outliers) trong dữ liệu
 		
 		Sử dụng một trong ba phương pháp: IQR, Z-score hoặc Isolation Forest
-		để phát hiện outliers, sau đó loại bỏ hàng (drop) hoặc cắt giá trị (clip).
+		để phát hiện và loại bỏ các hàng chứa outliers.
 		
 		LƯU Ý: Chỉ nên áp dụng trên tập TRAIN, KHÔNG nên xử lý outlier trên tập test
 		để tránh data leakage và đảm bảo đánh giá mô hình chính xác.
@@ -519,11 +567,6 @@ class DataPreprocessor:
 		exclude_features : list of str, optional
 			Danh sách tên các cột muốn bỏ qua không xử lý ngoại lai.
 			Mặc định là None (xử lý tất cả các cột số)
-		outlier_strategy : str, optional
-			Chiến lược xử lý outliers.
-			- 'drop': Xóa các hàng chứa outliers
-			- 'clip': Cắt giá trị outliers về ngưỡng min/max (giữ lại tất cả dữ liệu)
-			Mặc định là 'drop'
 			
 		Returns
 		-------
@@ -535,8 +578,6 @@ class DataPreprocessor:
 		------
 		ValueError
 			Nếu dữ liệu chưa được nạp
-		NotImplementedError
-			Nếu chọn chiến lược 'clip' với phương pháp Isolation Forest
 	
 		Notes
 		-----
@@ -544,10 +585,6 @@ class DataPreprocessor:
 		- IQR: Phát hiện giá trị nằm ngoài [Q1 - 1.5*IQR, Q3 + 1.5*IQR]
 		- Z-score: Phát hiện giá trị nằm ngoài khoảng ±3σ
 		- Isolation Forest: Sử dụng thuật toán ML (contamination=0.1)
-		
-		Chiến lược xử lý:
-		- drop: Xóa hàng chứa outliers (giảm số lượng dữ liệu)
-		- clip: Cắt giá trị về ngưỡng (giữ nguyên số lượng dữ liệu, thay đổi giá trị)
 		"""
 		if data is None:
 			if self.data is None:
@@ -559,53 +596,31 @@ class DataPreprocessor:
 		if exclude_features is None:
 			exclude_features = []
 
-		self._log(f"[Outlier] method='{self.outlier_method}', strategy='{outlier_strategy}'")
+		self._log(f"[Outlier] method='{self.outlier_method}' - Removing outliers")
 		initial_rows = len(target)
-		clipped_values_count = 0
 
 		# ====== IQR & Z-SCORE ====== #
 		if self.outlier_method in ('iqr', 'zscore'):
-			if outlier_strategy == 'drop':
-				mask = pd.Series(True, index=target.index)
-				for col in self.numeric_cols:
-					if col in exclude_features:
-						continue
-					# Tính ngưỡng trực tiếp từ dữ liệu
-					if self.outlier_method == 'iqr':
-						Q1 = target[col].quantile(0.25)
-						Q3 = target[col].quantile(0.75)
-						IQR = Q3 - Q1
-						lower_bound = Q1 - 1.5 * IQR
-						upper_bound = Q3 + 1.5 * IQR
-					else:  # zscore
-						mean = target[col].mean()
-						std = target[col].std()
-						lower_bound = mean - 3 * std
-						upper_bound = mean + 3 * std
+			mask = pd.Series(True, index=target.index)
+			for col in self.numeric_cols:
+				if col in exclude_features:
+					continue
+				# Tính ngưỡng trực tiếp từ dữ liệu
+				if self.outlier_method == 'iqr':
+					Q1 = target[col].quantile(0.25)
+					Q3 = target[col].quantile(0.75)
+					IQR = Q3 - Q1
+					lower_bound = Q1 - 1.5 * IQR
+					upper_bound = Q3 + 1.5 * IQR
+				else:  # zscore
+					mean = target[col].mean()
+					std = target[col].std()
+					lower_bound = mean - 3 * std
+					upper_bound = mean + 3 * std
 
-					mask &= (target[col] >= lower_bound) & (target[col] <= upper_bound)
+				mask &= (target[col] >= lower_bound) & (target[col] <= upper_bound)
 
-				target = target[mask]
-
-			elif outlier_strategy == 'clip':
-				for col in self.numeric_cols:
-					if col in exclude_features:
-						continue
-					# Tính ngưỡng trực tiếp từ dữ liệu
-					if self.outlier_method == 'iqr':
-						Q1 = target[col].quantile(0.25)
-						Q3 = target[col].quantile(0.75)
-						IQR = Q3 - Q1
-						lower_bound = Q1 - 1.5 * IQR
-						upper_bound = Q3 + 1.5 * IQR
-					else:  # zscore
-						mean = target[col].mean()
-						std = target[col].std()
-						lower_bound = mean - 3 * std
-						upper_bound = mean + 3 * std
-
-					clipped_values_count += ((target[col] < lower_bound) | (target[col] > upper_bound)).sum()
-					target[col] = target[col].clip(lower=lower_bound, upper=upper_bound)
+			target = target[mask]
 
 		# ====== ISOLATION FOREST ====== #
 		elif self.outlier_method == 'isolation_forest':
@@ -614,22 +629,14 @@ class DataPreprocessor:
 			if not numeric_cols_for_isolation:
 				self._log("Isolation Forest: No numeric columns to process after excluding specified features.")
 			else:
-				# Tạo model mới và fit trực tiếp (không lưu lại)
-				iso_model = IsolationForest(contamination=0.1, random_state=42)
+				iso_model = IsolationForest(random_state=42)
 				yhat = iso_model.fit_predict(target[numeric_cols_for_isolation])
-
-				if outlier_strategy == 'drop':
-					target = target[yhat == 1]
-				elif outlier_strategy == 'clip':
-					raise NotImplementedError("Clipping not implemented for Isolation Forest method.")
+				target = target[yhat == 1]
 
 		# ====== LOG KẾT QUẢ ====== #
-		if outlier_strategy == 'drop':
-			rows_removed = initial_rows - len(target)
-			self._log(f"Removed {rows_removed} rows ({rows_removed / initial_rows * 100:.2f}% of data) as outliers")
-			target = target.reset_index(drop=True)
-		elif outlier_strategy == 'clip':
-			self._log(f"Clipped {clipped_values_count} outlier values to bounds (no rows removed)")
+		rows_removed = initial_rows - len(target)
+		self._log(f"Removed {rows_removed} rows ({rows_removed / initial_rows * 100:.2f}% of data) as outliers")
+		target = target.reset_index(drop=True)
 
 		# nếu đang xử lý self.data thì update self.data, ngược lại trả về DataFrame
 		if data is None:
