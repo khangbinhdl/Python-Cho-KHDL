@@ -73,8 +73,7 @@ class BayesianOptimizer:
 		-----
 		Các model được hỗ trợ:
 		- RandomForest: n_estimators, max_depth, min_samples_split, min_samples_leaf, max_features
-		- LightGBM: n_estimators, learning_rate, num_leaves, max_depth, min_child_samples,
-		  subsample, colsample_bytree, reg_alpha, reg_lambda
+		- LightGBM: n_estimators, learning_rate, num_leaves, max_depth, min_child_samples, subsample, colsample_bytree, reg_alpha, reg_lambda
 		- Ridge: alpha
 		- Lasso: alpha
 		- ElasticNet: alpha, l1_ratio
@@ -196,8 +195,8 @@ class BayesianOptimizer:
 			
 		Notes
 		-----
-		Sử dụng cross-validation với scoring='neg_mean_squared_error'.
-		Optimization direction là 'minimize' để tìm MSE nhỏ nhất.
+		Sử dụng cross-validation với scoring='r2'.
+		Optimization direction là 'maximize' để tìm R² lớn nhất.
 		"""
 		# Skip LinearRegression
 		if model_name == 'LinearRegression':
@@ -216,30 +215,30 @@ class BayesianOptimizer:
 			try:
 				model = self._create_model(model_name, trial)
 				if model is None:
-					return float('inf')
+					return float('-inf')
 				
-				# Cross-validation scoring
+				# Cross-validation scoring với R²
 				scores = cross_val_score(
 					model, self.X_train, self.y_train, 
 					cv=self.cv, 
-					scoring='neg_mean_squared_error', 
+					scoring='r2', 
 					n_jobs=1
 				)
-				# Trả về MSE (dương)
-				return -scores.mean()
+				# Trả về R² trung bình
+				return scores.mean()
 				
 			except Exception as e:
 				LOGGER.error(f"Trial failed: {e}")
-				return float('inf')
+				return float('-inf')
 
-		# Chạy optimization
-		study = optuna.create_study(direction='minimize')
+		# Chạy optimization với direction='maximize' cho R²
+		study = optuna.create_study(direction='maximize')
 		study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
 
 		best_params = study.best_params
 		best_score = study.best_value
 		
-		LOGGER.info(f"✓ Best MSE: {best_score:.4f}")
+		LOGGER.info(f"✓ Best R²: {best_score:.4f}")
 		LOGGER.info(f"✓ Best Params: {best_params}")
 
 		return best_params

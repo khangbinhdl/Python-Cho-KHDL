@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
+from sklearn.preprocessing import StandardScaler, RobustScaler, LabelEncoder
 from sklearn.ensemble import IsolationForest
 import logging
 
@@ -60,7 +60,7 @@ class DataPreprocessor:
 			Mặc định là 'drop'
 		scaling_strategy : str, optional
 			Phương pháp chuẩn hóa dữ liệu.
-			Các giá trị hợp lệ: 'standard', 'minmax'.
+			Các giá trị hợp lệ: 'standard', 'robust'.
 			Mặc định là 'standard'
 		outlier_method : str, optional
 			Phương pháp phát hiện ngoại lai.
@@ -155,18 +155,19 @@ class DataPreprocessor:
 		self.data.columns = [dedup(c) for c in cols]
 		self._log("Column names cleaned successfully.")
 	
-	def convert_columns_to_numeric(self, start_col=2):
+	def convert_columns_to_numeric(self, columns=None):
 		"""
-		Chuyển đổi các cột từ vị trí chỉ định trở đi trong DataFrame thành kiểu số
+		Chuyển đổi các cột được chỉ định trong DataFrame thành kiểu số
 		
 		Phương thức này sẽ loại bỏ dấu phẩy, khoảng trắng và chuyển đổi sang kiểu số.
 		Đây là đặc trưng của bộ dữ liệu nhóm đã chọn.
 
 		Parameters
 		----------
-		start_col : int, optional
-			Chỉ số cột bắt đầu chuyển đổi (mặc định là 2, tương ứng với cột thứ 3).
-			Mặc định là 2
+		columns : list of str, optional
+			Danh sách tên các cột cần chuyển đổi sang kiểu số.
+			Nếu None, chuyển đổi tất cả các cột có kiểu 'object'.
+			Mặc định là None
 
 		Returns
 		-------
@@ -178,12 +179,21 @@ class DataPreprocessor:
 		ValueError
 			Nếu dữ liệu chưa được nạp
 		"""
-		self._log(f"Converting columns starting from column {start_col+1} to numeric...")
 		if self.data is None:
 			raise ValueError("Data not loaded. Call load_data() first.")
+		
+		# Nếu không truyền vào columns, chuyển đổi tất cả cột object
+		if columns is None:
+			columns = self.data.select_dtypes(include=['object']).columns.tolist()
+		
+		self._log(f"Converting {len(columns)} columns to numeric: {columns}")
 
-		# Chọn các cột từ cột thứ 3 trở đi (do đây là đặc trưng của bộ dữ liệu nhóm đã chọn )
-		for col in self.data.columns[start_col:]:
+		# Chuyển đổi từng cột
+		for col in columns:
+			if col not in self.data.columns:
+				self._log(f"Warning: Column '{col}' not found, skipping...")
+				continue
+			
 			# Kiểm tra xem cột có kiểu dữ liệu 'object'
 			if self.data[col].dtype == 'object':
 				# Loại bỏ dấu phẩy và khoảng trắng trước khi chuyển đổi
@@ -250,14 +260,16 @@ class DataPreprocessor:
 		# Chuẩn hóa tên cột sau khi nạp dữ liệu
 		self._clean_column_names()
 		# Chuyển đổi các cột từ cột thứ 3 trở đi thành kiểu số
-		self.convert_columns_to_numeric(start_col=2)
+		# Lấy danh sách cột từ vị trí thứ 3 trở đi (index 2)
+		cols_to_convert = self.data.columns[2:].tolist()
+		self.convert_columns_to_numeric(columns=cols_to_convert)
 		# Tự động phân loại các cột ngay sau khi nạp
 		self.auto_detect_columns()
 		return self
 
-	def remove_duplicates(self, subset=None, keep='first'):
+	def remove_duplicates(self, subset=None):
 		"""
-		Loại bỏ các hàng trùng lặp khỏi DataFrame
+		Loại bỏ các hàng trùng lặp khỏi DataFrame, giữ lại bản ghi đầu tiên
 		
 		Parameters
 		----------
@@ -265,12 +277,6 @@ class DataPreprocessor:
 			Danh sách các cột để xét cho trùng lặp. 
 			Nếu None, xét tất cả các cột.
 			Mặc định là None
-		keep : {'first', 'last', False}, optional
-			Cách xử lý khi phát hiện trùng lặp:
-			- 'first': Giữ lại bản ghi đầu tiên, xóa những cái sau
-			- 'last': Giữ lại bản ghi cuối cùng, xóa những cái trước
-			- False: Xóa tất cả các bản ghi trùng lặp
-			Mặc định là 'first'
 
 		Returns
 		-------
@@ -285,16 +291,17 @@ class DataPreprocessor:
 		Notes
 		-----
 		- Phương thức này có thể được gọi bất kỳ lúc nào trong pipeline xử lý
+		- Luôn giữ lại bản ghi đầu tiên, xóa những cái sau
 		- Index sẽ được reset sau khi xóa duplicates
 		"""
 		if self.data is None:
 			raise ValueError("Data not loaded. Call load_data() first.")
 		
 		initial_rows = len(self.data)
-		self.data = self.data.drop_duplicates(subset=subset, keep=keep).reset_index(drop=True)
+		self.data = self.data.drop_duplicates(subset=subset, keep='first').reset_index(drop=True)
 		removed_rows = initial_rows - len(self.data)
 		
-		self._log(f"Removed {removed_rows} duplicate rows (kept '{keep}'). Remaining: {len(self.data)} rows")
+		self._log(f"Removed {removed_rows} duplicate rows (kept first occurrence). Remaining: {len(self.data)} rows")
 		return self
 
 	def auto_detect_columns(self):
@@ -427,7 +434,7 @@ class DataPreprocessor:
 				raise ValueError("Data not loaded.")
 			target = self.data
 		else:
-			target = data
+			target = data.copy()
 
 		if exclude_features is None:
 			exclude_features = []
@@ -591,7 +598,7 @@ class DataPreprocessor:
 				raise ValueError("Data not loaded.")
 			target = self.data
 		else:
-			target = data
+			target = data.copy()
 
 		if exclude_features is None:
 			exclude_features = []
@@ -727,14 +734,14 @@ class DataPreprocessor:
 		Notes
 		-----
 		- StandardScaler: Chuẩn hóa về phân phối chuẩn (mean=0, std=1)
-		- MinMaxScaler: Chuẩn hóa về khoảng [0, 1]
+		- RobustScaler: Chuẩn hóa sử dụng median và IQR, ít nhạy cảm với outlier
 		"""
 		if data is None:
 			if self.data is None:
 				raise ValueError("Data not loaded.")
 			target = self.data
 		else:
-			target = data
+			target = data.copy()
 
 		if exclude_features is None:
 			exclude_features = []
@@ -747,8 +754,8 @@ class DataPreprocessor:
 		if fit or self.scaler is None:
 			if self.scaling_strategy == 'standard':
 				self.scaler = StandardScaler()
-			elif self.scaling_strategy == 'minmax':
-				self.scaler = MinMaxScaler()
+			elif self.scaling_strategy == 'robust':
+				self.scaler = RobustScaler()
 			else:
 				self._log("Unknown scaling strategy. Defaulting to StandardScaler.")
 				self.scaler = StandardScaler()
@@ -758,11 +765,6 @@ class DataPreprocessor:
 				target[numeric_cols_to_scale] = self.scaler.fit_transform(target[numeric_cols_to_scale])
 				# Lưu danh sách cột đã scale để dùng khi transform
 				self.scaled_cols_ = numeric_cols_to_scale
-
-			# Nếu là MinMaxScaler thì lưu min/max theo cột
-			if isinstance(self.scaler, MinMaxScaler) and numeric_cols_to_scale:
-				self.scale_min_ = dict(zip(numeric_cols_to_scale, self.scaler.data_min_))
-				self.scale_max_ = dict(zip(numeric_cols_to_scale, self.scaler.data_max_))
 		else:
 			# Chỉ transform với scaler đã fit (cho test/val)
 			# Sử dụng danh sách cột đã được fit

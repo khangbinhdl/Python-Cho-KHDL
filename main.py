@@ -39,10 +39,10 @@ if __name__ == "__main__":
 	# =========================================================================
 
 	preprocessor = DataPreprocessor(
-		num_strategy='median',
+		num_strategy='mean',
 		cat_strategy='mode', 
 		dt_strategy='drop',
-		scaling_strategy='standard',
+		scaling_strategy='robust',
 		outlier_method='isolation_forest',
 	)
 	preprocessor.load_data(file_path)
