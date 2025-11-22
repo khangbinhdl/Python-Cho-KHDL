@@ -1,3 +1,18 @@
+Hướng dẫn test
+```bash
+# Bước 1: Clone
+git clone -b feature/gemini_model https://github.com/khangbinhdl/Python-Cho-KHDL.git   
+cd "Cuối kì"
+
+# Bước 2: Setup
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Bước 3: Chạy
+main.py
+```
+
 # Link dataset: 
 [Kaggle](https://www.kaggle.com/datasets/tan5577/nutritonal-fast-food-dataset)
 
@@ -20,12 +35,3 @@
 | **Weight Watchers Pnts** | Điểm số theo hệ thống tính điểm của chương trình ăn kiêng Weight Watchers (có thể đã lỗi thời hoặc chỉ áp dụng cho một số thị trường). |
 
 
-Hướng dẫn test
-# Bước 1: Clone
-git clone -b feature/gemini_model https://github.com/khangbinhdl/Python-Cho-KHDL.git
-cd "Cuối kì"
-
-# Bước 2: Setup
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
