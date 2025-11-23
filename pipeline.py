@@ -39,11 +39,11 @@ if __name__ == "__main__":
 	# =========================================================================
 
 	preprocessor = DataPreprocessor(
-		num_strategy='mean',
+		num_strategy='drop',
 		cat_strategy='mode', 
 		dt_strategy='drop',
-		scaling_strategy='robust',
-		outlier_method='isolation_forest',
+		scaling_strategy='standard',
+		outlier_method='zscore',
 	)
 	preprocessor.load_data(file_path)
 
@@ -51,8 +51,8 @@ if __name__ == "__main__":
 	# 2. EDA TRƯỚC KHI XỬ LÝ DỮ LIỆU
 	# =========================================================================
 
-	# eda_before = EDA(preprocessor.get_processed_data(), show_plots=False)
-	# eda_before.perform_eda(save_path='plots/eda/before')
+	eda_before = EDA(preprocessor.get_processed_data(), show_plots=False)
+	eda_before.perform_eda(save_path='plots/eda/before')
 
 	# =========================================================================
 	# 3. Chia dữ liệu TRAIN/TEST, TIẾN HÀNH XỬ LÝ DỮ LIỆU
@@ -123,14 +123,14 @@ if __name__ == "__main__":
 	# 4. EDA SAU KHI XỬ LÝ DỮ LIỆU
 	# =========================================================================
 
-	# merged_df = pd.concat([train_processed, test_processed], ignore_index=True)
+	merged_df = pd.concat([train_processed, test_processed], ignore_index=True)
 	
-	# logger.info(f"Train set size: {len(train_processed)}")
-	# logger.info(f"Test set size: {len(test_processed)}")
-	# logger.info(f"Merged set size: {len(merged_df)}")
+	logger.info(f"Train set size: {len(train_processed)}")
+	logger.info(f"Test set size: {len(test_processed)}")
+	logger.info(f"Merged set size: {len(merged_df)}")
 	
-	# eda_after = EDA(merged_df, show_plots=False)
-	# eda_after.perform_eda(save_path='plots/eda/after')
+	eda_after = EDA(merged_df, show_plots=False)
+	eda_after.perform_eda(save_path='plots/eda/after')
 
 	# # =========================================================================
 	# # =========================================================================
@@ -144,10 +144,10 @@ if __name__ == "__main__":
 	trainer.initialize_models()
 
 	# Optimize hyperparams cho tất cả models (50 trials)
-	# models_to_optimize = ['RandomForest', 'LightGBM', 'Ridge', 'Lasso', 'ElasticNet']
-	# for model_name in models_to_optimize:
-	#     logger.info(f"Optimizing {model_name}...")
-	#     trainer.optimize_params(model_name, n_trials=50, n_jobs=3)
+	models_to_optimize = ['RandomForest', 'LightGBM', 'Ridge', 'Lasso', 'ElasticNet']
+	for model_name in models_to_optimize:
+		logger.info(f"Optimizing {model_name}...")
+		trainer.optimize_params(model_name, n_trials=50, n_jobs=3)
 	
 	# Train tất cả models với params đã optimize
 	trainer.train_models()
@@ -160,7 +160,7 @@ if __name__ == "__main__":
 	trainer.save_results(filepath="results/evaluation_results.json", format='json')
 	
 	# Lưu mô hình tốt nhất
-	# trainer.save_model()
+	trainer.save_model()
 	
 	# =========================================================================
 	# 6. VISUALIZE
@@ -169,7 +169,7 @@ if __name__ == "__main__":
 	vis.plot_model_comparison(save_path='plots/comparison.png')
 	
 	# Feature importance (top_n đã được xử lý trong get_feature_importance)
-	# imp_df = trainer.get_feature_importance(top_n=15)
-	# vis.plot_feature_importance(imp_df, save_path='plots/importance.png')
+	imp_df = trainer.get_feature_importance(top_n=15)
+	vis.plot_feature_importance(imp_df, save_path='plots/importance.png')
 
 	logger.info("Process Completed.")
