@@ -52,6 +52,41 @@ class BayesianOptimizer:
 		self.random_state = random_state
 		self.cv = cv
 
+	def __str__(self):
+		"""
+		Biểu diễn chuỗi thân thiện với người dùng
+		
+		Returns
+		-------
+		str
+			Chuỗi mô tả trạng thái của optimizer
+		"""
+		n_samples = len(self.X_train) if hasattr(self.X_train, '__len__') else 0
+		return f"BayesianOptimizer: {n_samples} samples, cv={self.cv}"
+
+	def __repr__(self):
+		"""
+		Biểu diễn chuỗi dành cho developer
+		
+		Returns
+		-------
+		str
+			Chuỗi mô tả chi tiết
+		"""
+		return f"BayesianOptimizer(random_state={self.random_state}, cv={self.cv})"
+
+	@staticmethod
+	def _log(message):
+		"""
+		Ghi log thông điệp với logger của Optimizer
+		
+		Parameters
+		----------
+		message : str
+			Thông điệp cần ghi log
+		"""
+		LOGGER.info(message)
+
 	def _get_search_space(self, model_name):
 		"""
 		Trả về search space cho từng model.
@@ -200,16 +235,16 @@ class BayesianOptimizer:
 		"""
 		# Skip LinearRegression
 		if model_name == 'LinearRegression':
-			LOGGER.info("LinearRegression does not require optimization. Skipping.")
+			self._log("LinearRegression does not require optimization. Skipping.")
 			return None
 		
 		# Kiểm tra xem model có được support không
 		search_space = self._get_search_space(model_name)
 		if search_space is None:
-			LOGGER.warning(f"Model '{model_name}' chưa được định nghĩa search space. Skipping.")
+			self._log(f"Model '{model_name}' chưa được định nghĩa search space. Skipping.")
 			return None
 		
-		LOGGER.info(f"--- Optuna: Optimizing {model_name} ({n_trials} trials) ---")
+		self._log(f"--- Optuna: Optimizing {model_name} ({n_trials} trials) ---")
 
 		def objective(trial):
 			try:
@@ -228,7 +263,7 @@ class BayesianOptimizer:
 				return scores.mean()
 				
 			except Exception as e:
-				LOGGER.error(f"Trial failed: {e}")
+				self._log(f"✗ Trial failed: {e}")
 				return float('-inf')
 
 		# Chạy optimization với direction='maximize' cho R²
@@ -238,7 +273,7 @@ class BayesianOptimizer:
 		best_params = study.best_params
 		best_score = study.best_value
 		
-		LOGGER.info(f"✓ Best R²: {best_score:.4f}")
-		LOGGER.info(f"✓ Best Params: {best_params}")
+		self._log(f"✓ Best R²: {best_score:.4f}")
+		self._log(f"✓ Best Params: {best_params}")
 
 		return best_params
