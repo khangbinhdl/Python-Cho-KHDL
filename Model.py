@@ -24,10 +24,49 @@ if not LOGGER.handlers:
 
 class ModelTrainer:
 	"""
-	Class quản lý toàn bộ quy trình: Chia dữ liệu, Chuẩn bị X/y, Huấn luyện, Tối ưu và Đánh giá.
+	Class quản lý toàn bộ quy trình huấn luyện và đánh giá mô hình Machine Learning
+	
+	Quản lý các bước: Chia dữ liệu, Chuẩn bị X/y, Huấn luyện, Tối ưu hóa tham số và Đánh giá.
+	
+	Attributes
+	----------
+	random_state : int
+		Seed cho reproducibility
+	data : DataFrame or None
+		Dữ liệu gốc được nạp vào
+	train_df : DataFrame or None
+		Dữ liệu training sau khi split
+	test_df : DataFrame or None
+		Dữ liệu testing sau khi split
+	X_train : DataFrame or None
+		Features của tập training
+	X_test : DataFrame or None
+		Features của tập testing
+	y_train : Series or None
+		Target của tập training
+	y_test : Series or None
+		Target của tập testing
+	models : dict
+		Dictionary chứa các model templates (chưa train)
+	trained_models : dict
+		Dictionary chứa các models đã được huấn luyện
+	results : list
+		Danh sách kết quả đánh giá các models
+	best_model : object or None
+		Model có hiệu suất tốt nhất
+	best_model_name : str or None
+		Tên của model tốt nhất
 	"""
 
 	def __init__(self, random_state=42):
+		"""
+		Khởi tạo ModelTrainer
+		
+		Parameters
+		----------
+		random_state : int, optional
+			Seed cho reproducibility. Mặc định là 42
+		"""
 		self.random_state = random_state
 		
 		# Các biến chứa dữ liệu
@@ -43,14 +82,39 @@ class ModelTrainer:
 		self.models = {}  # Model templates (chưa train)
 		self.trained_models = {}  # Models đã train
 		self.results = []  # Kết quả đánh giá
-		self.evaluation_results = []  # Alias của results (để tương thích)
 		self.best_model = None  # Model tốt nhất
 		self.best_model_name = None  # Tên model tốt nhất
 
 		np.random.seed(random_state)
 		self._log("ModelTrainer initialized with random_state={}".format(random_state))
 
-	def _log(self, message):
+	def __str__(self):
+		"""
+		Biểu diễn chuỗi thân thiện với người dùng
+		
+		Returns
+		-------
+		str
+			Chuỗi mô tả trạng thái hiện tại của trainer
+		"""
+		trained_count = len(self.trained_models)
+		if trained_count == 0:
+			return "ModelTrainer (chưa huấn luyện model nào)"
+		return f"ModelTrainer: {trained_count} models đã train, best={self.best_model_name}"
+
+	def __repr__(self):
+		"""
+		Biểu diễn chuỗi dành cho developer
+		
+		Returns
+		-------
+		str
+			Chuỗi mô tả chi tiết
+		"""
+		return f"ModelTrainer(random_state={self.random_state}, trained={len(self.trained_models)})"
+
+	@staticmethod
+	def _log(message):
 		LOGGER.info(message)
 
 	def load_data(self, data, target_column='calories'):
@@ -91,10 +155,27 @@ class ModelTrainer:
 
 	def split_data(self, test_size=0.2, stratify=None):
 		"""
+		Chia dữ liệu thành tập train và test
+		
 		Parameters
 		----------
-		data : DataFrame
-			Dữ liệu đã được xử lý sơ bộ (clean basic, encode).
+		test_size : float, optional
+			Tỷ lệ dữ liệu dùng cho test (0.0 - 1.0). Mặc định là 0.2
+		stratify : array-like or None, optional
+			Nếu không None, dữ liệu được chia theo stratified split.
+			Mặc định là None
+			
+		Returns
+		-------
+		train_df : DataFrame
+			Dữ liệu training
+		test_df : DataFrame
+			Dữ liệu testing
+			
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
 		"""
 		if self.data is None:
 			raise ValueError("Data not loaded. Call load_data() first.")
@@ -108,6 +189,22 @@ class ModelTrainer:
 		return self.train_df, self.test_df
 
 	def set_training_data(self, train_processed, test_processed, target_col):
+		"""
+		Thiết lập dữ liệu đã xử lý và tách thành X, y
+		
+		Parameters
+		----------
+		train_processed : DataFrame
+			Dữ liệu training đã được tiền xử lý
+		test_processed : DataFrame
+			Dữ liệu testing đã được tiền xử lý
+		target_col : str
+			Tên cột target cần dự đoán
+			
+		Notes
+		-----
+		Method này tách features (X) và target (y) cho cả train và test set.
+		"""
 		self._log("Setting processed training data (separating X and y)...")
 		
 		self.X_train = train_processed.drop(columns=[target_col])
@@ -223,7 +320,32 @@ class ModelTrainer:
 		
 
 	def evaluate_models(self):
-		"""Đánh giá mô hình trên tập Test."""
+		"""
+		Đánh giá tất cả các mô hình đã huấn luyện trên tập test
+		
+		Tính toán các metrics: MSE, RMSE, MAE, R² cho mỗi model
+		và xác định model tốt nhất dựa trên R² score.
+		
+		Returns
+		-------
+		dict
+			Dictionary chứa:
+			- 'results': list of dict, mỗi dict chứa metrics của một model
+			- 'best_model_name': str, tên model có R² cao nhất
+			
+		Raises
+		------
+		ValueError
+			Nếu chưa có models được huấn luyện hoặc chưa có dữ liệu test
+			
+		Notes
+		-----
+		Metrics được tính:
+		- MSE (Mean Squared Error): Trung bình bình phương sai số
+		- RMSE (Root Mean Squared Error): Căn bậc hai của MSE
+		- MAE (Mean Absolute Error): Trung bình sai số tuyệt đối
+		- R² Score: Hệ số xác định (càng gần 1 càng tốt)
+		"""
 		if not self.trained_models:
 			raise ValueError("No trained models found. Call train_models() first.")
 			
@@ -334,25 +456,44 @@ class ModelTrainer:
 	
 	def optimize_params(self, model_name, n_trials=20, cv=5, n_jobs=1):
 		"""
-		Tự động tối ưu hóa tham số model bằng Optuna.
-		Không cần truyền param_grid.
+		Tối ưu hóa siêu tham số của model bằng Bayesian Optimization (Optuna)
+		
+		Sử dụng Optuna để tìm kiếm tham số tối ưu cho model được chỉ định.
+		Không gian tìm kiếm được định nghĩa sẵn trong BayesianOptimizer.
 		
 		Parameters
 		----------
 		model_name : str
-			Tên mô hình (VD: 'RandomForest', 'LightGBM', 'Ridge'...)
-		n_trials : int
-			Số lần thử nghiệm tìm tham số.
-		cv : int
-			Số fold cross-validation.
+			Tên mô hình cần tối ưu.
+			Các giá trị hợp lệ: 'RandomForest', 'LightGBM', 'Ridge', 'Lasso', 'ElasticNet'
+		n_trials : int, optional
+			Số lần thử nghiệm (trials) trong quá trình tối ưu. Mặc định là 20
+		cv : int, optional
+			Số fold cho cross-validation. Mặc định là 5
 		n_jobs : int, optional
-			Số cores để sử dụng cho model training.
-			Mặc định là 1.
+			Số CPU cores sử dụng khi training model sau khi optimize.
+			Mặc định là 1
 			
 		Returns
 		-------
 		dict or None
-			Best parameters nếu optimization thành công, None nếu thất bại hoặc không cần optimize
+			Dictionary chứa best parameters nếu optimization thành công.
+			Trả về None nếu:
+			- Model không cần optimize (LinearRegression)
+			- Optimization thất bại
+			- Model chưa được định nghĩa search space
+			
+		Raises
+		------
+		ValueError
+			Nếu training data chưa sẵn sàng hoặc model_name không hợp lệ
+			
+		Notes
+		-----
+		- Sử dụng R² score làm metric tối ưu hóa
+		- Model được cập nhật với best params nhưng CHƯA được train
+		- Cần gọi train_models() sau khi optimize để train với params mới
+		- LinearRegression không có hyperparameters nên bị bỏ qua
 		"""
 		if self.X_train is None or self.y_train is None:
 			raise ValueError("Training data not available. Call set_training_data() first.")
@@ -428,20 +569,27 @@ class ModelTrainer:
 		Parameters
 		----------
 		filepath : str
-			Đường dẫn đến file mô hình
+			Đường dẫn tuyệt đối hoặc tương đối đến file mô hình
 		method : str, optional
-			Phương thức nạp: 'joblib' hoặc 'pickle'.
+			Phương thức deserialization.
+			Các giá trị hợp lệ: 'joblib', 'pickle'.
 			Mặc định là 'joblib'
 			
 		Returns
 		-------
 		object
-			Mô hình đã được nạp
+			Model object đã được nạp từ file
 			
 		Raises
 		------
 		FileNotFoundError
-			Nếu file không tồn tại
+			Nếu filepath không tồn tại
+		ValueError
+			Nếu method không hợp lệ
+			
+		Notes
+		-----
+		Joblib được khuyến nghị cho scikit-learn models vì hiệu quả hơn với numpy arrays.
 		"""
 		try:
 			if method == 'joblib':
@@ -465,22 +613,29 @@ class ModelTrainer:
 		
 		Parameters
 		----------
-		filepath : str, optional
-			Đường dẫn file để lưu. Nếu None, tự động tạo tên file.
+		filepath : str or None, optional
+			Đường dẫn file để lưu kết quả.
+			Nếu None, tự động tạo tên file với timestamp trong thư mục 'results/'.
 			Mặc định là None
 		format : str, optional
-			Định dạng file: 'csv' hoặc 'json'.
+			Định dạng file output.
+			Các giá trị hợp lệ: 'csv', 'json'.
 			Mặc định là 'csv'
 			
 		Returns
 		-------
 		str
-			Đường dẫn file đã lưu
+			Đường dẫn tuyệt đối của file đã lưu
 			
 		Raises
 		------
 		ValueError
-			Nếu chưa có kết quả đánh giá
+			Nếu chưa có kết quả đánh giá (chưa gọi evaluate_models())
+			
+		Notes
+		-----
+		Thư mục 'results/' sẽ được tự động tạo nếu chưa tồn tại.
+		Format CSV dễ mở bằng Excel, JSON tốt cho lưu trữ metadata.
 		"""
 		if not self.results:
 			raise ValueError("No evaluation results found. Call evaluate_models() first.")
@@ -512,29 +667,38 @@ class ModelTrainer:
 
 	def save_model(self, model_name=None, filepath=None, method='joblib'):
 		"""
-		Lưu mô hình đã huấn luyện vào file
+		Lưu mô hình đã huấn luyện vào file để sử dụng sau
 		
 		Parameters
 		----------
-		model_name : str, optional
-			Tên mô hình cần lưu. Nếu None, lưu mô hình tốt nhất.
+		model_name : str or None, optional
+			Tên mô hình cần lưu.
+			Nếu None, lưu mô hình tốt nhất (best_model).
 			Mặc định là None
-		filepath : str, optional
-			Đường dẫn file để lưu. Nếu None, tự động tạo tên file.
+		filepath : str or None, optional
+			Đường dẫn file để lưu model.
+			Nếu None, tự động tạo tên file với timestamp trong thư mục 'models/'.
 			Mặc định là None
 		method : str, optional
-			Phương thức lưu: 'joblib' hoặc 'pickle'.
+			Phương thức serialization.
+			Các giá trị hợp lệ: 'joblib', 'pickle'.
 			Mặc định là 'joblib'
 			
 		Returns
 		-------
 		str
-			Đường dẫn file đã lưu
+			Đường dẫn tuyệt đối của file model đã lưu
 			
 		Raises
 		------
 		ValueError
-			Nếu mô hình không tồn tại hoặc chưa được huấn luyện
+			Nếu model không tồn tại trong trained_models hoặc chưa có best_model
+			
+		Notes
+		-----
+		- Thư mục 'models/' sẽ được tự động tạo nếu chưa tồn tại
+		- Joblib được khuyến nghị cho scikit-learn models
+		- File extension: .pkl cho joblib, .pickle cho pickle
 		"""
 		# Xác định mô hình cần lưu
 		if model_name is None:
