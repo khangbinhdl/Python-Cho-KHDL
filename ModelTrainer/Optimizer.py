@@ -22,14 +22,19 @@ class BayesianOptimizer:
 	
 	Attributes
 	----------
-	X_train : array-like
-		Dữ liệu features cho training
-	y_train : array-like
-		Dữ liệu target cho training
+	X_train : array-like of shape (n_samples, n_features)
+		Dữ liệu features cho training.
+	y_train : array-like of shape (n_samples,)
+		Dữ liệu target cho training.
 	random_state : int
-		Seed cho reproducibility
+		Seed cho reproducibility.
 	cv : int
-		Số fold cho cross-validation
+		Số fold cho cross-validation.
+	
+	Examples
+	--------
+	>>> optimizer = BayesianOptimizer(X_train, y_train, random_state=42)
+	>>> best_params = optimizer.optimize('RandomForest', n_trials=50)
 	"""
 
 	def __init__(self, X_train, y_train, random_state=42, cv=5):
@@ -156,9 +161,10 @@ class BayesianOptimizer:
 		Parameters
 		----------
 		model_name : str
-			Tên model cần tạo
+			Tên model cần tạo. Hỗ trợ: 'RandomForest', 'LightGBM',
+			'Ridge', 'Lasso', 'ElasticNet'.
 		trial : optuna.trial.Trial
-			Optuna trial object để suggest parameters
+			Optuna trial object để suggest parameters.
 			
 		Returns
 		-------
@@ -168,7 +174,7 @@ class BayesianOptimizer:
 			
 		Notes
 		-----
-		Model được tạo với random_state cố định và n_jobs=2 (nếu hỗ trợ)
+		Model được tạo với random_state cố định và n_jobs=2 (nếu hỗ trợ).
 		"""
 		search_space = self._get_search_space(model_name)
 		

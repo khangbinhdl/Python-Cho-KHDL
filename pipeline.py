@@ -1,6 +1,8 @@
-from Preprocessing import DataPreprocessor
-from Visualize import EDA, ModelVisualize
-from Model import ModelTrainer
+from DataPreprocessor.Preprocessor import DataPreprocessor
+from Visualizer.EDA import EDA
+from Visualizer.ModelVisualizer import ModelVisualizer
+from ModelTrainer.ModelTrainer import ModelTrainer
+from ModelTrainer.ModelIO import ModelIO
 
 import logging
 from logging import StreamHandler, FileHandler, Formatter
@@ -31,7 +33,7 @@ if __name__ == "__main__":
 	setup_logging()
 	logger = logging.getLogger("MAIN")
 	
-	file_path = './FastFoodNutritionMenuV3.csv'
+	file_path = './Data/FastFoodNutritionMenuV3.csv'
 	target_col = 'calories'
 
 	# =========================================================================
@@ -45,7 +47,10 @@ if __name__ == "__main__":
 		scaling_strategy='standard',
 		outlier_method='zscore',
 	)
-	preprocessor.load_data(file_path)
+	preprocessor.load_data(file_path, auto_convert_numeric=True)
+	
+	# Chuyển đổi datetime nếu có (tách riêng khỏi auto_detect_columns)
+	preprocessor.convert_to_datetime()
 
 	# =========================================================================
 	# 2. EDA TRƯỚC KHI XỬ LÝ DỮ LIỆU
@@ -67,9 +72,11 @@ if __name__ == "__main__":
 
 	# Loại bỏ duplicate trước khi chia train/test
 	preprocessor.remove_duplicates()
+
 	
 	# Lấy dữ liệu tạm thời (đã clean cơ bản)
 	current_data = preprocessor.get_processed_data()
+	preprocessor.save_data('./Data/temp_processed_data.csv')
 
 	logger.info("Initializing ModelTrainer to split data...")
 	trainer = ModelTrainer(random_state=42)
@@ -132,10 +139,9 @@ if __name__ == "__main__":
 	eda_after = EDA(merged_df, show_plots=False)
 	eda_after.perform_eda(save_path='plots/eda/after')
 
-	# # =========================================================================
-	# # =========================================================================
-	# # 5. HUẤN LUYỆN & ĐÁNH GIÁ
-	# # =========================================================================
+	# =========================================================================
+	# 5. HUẤN LUYỆN & ĐÁNH GIÁ
+	# =========================================================================
 	
 	# Nạp dữ liệu sạch ngược lại vào Trainer để tách X, y
 	trainer.set_training_data(train_processed, test_processed, target_col=target_col)
@@ -144,28 +150,30 @@ if __name__ == "__main__":
 	trainer.initialize_models()
 
 	# Optimize hyperparams cho tất cả models (50 trials)
-	models_to_optimize = ['RandomForest', 'LightGBM', 'Ridge', 'Lasso', 'ElasticNet']
-	for model_name in models_to_optimize:
-		logger.info(f"Optimizing {model_name}...")
-		trainer.optimize_params(model_name, n_trials=50, n_jobs=3)
+	# models_to_optimize = ['RandomForest', 'LightGBM', 'Ridge', 'Lasso', 'ElasticNet']
+	# for model_name in models_to_optimize:
+	# 	logger.info(f"Optimizing {model_name}...")
+	# 	trainer.optimize_params(model_name, n_trials=50, n_jobs=3)
 	
 	# Train tất cả models với params đã optimize
 	trainer.train_models()
 	
 	# Đánh giá và so sánh tất cả models
-	results = trainer.evaluate_models()
+	evaluation_output = trainer.evaluate_models()
+	results_list = evaluation_output['results']
 	
 	# Lưu kết quả
-	trainer.save_results(filepath="results/evaluation_results.csv", format='csv')
-	trainer.save_results(filepath="results/evaluation_results.json", format='json')
+	ModelIO.save_results(results_list, filepath="results/evaluation_results.csv", format='csv')
+	ModelIO.save_results(results_list, filepath="results/evaluation_results.json", format='json')
 	
 	# Lưu mô hình tốt nhất
-	trainer.save_model()
+	if trainer.best_model:
+		ModelIO.save_model(trainer.best_model, trainer.best_model_name)
 	
 	# =========================================================================
 	# 6. VISUALIZE
 	# =========================================================================
-	vis = ModelVisualize(results)
+	vis = ModelVisualizer(evaluation_output)
 	vis.plot_model_comparison(save_path='plots/comparison.png')
 	
 	# Feature importance (top_n đã được xử lý trong get_feature_importance)

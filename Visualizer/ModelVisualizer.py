@@ -17,7 +17,7 @@ if not MODEL_VIS_LOGGER.handlers:
 SEP_LEN = 60
 SEP = "=" * SEP_LEN
 
-class ModelVisualize:
+class ModelVisualizer:
 	"""
 	Class trực quan hóa kết quả đánh giá và phân tích mô hình Machine Learning.
 	
