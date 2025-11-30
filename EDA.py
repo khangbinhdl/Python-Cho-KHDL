@@ -14,13 +14,6 @@ if not LOGGER.handlers:
 	LOGGER.propagate = True
 	LOGGER.setLevel(logging.INFO)
 
-# Logger riêng cho ModelVisualize
-MODEL_VIS_LOGGER = logging.getLogger("MODEL_VISUALIZE")
-if not MODEL_VIS_LOGGER.handlers:
-	MODEL_VIS_LOGGER.propagate = True
-	MODEL_VIS_LOGGER.setLevel(logging.INFO)
-
-# Độ dài "vừa vừa" cho separator (giảm từ 80 -> 60, bạn có thể chỉnh tùy thích)
 SEP_LEN = 60
 SEP = "=" * SEP_LEN
 
@@ -50,8 +43,34 @@ class EDA:
 		"""
 		self.data = data
 		self.show_plots = show_plots
+
+	def __str__(self):
+		"""
+		Biểu diễn chuỗi thân thiện với người dùng
 		
-	def _log(self, message):
+		Returns
+		-------
+		str
+			Chuỗi mô tả trạng thái của EDA
+		"""
+		if self.data is None:
+			return "EDA (chưa có dữ liệu)"
+		return f"EDA: {self.data.shape[0]} dòng, {self.data.shape[1]} cột"
+
+	def __repr__(self):
+		"""
+		Biểu diễn chuỗi dành cho developer
+		
+		Returns
+		-------
+		str
+			Chuỗi mô tả chi tiết
+		"""
+		shape = self.data.shape if self.data is not None else (0, 0)
+		return f"EDA(rows={shape[0]}, cols={shape[1]}, show_plots={self.show_plots})"
+		
+	@staticmethod
+	def _log(message):
 		"""
 		Ghi log thông điệp với logger của EDA
 		
@@ -62,7 +81,8 @@ class EDA:
 		"""
 		LOGGER.info(message)
 
-	def _sep(self):
+	@staticmethod
+	def _sep():
 		"""
 		In ra một dòng phân cách trong log
 		
@@ -112,7 +132,6 @@ class EDA:
 		self._sep()
 		self._log("SUMMARY STATISTICS FOR NUMERIC COLUMNS")
 		self._log(SEP)
-		# describe có thể dài — ghi từng dòng để tránh vượt giới hạn message
 		desc = self.data.describe().to_string()
 		for line in desc.splitlines():
 			self._log(line)
@@ -220,8 +239,6 @@ class EDA:
 		- Pearson: Đo lường mối quan hệ tuyến tính (hệ số tương quan nằm trong [-1, 1])
 		- Spearman: Đo lường mối quan hệ đơn điệu (không nhất thiết tuyến tính)
 		- Kendall: Đo lường sự phù hợp thứ tự giữa hai biến
-		- Sử dụng seaborn heatmap với colormap 'coolwarm' để dễ phân biệt tương quan dương/âm
-		- Giá trị tương quan được làm tròn đến 2 chữ số thập phân
 		"""
 		if self.data is None:
 			raise ValueError("Data not loaded. Call load_data() first.")
@@ -320,12 +337,6 @@ class EDA:
 			sns.histplot(data=self.data, x=col, kde=True, bins=30, 
 						color='skyblue', edgecolor='black', ax=ax)
 			
-			# Lấy line (KDE curve) cuối cùng và đổi màu thành đỏ
-			lines = ax.get_lines()
-			if lines:  # Nếu có đường KDE
-				lines[-1].set_color('red')
-				lines[-1].set_linewidth(2)
-			
 			ax.set_title(f'{col}', fontsize=11, fontweight='bold')
 			ax.set_xlabel('Value', fontsize=9)
 			ax.set_ylabel('Density', fontsize=9)
@@ -373,7 +384,7 @@ class EDA:
 		Notes
 		-----
 		- Boxplot hiển thị: min, Q1, median (Q2), Q3, max và outliers
-		- Outliers được xác định bằng quy tắc IQR: Q1 - 1.5*IQR và Q3 + 1.5*IQR
+		- Outliers được xác định bằng quy tắc IQR.
 		- Giá trị NaN được tự động loại bỏ trước khi vẽ
 		- Sử dụng seaborn boxplot để có giao diện đẹp hơn
 		- Tất cả các subplots được vẽ trên cùng một figure
@@ -476,128 +487,3 @@ class EDA:
 		self.data_distribution(save_path=save_path)                     # Histogram phân phối
 		self.boxplot_analysis(save_path=save_path)                      # Boxplot phát hiện ngoại lai
 		self._log("EDA pipeline completed.")
-
-
-class ModelVisualize:
-	"""
-	Class trực quan hóa kết quả đánh giá và phân tích mô hình Machine Learning.
-	
-	Attributes
-	----------
-	evaluation_results : dict
-		Dictionary chứa 'results' (list of dicts) và 'best_model_name' (str)
-	"""
-	
-	def __init__(self, evaluation_results):
-		"""
-		Parameters
-		----------
-		evaluation_results : dict
-			Kết quả từ ModelTrainer.evaluate_models()
-		"""
-		self.evaluation_results = evaluation_results
-		
-	def _log(self, message):
-		MODEL_VIS_LOGGER.info(message)
-	
-	def plot_model_comparison(self, save_path=None):
-		"""
-		Vẽ 4 biểu đồ so sánh MSE, RMSE, MAE, R² của các models.
-		
-		Parameters
-		----------
-		save_path : str, optional
-			Đường dẫn lưu file. Nếu None, chỉ hiển thị
-		"""
-		if not self.evaluation_results or not self.evaluation_results.get('results'):
-			raise ValueError("No evaluation results found.")
-			
-		results = self.evaluation_results['results']
-		best_model = self.evaluation_results.get('best_model_name', 'Unknown')
-		df = pd.DataFrame(results)
-		
-		metrics = [
-			('mse', 'Mean Squared Error (MSE)', True),
-			('rmse', 'Root Mean Squared Error (RMSE)', True),
-			('mae', 'Mean Absolute Error (MAE)', True),
-			('r2_score', 'R² Score', False)
-		]
-		
-		fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-		axes = axes.flatten()
-		
-		for idx, (metric, title, ascending) in enumerate(metrics):
-			df_sorted = df.sort_values(by=metric, ascending=ascending)
-			palette = ['crimson' if m == best_model else 'steelblue' for m in df_sorted['model_name']]
-			
-			ax = axes[idx]
-			sns.barplot(data=df_sorted, x='model_name', y=metric, palette=palette, 
-						hue='model_name', legend=False, edgecolor='black', linewidth=0.8, ax=ax)
-			
-			# Thêm giá trị
-			for patch, val in zip(ax.patches, df_sorted[metric]):
-				ax.text(patch.get_x() + patch.get_width()/2, patch.get_height(),
-						f'{val:.4f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
-			
-			ax.set_title(title, fontsize=12, fontweight='bold')
-			ax.set_xlabel('Models', fontsize=10)
-			ax.set_ylabel(metric.replace('_', ' ').title(), fontsize=10)
-			ax.tick_params(axis='x', rotation=45, labelsize=9)
-			ax.grid(axis='y', alpha=0.3, linestyle='--')
-			ax.set_axisbelow(True)
-		
-		fig.suptitle(f'Model Performance Comparison | Best: {best_model}', 
-					fontsize=14, fontweight='bold', y=0.995)
-		plt.tight_layout(rect=[0, 0, 1, 0.985])
-		
-		if save_path:
-			os.makedirs(os.path.dirname(save_path) or 'plots', exist_ok=True)
-			plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
-			self._log(f"✓ Plot saved: {save_path}")
-		plt.show()
-	
-	def plot_feature_importance(self, importance_df, save_path=None):
-		"""
-		Vẽ biểu đồ feature importance.
-		
-		Parameters
-		----------
-		importance_df : DataFrame
-			DataFrame với columns ['feature', 'importance'], đã sorted
-		save_path : str, optional
-			Đường dẫn lưu file
-		"""
-		if importance_df is None or importance_df.empty:
-			raise ValueError("importance_df is empty")
-		
-		# Lấy model name từ evaluation_results
-		model_name = self.evaluation_results.get('best_model_name', 'Model') if self.evaluation_results else 'Model'
-		
-		# Sắp xếp ascending để feature quan trọng nhất ở trên
-		importance_df = importance_df.sort_values('importance', ascending=True)
-		
-		plt.figure(figsize=(10, max(6, len(importance_df) * 0.3)))
-		
-		colors = sns.color_palette("viridis", n_colors=len(importance_df))
-		ax = sns.barplot(data=importance_df, y='feature', x='importance', 
-						palette=colors, hue='feature', legend=False, edgecolor='black', linewidth=0.6)
-		
-		# Thêm giá trị
-		max_imp = importance_df['importance'].max()
-		for patch, val in zip(ax.patches, importance_df['importance']):
-			ax.text(patch.get_width() + max_imp * 0.01, patch.get_y() + patch.get_height()/2,
-					f'{val:.4f}', ha='left', va='center', fontsize=9, fontweight='bold')
-		
-		ax.set_xlabel('Importance', fontsize=11, fontweight='bold')
-		ax.set_ylabel('Features', fontsize=11, fontweight='bold')
-		ax.set_title(f'Feature Importance | {model_name}', fontsize=13, fontweight='bold')
-		ax.grid(axis='x', alpha=0.3, linestyle='--')
-		ax.set_axisbelow(True)
-		
-		plt.tight_layout()
-		
-		if save_path:
-			os.makedirs(os.path.dirname(save_path) or 'plots', exist_ok=True)
-			plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
-			self._log(f"✓ Feature importance saved: {save_path}")
-		plt.show()
