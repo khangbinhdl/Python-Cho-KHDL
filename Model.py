@@ -29,10 +29,6 @@ class ModelTrainer:
 
 	def __init__(self, random_state=42):
 		self.random_state = random_state
-		self.best_model = None
-		self.best_model_name = None
-		self.evaluation_results = []
-		self.trained_models = {}
 		
 		# Các biến chứa dữ liệu
 		self.data = None
@@ -43,12 +39,13 @@ class ModelTrainer:
 		self.y_train = None
 		self.y_test = None
 
-		# Các biến bên phần model
-		self.models = {}
-		self.trained_models = {}
-		self.results = []
-		self.best_model = None
-		self.best_model_name = None
+		# Các biến liên quan đến models
+		self.models = {}  # Model templates (chưa train)
+		self.trained_models = {}  # Models đã train
+		self.results = []  # Kết quả đánh giá
+		self.evaluation_results = []  # Alias của results (để tương thích)
+		self.best_model = None  # Model tốt nhất
+		self.best_model_name = None  # Tên model tốt nhất
 
 		np.random.seed(random_state)
 		self._log("ModelTrainer initialized with random_state={}".format(random_state))
@@ -200,6 +197,9 @@ class ModelTrainer:
 			
 		if models_to_train is None:
 			models_to_train = list(self.models.keys())
+		
+		# Reset trained_models to avoid keeping old models from previous runs
+		self.trained_models = {}
 			
 		self._log("Starting model training...")
 		
@@ -231,6 +231,8 @@ class ModelTrainer:
 			raise ValueError("Test data not available. Call split_data() first.")
 		
 		self._log("Evaluating models...")
+		# Reset results to avoid accumulating old results from previous evaluations
+		self.results = []
 		self.evaluation_results = []
 		best_score = -np.inf # So sánh bằng R2
 		
@@ -253,6 +255,7 @@ class ModelTrainer:
 				}
 				
 				self.results.append(result)
+				self.evaluation_results.append(result)
 				self._log(f"✓ {name} evaluated: RMSE={rmse:.4f}, MAE={mae:.4f} ,R2={r2:.4f}")
 				
 				if r2 > best_score:
@@ -403,12 +406,12 @@ class ModelTrainer:
 			# Khởi tạo model với params tối ưu (CHƯA TRAIN)
 			optimized_model = model_class(**final_params)
 			
-			# 5. Cập nhật vào self.models (CHƯA TRAIN - chỉ update params)
+			# 5. Cập nhật vào self.models (chưa train, chỉ update params)
 			self.models[model_name] = optimized_model
 			
 			self._log(f"✓ {model_name} parameters optimized successfully")
 			self._log(f"  Best params: {best_params}")
-			self._log(f"  Note: Model updated but not trained yet. Call train_models() to train.")
+			self._log(f"  Note: Call train_models() to train all models with optimized params.")
 			
 			return best_params
 

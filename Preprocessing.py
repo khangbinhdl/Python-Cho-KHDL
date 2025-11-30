@@ -767,6 +767,12 @@ class DataPreprocessor:
 				self.scaled_cols_ = numeric_cols_to_scale
 		else:
 			# Chỉ transform với scaler đã fit (cho test/val)
+			# Kiểm tra xem scaler và scaled_cols_ đã tồn tại chưa
+			if self.scaler is None or not hasattr(self, 'scaled_cols_'):
+				raise ValueError(
+					"Scaler has not been fitted yet. Call scale_features(fit=True) first "
+					"or remove fit=False parameter to automatically fit the scaler."
+				)
 			# Sử dụng danh sách cột đã được fit
 			cols_to_transform = [c for c in self.scaled_cols_ if c in target.columns and c not in exclude_features]
 			if cols_to_transform:

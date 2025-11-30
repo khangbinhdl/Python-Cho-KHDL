@@ -1,7 +1,7 @@
 Hướng dẫn test
 ```bash
 # Bước 1: Clone
-git clone -b feature/gemini_model https://github.com/khangbinhdl/Python-Cho-KHDL.git   
+git clone https://github.com/khangbinhdl/Python-Cho-KHDL.git   
 cd "Cuối kì"
 
 # Bước 2: Setup
