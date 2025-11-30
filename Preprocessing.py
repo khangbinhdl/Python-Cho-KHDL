@@ -4,10 +4,8 @@ from sklearn.preprocessing import StandardScaler, RobustScaler, LabelEncoder
 from sklearn.ensemble import IsolationForest
 import logging
 
-# THAY cho logging.basicConfig(...): tạo logger riêng cho Preprocessor
 LOGGER = logging.getLogger("PREPROCESSOR")
 if not LOGGER.handlers:
-	# để việc cấu hình handler/formatter được làm ở main.py (tránh trùng handler)
 	LOGGER.propagate = True
 	LOGGER.setLevel(logging.INFO)
 
@@ -68,9 +66,7 @@ class DataPreprocessor:
 			Mặc định là 'iqr'
 		"""
 		self.data = None
-		self.numeric_cols = []
-		self.categorical_cols = []
-		self.datetime_cols = []
+		# numeric_cols, categorical_cols, datetime_cols sẽ được gán trong auto_detect_columns()
 
 		# Thiết lập các chiến lược xử lý
 		self.num_strategy = num_strategy
@@ -87,7 +83,7 @@ class DataPreprocessor:
 
 	def __repr__(self):
 		"""
-		Định nghĩa cách đối tượng được in ra
+		Định nghĩa cách đối tượng được in ra (dành cho developer)
 		
 		Returns
 		-------
@@ -96,6 +92,19 @@ class DataPreprocessor:
 		"""
 		return (f"DataPreprocessor(num='{self.num_strategy}', cat='{self.cat_strategy}', dt='{self.dt_strategy}', "
 				f"scaling='{self.scaling_strategy}', outlier='{self.outlier_method}')")
+
+	def __str__(self):
+		"""
+		Biểu diễn chuỗi thân thiện với người dùng
+		
+		Returns
+		-------
+		str
+			Chuỗi mô tả trạng thái hiện tại của preprocessor
+		"""
+		if self.data is None:
+			return "DataPreprocessor (chưa nạp dữ liệu)"
+		return f"DataPreprocessor: {self.shape[0]} dòng, {self.shape[1]} cột"
 
 	@staticmethod
 	def _log(message):
@@ -109,9 +118,9 @@ class DataPreprocessor:
 		"""
 		LOGGER.info(message)
 	
-	def _clean_column_names(self):
+	def __clean_column_names(self):
 		"""
-		Chuẩn hóa tên cột của DataFrame
+		Chuẩn hóa tên cột của DataFrame (Private method)
 		
 		Thực hiện các bước làm sạch tên cột: loại bỏ ký tự xuống dòng, khoảng trắng thừa,
 		chuyển về snake_case, loại bỏ ký tự đặc biệt và xử lý trùng lặp tên cột.
@@ -134,7 +143,7 @@ class DataPreprocessor:
 		import re
 		cols = (
 			pd.Series(self.data.columns, dtype="string")
-				.str.replace('\n', ' ', regex=False)      # bỏ newline
+				.str.replace('\n', ' ', regex=False)       # bỏ newline
 				.str.strip()                               # bỏ khoảng trắng đầu/đuôi
 				.str.replace(r'\s+', ' ', regex=True)      # 1 khoảng trắng
 				.str.lower()
@@ -234,7 +243,7 @@ class DataPreprocessor:
 		Notes
 		-----
 		Các bước xử lý tự động sau khi nạp:
-		1. Chuẩn hóa tên cột (_clean_column_names)
+		1. Chuẩn hóa tên cột (__clean_column_names)
 		2. Chuyển đổi cột từ vị trí thứ 3 sang kiểu số
 		3. Loại bỏ các dòng trùng lặp
 		4. Tự động phân loại cột (numeric, categorical, datetime)
@@ -258,9 +267,9 @@ class DataPreprocessor:
 			self._log(f"Error loading data: {e}")  # Báo lỗi khi đọc dữ liệu
 			raise
 		# Chuẩn hóa tên cột sau khi nạp dữ liệu
-		self._clean_column_names()
+		self.__clean_column_names()
 		# Chuyển đổi các cột từ cột thứ 3 trở đi thành kiểu số
-		# Lấy danh sách cột từ vị trí thứ 3 trở đi (index 2)
+		# Lấy danh sách cột từ vị trí thứ 3 trở đi (trong bài này)
 		cols_to_convert = self.data.columns[2:].tolist()
 		self.convert_columns_to_numeric(columns=cols_to_convert)
 		# Tự động phân loại các cột ngay sau khi nạp
@@ -308,8 +317,13 @@ class DataPreprocessor:
 		"""
 		Tự động phát hiện và phân loại các cột theo kiểu dữ liệu
 		
-		Phương thức này sẽ tự động nhận diện cột số, cột phân loại và cột ngày giờ 
-		trong DataFrame, sau đó lưu vào các thuộc tính tương ứng.
+		Phương thức này chỉ nhận diện và phân loại cột, KHÔNG thực hiện chuyển đổi.
+		Để chuyển đổi datetime, gọi convert_to_datetime() sau phương thức này.
+
+		Returns
+		-------
+		self
+			Trả về chính đối tượng để có thể chain methods
 
 		Raises
 		------
@@ -321,12 +335,7 @@ class DataPreprocessor:
 		Phân loại cột:
 		- Cột số: Các cột có kiểu dữ liệu numeric (int, float)
 		- Cột phân loại: Các cột có kiểu dữ liệu object hoặc category
-		- Cột datetime: Các cột có kiểu datetime hoặc có thể chuyển đổi sang datetime
-		
-		Quy tắc chuyển đổi datetime:
-		- Cột được coi là datetime nếu có ít nhất 1 giá trị hợp lệ sau khi parse
-		- Định dạng mặc định: '%Y-%m-%d'
-		- Cột không parse được sẽ giữ nguyên là categorical
+		- Cột datetime: Các cột đã có kiểu datetime64
 		"""
 		if self.data is None:
 			raise ValueError("Data not loaded. Call load_data() first.")
@@ -334,38 +343,92 @@ class DataPreprocessor:
 		self._log("Auto-detecting column types...")
 		self.numeric_cols = self.data.select_dtypes(include=np.number).columns.tolist()
 		self.categorical_cols = self.data.select_dtypes(include=['object', 'category']).columns.tolist()
-
-		self.datetime_cols = [] #Khởi tạo lại danh sách datetime
-
-		# Phát hiện các cột ngày giờ (datetime)
-		for col in self.data.columns:
-			if pd.api.types.is_datetime64_any_dtype(self.data[col]):
-				self.datetime_cols.append(col)
-			elif col in self.categorical_cols:
-				try:
-					# chuyển đổi sang datetime
-					converted_col = pd.to_datetime(self.data[col], format='%Y-%m-%d', errors='coerce')
-
-					# Chỉ chấp nhận là datetime nếu CÓ ÍT NHẤT 1 GIÁ TRỊ HỢP LỆ
-					if converted_col.notna().any():
-						self._log(f"Column '{col}' detected as datetime and converted.")
-						self.data[col] = converted_col # LƯU LẠI KẾT QUẢ
-						self.datetime_cols.append(col)
-					# Nếu không có giá trị nào hợp lệ (ví dụ: cột 'Company'/'Item' bị ép thành NaT),
-					# nó sẽ KHÔNG được thêm vào datetime_cols và vẫn là categorical.
-
-				except (ValueError, TypeError):
-					pass # Bỏ qua nếu cột gây lỗi nghiêm trọng khi cố chuyển đổi
-
-		self.datetime_cols = list(set(self.datetime_cols))
-
-		# CẬP NHẬT LẠI danh sách sau khi đã chuyển đổi
-		self.numeric_cols = [c for c in self.numeric_cols if c not in self.datetime_cols]
-		self.categorical_cols = [c for c in self.categorical_cols if c not in self.datetime_cols]
+		self.datetime_cols = self.data.select_dtypes(include=['datetime64']).columns.tolist()
 
 		self._log(f"Numeric cols: {self.numeric_cols}")
 		self._log(f"Categorical cols: {self.categorical_cols}")
 		self._log(f"Datetime cols: {self.datetime_cols}")
+		return self
+
+	def convert_to_datetime(self, columns=None, date_format='%Y-%m-%d'):
+		"""
+		Chuyển đổi các cột được chỉ định sang kiểu datetime
+		
+		Phương thức này thực hiện chuyển đổi datetime riêng biệt, tách khỏi
+		việc phát hiện kiểu cột trong auto_detect_columns().
+
+		Parameters
+		----------
+		columns : list of str, optional
+			Danh sách tên các cột cần chuyển đổi sang datetime.
+			Nếu None, tự động phát hiện các cột có thể chuyển đổi từ categorical_cols.
+			Mặc định là None
+		date_format : str, optional
+			Định dạng ngày tháng để parse.
+			Mặc định là '%Y-%m-%d'
+
+		Returns
+		-------
+		self
+			Trả về chính đối tượng để có thể chain methods
+
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+
+		Notes
+		-----
+		Quy tắc chuyển đổi:
+		- Cột được coi là datetime nếu có ít nhất 1 giá trị hợp lệ sau khi parse
+		- Cột không parse được sẽ giữ nguyên là categorical
+		- Sau khi chuyển đổi, danh sách numeric_cols, categorical_cols, datetime_cols 
+		sẽ được cập nhật tự động
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+
+		self._log("Converting columns to datetime...")
+		
+		# Nếu không chỉ định columns, dùng categorical_cols
+		if columns is None:
+			columns = self.categorical_cols.copy() if hasattr(self, 'categorical_cols') else []
+
+		converted_cols = []
+
+		for col in columns:
+			if col not in self.data.columns:
+				self._log(f"Warning: Column '{col}' not found, skipping...")
+				continue
+				
+			# Bỏ qua nếu đã là datetime
+			if pd.api.types.is_datetime64_any_dtype(self.data[col]):
+				continue
+
+			try:
+				# Thử chuyển đổi sang datetime
+				converted_col = pd.to_datetime(self.data[col], format=date_format, errors='coerce')
+
+				# Chỉ chấp nhận là datetime nếu CÓ ÍT NHẤT 1 GIÁ TRỊ HỢP LỆ
+				if converted_col.notna().any():
+					self._log(f"Column '{col}' converted to datetime.")
+					self.data[col] = converted_col
+					converted_cols.append(col)
+				# Nếu không có giá trị nào hợp lệ, giữ nguyên
+
+			except (ValueError, TypeError):
+				pass  # Bỏ qua nếu cột gây lỗi nghiêm trọng khi cố chuyển đổi
+
+		# Cập nhật lại danh sách cột sau khi chuyển đổi
+		if converted_cols:
+			self.datetime_cols = list(set(getattr(self, 'datetime_cols', []) + converted_cols))
+			self.numeric_cols = [c for c in self.numeric_cols if c not in converted_cols]
+			self.categorical_cols = [c for c in self.categorical_cols if c not in converted_cols]
+			self._log(f"Converted {len(converted_cols)} columns to datetime: {converted_cols}")
+		else:
+			self._log("No columns were converted to datetime.")
+
+		return self
 
 	def clean_negative_values(self):
 		"""
@@ -706,7 +769,7 @@ class DataPreprocessor:
 		"""
 		Chuẩn hóa các giá trị trong các cột số (numeric columns)
 		
-		Áp dụng StandardScaler hoặc MinMaxScaler để đưa các giá trị số
+		Áp dụng StandardScaler hoặc RobustScaler để đưa các giá trị số
 		về cùng một thang đo, giúp cải thiện hiệu suất của các thuật toán ML.
 
 		Parameters
