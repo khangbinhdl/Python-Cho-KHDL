@@ -35,9 +35,9 @@ pip install -r requirements.txt
 
 # Hướng dẫn sử dụng Pipeline
 
-## Cấu trúc file config.ini
+## Cấu trúc file default_config.ini
 
-File `config.ini` chứa tất cả các tham số cấu hình cho pipeline:
+File `default_config.ini` chứa tất cả các tham số cấu hình cho pipeline:
 
 ```ini
 [PATHS]
@@ -88,7 +88,7 @@ python pipeline.py
 ### 2. Chạy với file config tùy chỉnh (nếu có)
 ```bash
 # Nếu bạn tạo file config riêng
-python pipeline.py --config custom_config.ini
+python pipeline.py --config my_config.ini
 ```
 
 ### 3. Chạy với optimization enabled
@@ -147,7 +147,7 @@ python pipeline.py --optimize --no-eda --test-size 0.25 --random-state 999
 
 | Tham số | Mô tả | Mặc định |
 |---------|-------|----------|
-| `--config` | Đường dẫn file config | `config.ini` |
+| `--config` | Đường dẫn file config | `default_config.ini` |
 | `--data` | Đường dẫn file dữ liệu | Từ config |
 | `--target` | Tên cột target | Từ config |
 | `--optimize` | Bật optimization | False |
@@ -157,11 +157,10 @@ python pipeline.py --optimize --no-eda --test-size 0.25 --random-state 999
 | `--random-state` | Random state | Từ config |
 | `--models` | Models cần train | Từ config |
 
-## Ưu tiên tham số
+## ƪu tiên tham số
 
 1. Tham số dòng lệnh (cao nhất)
-2. File config
-3. Giá trị mặc định trong code (thấp nhất)
+2. File config (default_config.ini hoặc file tùy chỉnh)
 
 ## Ví dụ thực tế
 
