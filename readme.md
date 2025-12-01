@@ -82,65 +82,65 @@ importance_plot = plots/importance.png
 
 ### 1. Chạy với cấu hình mặc định
 ```bash
-python pipeline.py
+python main.py
 ```
 
 ### 2. Chạy với file config tùy chỉnh (nếu có)
 ```bash
 # Nếu bạn tạo file config riêng
-python pipeline.py --config my_config.ini
+python main.py --config my_config.ini
 ```
 
 ### 3. Chạy với optimization enabled
 ```bash
-python pipeline.py --optimize
+python main.py --optimize
 ```
 
 ### 4. Chạy không có EDA
 ```bash
-python pipeline.py --no-eda
+python main.py --no-eda
 ```
 
 ### 5. Chạy không có visualization
 ```bash
-python pipeline.py --no-viz
+python main.py --no-viz
 ```
 
 ### 6. Chạy với file dữ liệu khác
 ```bash
-python pipeline.py --data "path/to/other/data.csv"
+python main.py --data "path/to/other/data.csv"
 ```
 
 ### 7. Chạy với target column khác
 ```bash
-python pipeline.py --target "protein"
+python main.py --target "protein"
 ```
 
 ### 8. Chạy với test size khác
 ```bash
-python pipeline.py --test-size 0.3
+python main.py --test-size 0.3
 ```
 
 ### 9. Chạy với random state khác
 ```bash
-python pipeline.py --random-state 123
+python main.py --random-state 123
 ```
 
 ### 10. Chạy với model cụ thể
 ```bash
 # Chạy chỉ RandomForest và LightGBM
-python pipeline.py --models "RandomForest,LightGBM"
+python main.py --models "RandomForest,LightGBM"
 
 # Chạy chỉ Ridge regression
-python pipeline.py --models "Ridge"
+python main.py --models "Ridge"
 
 # Chạy tất cả models (mặc định)
-python pipeline.py --models "all"
+python main.py --models "all"
 ```
 
 ### 11. Kết hợp nhiều tham số
 ```bash
-python pipeline.py --optimize --no-eda --test-size 0.25 --random-state 999
+python main.py --optimize --no-eda --test-size 0.25 --random-state 999
 ```
 
 ## Các tham số dòng lệnh
@@ -166,28 +166,28 @@ python pipeline.py --optimize --no-eda --test-size 0.25 --random-state 999
 
 ### Chạy experiment nhanh (không EDA, không visualization)
 ```bash
-python pipeline.py --no-eda --no-viz
+python main.py --no-eda --no-viz
 ```
 
 ### Chạy với optimization đầy đủ
 ```bash
-python pipeline.py --optimize
+python main.py --optimize
 ```
 
 ### Thử nghiệm với dữ liệu khác
 ```bash
-python pipeline.py --data "Data/new_dataset.csv" --target "new_target"
+python main.py --data "Data/new_dataset.csv" --target "new_target"
 ```
 
 ### So sánh hiệu suất các model
 ```bash
 # Chạy chỉ các tree-based models
-python pipeline.py --models "RandomForest,LightGBM" --optimize
+python main.py --models "RandomForest,LightGBM" --optimize
 
 # Chạy chỉ các linear models
-python pipeline.py --models "Ridge,Lasso,ElasticNet,LinearRegression"
+python main.py --models "Ridge,Lasso,ElasticNet,LinearRegression"
 
 # Test nhanh với 1 model
-python pipeline.py --models "RandomForest" --no-eda --no-viz
+python main.py --models "RandomForest" --no-eda --no-viz
 ```
 
