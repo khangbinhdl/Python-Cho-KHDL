@@ -51,6 +51,8 @@ def parse_arguments():
 						help='Tỷ lệ tập test (ghi đè config)')
 	parser.add_argument('--random-state', type=int,
 						help='Random state để tái tạo kết quả (ghi đè config)')
+	parser.add_argument('--models', type=str,
+						help='Các model để train (all/RandomForest,LightGBM,Ridge,Lasso,ElasticNet,LinearRegression) (ghi đè config)')
 	
 	return parser.parse_args()
 
@@ -58,30 +60,65 @@ def load_config(config_path, args):
 	"""Tải cấu hình từ file và kết hợp với các tham số dòng lệnh"""
 	config = configparser.ConfigParser()
 	
-	# Giá trị mặc định nếu file config không tồn tại
-	default_config = {
-		'data_file': 'Data/FastFoodNutritionMenuV3.csv',
-		'temp_data_file': 'Data/temp_processed_data.csv',
-		'target_column': 'calories',
-		'test_size': 0.2,
-		'random_state': 42,
-		'num_strategy': 'drop',
-		'cat_strategy': 'mode',
-		'dt_strategy': 'drop',
-		'scaling_strategy': 'standard',
-		'outlier_method': 'zscore',
-		'enable_optimization': False,
-		'n_trials': 50,
-		'n_jobs': 3,
-		'models_to_optimize': ['RandomForest', 'LightGBM', 'Ridge', 'Lasso', 'ElasticNet'],
-		'enable_eda': True,
-		'enable_plots': True,
-		'feature_importance_top_n': 15,
-		'results_csv': 'results/evaluation_results.csv',
-		'results_json': 'results/evaluation_results.json',
-		'comparison_plot': 'plots/comparison.png',
-		'importance_plot': 'plots/importance.png'
-	}
+	# Đọc giá trị mặc định từ file default_config.ini
+	default_config_parser = configparser.ConfigParser()
+	default_config_path = 'default_config.ini'
+	
+	if os.path.exists(default_config_path):
+		default_config_parser.read(default_config_path)
+		
+		default_config = {
+			'data_file': default_config_parser.get('PATHS', 'data_file', fallback='Data/FastFoodNutritionMenuV3.csv'),
+			'temp_data_file': default_config_parser.get('PATHS', 'temp_data_file', fallback='Data/temp_processed_data.csv'),
+			'target_column': default_config_parser.get('DATA', 'target_column', fallback='calories'),
+			'test_size': default_config_parser.getfloat('DATA', 'test_size', fallback=0.2),
+			'random_state': default_config_parser.getint('DATA', 'random_state', fallback=42),
+			'num_strategy': default_config_parser.get('PREPROCESSING', 'num_strategy', fallback='drop'),
+			'cat_strategy': default_config_parser.get('PREPROCESSING', 'cat_strategy', fallback='mode'),
+			'dt_strategy': default_config_parser.get('PREPROCESSING', 'dt_strategy', fallback='drop'),
+			'scaling_strategy': default_config_parser.get('PREPROCESSING', 'scaling_strategy', fallback='standard'),
+			'outlier_method': default_config_parser.get('PREPROCESSING', 'outlier_method', fallback='zscore'),
+			'selected_models': default_config_parser.get('MODEL', 'selected_models', fallback='all'),
+			'available_models': [m.strip() for m in default_config_parser.get('MODEL', 'available_models', fallback='RandomForest,LightGBM,Ridge,Lasso,ElasticNet,LinearRegression').split(',')],
+			'enable_optimization': default_config_parser.getboolean('OPTIMIZATION', 'enable_optimization', fallback=False),
+			'n_trials': default_config_parser.getint('OPTIMIZATION', 'n_trials', fallback=50),
+			'n_jobs': default_config_parser.getint('OPTIMIZATION', 'n_jobs', fallback=3),
+			'models_to_optimize': [m.strip() for m in default_config_parser.get('OPTIMIZATION', 'models_to_optimize', fallback='RandomForest,LightGBM,Ridge,Lasso,ElasticNet').split(',')],
+			'enable_eda': default_config_parser.getboolean('VISUALIZATION', 'enable_eda', fallback=True),
+			'enable_plots': default_config_parser.getboolean('VISUALIZATION', 'enable_plots', fallback=True),
+			'feature_importance_top_n': default_config_parser.getint('VISUALIZATION', 'feature_importance_top_n', fallback=15),
+			'results_csv': default_config_parser.get('OUTPUT', 'results_csv', fallback='results/evaluation_results.csv'),
+			'results_json': default_config_parser.get('OUTPUT', 'results_json', fallback='results/evaluation_results.json'),
+			'comparison_plot': default_config_parser.get('OUTPUT', 'comparison_plot', fallback='plots/comparison.png'),
+			'importance_plot': default_config_parser.get('OUTPUT', 'importance_plot', fallback='plots/importance.png')
+		}
+	else:
+		# Fallback nếu không tìm thấy default_config.ini
+		default_config = {
+			'data_file': 'Data/FastFoodNutritionMenuV3.csv',
+			'temp_data_file': 'Data/temp_processed_data.csv',
+			'target_column': 'calories',
+			'test_size': 0.2,
+			'random_state': 42,
+			'num_strategy': 'drop',
+			'cat_strategy': 'mode',
+			'dt_strategy': 'drop',
+			'scaling_strategy': 'standard',
+			'outlier_method': 'zscore',
+			'selected_models': 'all',
+			'available_models': ['RandomForest', 'LightGBM', 'Ridge', 'Lasso', 'ElasticNet', 'LinearRegression'],
+			'enable_optimization': False,
+			'n_trials': 50,
+			'n_jobs': 3,
+			'models_to_optimize': ['RandomForest', 'LightGBM', 'Ridge', 'Lasso', 'ElasticNet'],
+			'enable_eda': True,
+			'enable_plots': True,
+			'feature_importance_top_n': 15,
+			'results_csv': 'results/evaluation_results.csv',
+			'results_json': 'results/evaluation_results.json',
+			'comparison_plot': 'plots/comparison.png',
+			'importance_plot': 'plots/importance.png'
+		}
 	
 	if os.path.exists(config_path):
 		config.read(config_path)
@@ -99,6 +136,10 @@ def load_config(config_path, args):
 		result_config['dt_strategy'] = config.get('PREPROCESSING', 'dt_strategy', fallback=default_config['dt_strategy'])
 		result_config['scaling_strategy'] = config.get('PREPROCESSING', 'scaling_strategy', fallback=default_config['scaling_strategy'])
 		result_config['outlier_method'] = config.get('PREPROCESSING', 'outlier_method', fallback=default_config['outlier_method'])
+		
+		result_config['selected_models'] = config.get('MODEL', 'selected_models', fallback=default_config['selected_models'])
+		available_models_str = config.get('MODEL', 'available_models', fallback=','.join(default_config['available_models']))
+		result_config['available_models'] = [m.strip() for m in available_models_str.split(',')]
 		
 		result_config['enable_optimization'] = config.getboolean('OPTIMIZATION', 'enable_optimization', fallback=default_config['enable_optimization'])
 		result_config['n_trials'] = config.getint('OPTIMIZATION', 'n_trials', fallback=default_config['n_trials'])
@@ -132,6 +173,8 @@ def load_config(config_path, args):
 		result_config['enable_eda'] = False
 	if args.no_viz:
 		result_config['enable_plots'] = False
+	if args.models:
+		result_config['selected_models'] = args.models
 	
 	return result_config
 
@@ -146,6 +189,7 @@ if __name__ == "__main__":
 	logger.info(f"Using configuration file: {args.config}")
 	logger.info(f"Data file: {config['data_file']}")
 	logger.info(f"Target column: {config['target_column']}")
+	logger.info(f"Selected models: {config['selected_models']}")
 	logger.info(f"Optimization enabled: {config['enable_optimization']}")
 	logger.info(f"EDA enabled: {config['enable_eda']}")
 	logger.info(f"Visualization enabled: {config['enable_plots']}")
@@ -267,10 +311,23 @@ if __name__ == "__main__":
 	
 	# Khởi tạo các mô hình
 	trainer.initialize_models()
+	
+	# Chọn models cần train
+	if config['selected_models'].lower() != 'all':
+		# Parse selected models từ string
+		selected_model_names = [m.strip() for m in config['selected_models'].split(',')]
+		# Lọc chỉ giữ lại các models được chọn
+		filtered_models = {name: model for name, model in trainer.models.items() if name in selected_model_names}
+		trainer.models = filtered_models
+		logger.info(f"Training only selected models: {list(trainer.models.keys())}")
+	else:
+		logger.info(f"Training all available models: {list(trainer.models.keys())}")
 
-	# Optimize hyperparams cho tất cả models (configurable trials)
+	# Optimize hyperparams cho các models được chọn (configurable trials)
 	if config['enable_optimization']:
-		for model_name in config['models_to_optimize']:
+		# Chỉ optimize các models có trong trainer.models
+		models_to_opt = [m for m in config['models_to_optimize'] if m in trainer.models.keys()]
+		for model_name in models_to_opt:
 			logger.info(f"Optimizing {model_name}...")
 			trainer.optimize_params(model_name, n_trials=config['n_trials'], n_jobs=config['n_jobs'])
 	

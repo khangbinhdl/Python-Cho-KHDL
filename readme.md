@@ -56,6 +56,10 @@ dt_strategy = drop
 scaling_strategy = standard
 outlier_method = zscore
 
+[MODEL]
+selected_models = all
+available_models = RandomForest,LightGBM,Ridge,Lasso,ElasticNet,LinearRegression
+
 [OPTIMIZATION]
 enable_optimization = false
 n_trials = 50
@@ -122,7 +126,19 @@ python pipeline.py --test-size 0.3
 python pipeline.py --random-state 123
 ```
 
-### 10. Kết hợp nhiều tham số
+### 10. Chạy với model cụ thể
+```bash
+# Chạy chỉ RandomForest và LightGBM
+python pipeline.py --models "RandomForest,LightGBM"
+
+# Chạy chỉ Ridge regression
+python pipeline.py --models "Ridge"
+
+# Chạy tất cả models (mặc định)
+python pipeline.py --models "all"
+```
+
+### 11. Kết hợp nhiều tham số
 ```bash
 python pipeline.py --optimize --no-eda --test-size 0.25 --random-state 999
 ```
@@ -139,6 +155,7 @@ python pipeline.py --optimize --no-eda --test-size 0.25 --random-state 999
 | `--no-viz` | Tắt visualization | False |
 | `--test-size` | Tỷ lệ test set | Từ config |
 | `--random-state` | Random state | Từ config |
+| `--models` | Models cần train | Từ config |
 
 ## Ưu tiên tham số
 
@@ -161,5 +178,17 @@ python pipeline.py --optimize
 ### Thử nghiệm với dữ liệu khác
 ```bash
 python pipeline.py --data "Data/new_dataset.csv" --target "new_target"
+```
+
+### So sánh hiệu suất các model
+```bash
+# Chạy chỉ các tree-based models
+python pipeline.py --models "RandomForest,LightGBM" --optimize
+
+# Chạy chỉ các linear models
+python pipeline.py --models "Ridge,Lasso,ElasticNet,LinearRegression"
+
+# Test nhanh với 1 model
+python pipeline.py --models "RandomForest" --no-eda --no-viz
 ```
 
