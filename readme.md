@@ -237,3 +237,6 @@ Dataset chứa **515 mẫu** với **14 features**:
 | **Sugars (g)** | Lượng đường (gram) trong một khẩu phần. |
 | **Protein (g)** | Lượng Protein (gram) trong một khẩu phần. |
 | **Weight Watchers Pnts** | Điểm số theo hệ thống tính điểm của chương trình ăn kiêng Weight Watchers (có thể đã lỗi thời hoặc chỉ áp dụng cho một số thị trường). |
+
+## Kết quả thực nghiệm
+[Experiment_results (Google Sheet)](https://docs.google.com/spreadsheets/d/1DugDKIYezPlDGXlfH01LJ1cdBhQisnCArAE03LLE0dM/edit?usp=sharing)
