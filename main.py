@@ -132,12 +132,22 @@ if __name__ == "__main__":
 	# 3. Chia dữ liệu TRAIN/TEST, TIẾN HÀNH XỬ LÝ DỮ LIỆU
 	# =========================================================================
 
-	# Drop cột rác và clean giá trị âm
-	preprocessor.drop_features(['calories_from_fat', 'weight_watchers_pnts', 'company', 'item'])
-	preprocessor.clean_negative_values()
-	
-	# One-hot encoding (Làm trước split để đảm bảo đồng bộ cột)
-	preprocessor.encode_categorical(strategy='onehot')
+	# Drop features, clean negative values and encode categoricals based on config
+	# Read comma-separated drop_features from config (fallback empty)
+	drop_raw = config.get('PREPROCESSING', 'drop_features', fallback='').strip()
+	if drop_raw:
+		drop_list = [f.strip() for f in drop_raw.split(',') if f.strip()]
+		if drop_list:
+			preprocessor.drop_features(drop_list)
+
+	# Clean negative values if enabled in config
+	if config.getboolean('PREPROCESSING', 'clean_negative_values', fallback=False):
+		preprocessor.clean_negative_values()
+
+	# Categorical encoding strategy (do before split to keep consistent columns)
+	cat_enc = config.get('PREPROCESSING', 'categorical_encoding', fallback='none')
+	if cat_enc and cat_enc.lower() != 'none':
+		preprocessor.encode_categorical(strategy=cat_enc)
 
 	# Loại bỏ duplicate trước khi chia train/test
 	preprocessor.remove_duplicates()
