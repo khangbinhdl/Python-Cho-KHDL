@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, Optional, Union
 
 import optuna
-from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 from numpy.typing import ArrayLike
 from sklearn.ensemble import RandomForestRegressor
@@ -48,7 +47,8 @@ class BayesianOptimizer:
 		X_train: ArrayLike,
 		y_train: ArrayLike,
 		random_state: int = 42,
-		cv: int = 5
+		cv: int = 5,
+		n_jobs: int = 1
 	) -> None:
 		"""
 		Khởi tạo BayesianOptimizer.
@@ -63,11 +63,14 @@ class BayesianOptimizer:
 			Seed cho reproducibility. Mặc định là 42
 		cv : int, optional
 			Số fold cho cross-validation. Mặc định là 5
+		n_jobs : int, optional
+			Số jobs song song. Mặc định là 1
 		"""
 		self.X_train: ArrayLike = X_train
 		self.y_train: ArrayLike = y_train
 		self.random_state: int = random_state
 		self.cv: int = cv
+		self.n_jobs: int = n_jobs
 
 	def __str__(self) -> str:
 		"""
@@ -90,7 +93,7 @@ class BayesianOptimizer:
 		str
 			Chuỗi mô tả chi tiết
 		"""
-		return f"BayesianOptimizer(random_state={self.random_state}, cv={self.cv})"
+		return f"BayesianOptimizer(random_state={self.random_state}, cv={self.cv}, n_jobs={self.n_jobs})"
 
 	@staticmethod
 	def _log(message: str) -> None:
@@ -162,14 +165,6 @@ class BayesianOptimizer:
 				'reg_lambda': ('float', 1e-8, 10.0, True),
 				'gamma': ('float', 1e-8, 5.0, True)
 			},
-			'CatBoost': {
-				'iterations': ('int', 100, 1000),
-				'learning_rate': ('float', 0.005, 0.3, True),
-				'depth': ('int', 3, 12),
-				'l2_leaf_reg': ('float', 1e-8, 10.0, True),
-				'bagging_temperature': ('float', 0.0, 1.0),
-				'border_count': ('int', 32, 255)
-			},
 			'ElasticNet': {
 				'alpha': ('float', 1e-4, 10.0, True),
 				'l1_ratio': ('float', 0.0, 1.0)
@@ -188,7 +183,7 @@ class BayesianOptimizer:
 		self,
 		model_name: str,
 		trial: optuna.trial.Trial
-	) -> Optional[Union[RandomForestRegressor, LGBMRegressor, XGBRegressor, CatBoostRegressor, ElasticNet, DecisionTreeRegressor]]:
+	) -> Optional[Union[RandomForestRegressor, LGBMRegressor, XGBRegressor, ElasticNet, DecisionTreeRegressor]]:
 		"""
 		Tạo model instance với parameters từ Optuna trial.
 		
@@ -196,7 +191,7 @@ class BayesianOptimizer:
 		----------
 		model_name : str
 			Tên model cần tạo. Hỗ trợ: 'RandomForest', 'LightGBM',
-			'XGBoost', 'CatBoost', 'ElasticNet', 'DecisionTree'.
+			'XGBoost', 'ElasticNet', 'DecisionTree'.
 		trial : optuna.trial.Trial
 			Optuna trial object để suggest parameters.
 			
@@ -233,20 +228,16 @@ class BayesianOptimizer:
 		
 		# Tạo model instance
 		if model_name == 'RandomForest':
-			params['n_jobs'] = 3
+			params['n_jobs'] = self.n_jobs
 			return RandomForestRegressor(**params)
 		elif model_name == 'LightGBM':
-			params['n_jobs'] = 3
+			params['n_jobs'] = self.n_jobs
 			params['verbose'] = -1
 			return LGBMRegressor(**params)
 		elif model_name == 'XGBoost':
-			params['n_jobs'] = 3
+			params['n_jobs'] = self.n_jobs
 			params['verbosity'] = 0
 			return XGBRegressor(**params)
-		elif model_name == 'CatBoost':
-			params['verbose'] = 0
-			params['allow_writing_files'] = False  # Ngăn tạo folder catboost_info
-			return CatBoostRegressor(**params)
 		elif model_name == 'ElasticNet':
 			return ElasticNet(**params)
 		elif model_name == 'DecisionTree':

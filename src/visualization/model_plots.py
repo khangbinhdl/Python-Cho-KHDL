@@ -93,7 +93,9 @@ class ModelVisualizer:
 		plt.tight_layout(rect=[0, 0, 1, 0.985])
 		
 		if save_path:
-			os.makedirs(os.path.dirname(save_path), exist_ok=True)
+			save_dir = os.path.dirname(save_path)
+			if save_dir:
+				os.makedirs(save_dir, exist_ok=True)
 			plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
 			self._log(f"✓ Plot saved: {save_path}")
 		plt.show()
@@ -143,7 +145,9 @@ class ModelVisualizer:
 		plt.tight_layout()
 		
 		if save_path:
-			os.makedirs(os.path.dirname(save_path), exist_ok=True)
+			save_dir = os.path.dirname(save_path)
+			if save_dir:
+				os.makedirs(save_dir, exist_ok=True)
 			plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
 			self._log(f"✓ Feature importance saved: {save_path}")
 		plt.show()

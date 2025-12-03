@@ -274,7 +274,7 @@ class EDA:
 			else:
 				plt.close()
 		else:
-			print("Không có cột số nào để tính toán tương quan.")
+			self._log("No numeric columns found for correlation analysis.")
 
 	def data_distribution(self, save_path: Optional[str] = None) -> None:
 		"""

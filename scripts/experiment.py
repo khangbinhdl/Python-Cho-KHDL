@@ -86,15 +86,15 @@ def run_experiment() -> None:
             train_processed = preprocessor.encode_categorical(
                 data=train_df, strategy='onehot', fit=True
             )
-            
-            # Missing: Học từ train -> điền vào train
-            train_processed = preprocessor.handle_missing_values(data=train_processed, fit=True)
-            
+                        
             # Outliers: Chỉ loại bỏ trên tập TRAIN
             train_processed = preprocessor.handle_outliers(
                 data=train_processed, 
                 exclude_features=[target_col] 
             )
+
+            # Missing: Học từ train -> điền vào train
+            train_processed = preprocessor.handle_missing_values(data=train_processed, fit=True)
             
             # Scaling: Học từ train -> scale train
             train_processed = preprocessor.scale_features(
@@ -177,9 +177,24 @@ def run_experiment() -> None:
     })
     best_model_df = best_model_df[['num_strategy', 'scaling_strategy', 'outlier_method', 'Best model', 'R2', 'MSE', 'MAE', 'RMSE']]
     
-    # Save to Excel
+    # Save to Excel with proper number formatting (use '.' as decimal separator)
     output_file = "outputs/results/experiment_results.xlsx"
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    
+    # Đảm bảo các cột số có kiểu float64 để Excel hiển thị đúng dấu chấm thập phân
+    numeric_cols = ['R2', 'MSE', 'MAE', 'RMSE']
+    for col in numeric_cols:
+        if col in summary_by_config.columns:
+            summary_by_config[col] = summary_by_config[col].astype(float)
+        if col in best_model_df.columns:
+            best_model_df[col] = best_model_df[col].astype(float)
+        if col in summary_sorted_by_r2.columns:
+            summary_sorted_by_r2[col] = summary_sorted_by_r2[col].astype(float)
+    
+    # Đảm bảo df_results cũng có kiểu float đúng
+    for col in ['mse', 'rmse', 'mae', 'r2_score']:
+        if col in df_results.columns:
+            df_results[col] = df_results[col].astype(float)
     
     with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
         summary_by_config.to_excel(writer, sheet_name='Kết quả trung bình', index=False)

@@ -4,7 +4,6 @@ from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
-from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import ElasticNet
@@ -56,7 +55,7 @@ class ModelTrainer:
         Model có hiệu suất tốt nhất, được lấy từ trained_models[best_model_name].
     """
 
-    def __init__(self, random_state: int = 42) -> None:
+    def __init__(self, random_state: int = 42, n_jobs: int = 1) -> None:
         """
         Khởi tạo ModelTrainer.
         
@@ -64,8 +63,11 @@ class ModelTrainer:
         ----------
         random_state : int, optional
             Seed cho reproducibility. Mặc định là 42.
+        n_jobs : int, optional
+            Số jobs song song cho các model hỗ trợ. Mặc định là 1.
         """
         self.random_state: int = random_state
+        self.n_jobs: int = n_jobs
         
         # Các biến chứa dữ liệu
         self.data: Optional[pd.DataFrame] = None
@@ -83,7 +85,7 @@ class ModelTrainer:
         self.results: list[dict[str, Any]] = []  # Kết quả đánh giá
 
         np.random.seed(random_state)
-        self._log("ModelTrainer initialized with random_state={}".format(random_state))
+        self._log("ModelTrainer initialized with random_state={}, n_jobs={}".format(random_state, n_jobs))
 
     @property
     def best_model_name(self) -> Optional[str]:
@@ -110,7 +112,7 @@ class ModelTrainer:
 
     def __repr__(self) -> str:
         """Biểu diễn chuỗi dành cho developer."""
-        return f"ModelTrainer(random_state={self.random_state}, trained={len(self.trained_models)})"
+        return f"ModelTrainer(random_state={self.random_state}, n_jobs={self.n_jobs}, trained={len(self.trained_models)})"
 
     @staticmethod
     def _log(message: str) -> None:
@@ -228,25 +230,19 @@ class ModelTrainer:
             
             'RandomForest': RandomForestRegressor(
                 random_state=self.random_state,
-                n_jobs=3
+                n_jobs=self.n_jobs
             ),
 
             'LightGBM': LGBMRegressor(
                 random_state=self.random_state,
                 verbose=-1,
-                n_jobs=3
+                n_jobs=self.n_jobs
             ),
 
             'XGBoost': XGBRegressor(
                 random_state=self.random_state,
-                n_jobs=3,
+                n_jobs=self.n_jobs,
                 verbosity=0
-            ),
-
-            'CatBoost': CatBoostRegressor(
-                random_state=self.random_state,
-                verbose=0,
-                allow_writing_files=False  # Ngăn tạo folder catboost_info
             ),
 
             'DecisionTree': DecisionTreeRegressor(random_state=self.random_state),
@@ -353,7 +349,8 @@ class ModelTrainer:
             optimizer = BayesianOptimizer(
                 self.X_train, self.y_train, 
                 random_state=self.random_state, 
-                cv=cv
+                cv=cv,
+                n_jobs=n_jobs
             )
             
             best_params = optimizer.optimize(model_name, n_trials=n_trials)

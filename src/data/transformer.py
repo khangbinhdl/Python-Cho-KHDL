@@ -205,15 +205,16 @@ class DataTransformer:
         # FIT: Học tham số
         if fit and strategy in ("mean", "median", "mode"):
             for col in cols_to_process:
-                if data[col].isna().any():
-                    if strategy == "mean":
-                        val = data[col].mean()
-                    elif strategy == "median":
-                        val = data[col].median()
-                    else:  # mode
-                        mode = data[col].mode()
-                        val = mode.iloc[0] if not mode.empty else data[col].median()
-                    new_learned[col] = val
+                # Luôn tính toán giá trị thay thế, kể cả khi train set không có missing value
+                # Để đề phòng trường hợp test set có missing value
+                if strategy == "mean":
+                    val = data[col].mean()
+                elif strategy == "median":
+                    val = data[col].median()
+                else:  # mode
+                    mode = data[col].mode()
+                    val = mode.iloc[0] if not mode.empty else data[col].median()
+                new_learned[col] = val
         
         # TRANSFORM: Áp dụng
         if strategy == "drop":
@@ -274,13 +275,13 @@ class DataTransformer:
         # FIT: Học tham số
         if fit and strategy in ("mode", "constant"):
             for col in cols_to_process:
-                if data[col].isna().any():
-                    if strategy == "mode":
-                        mode = data[col].mode()
-                        val = mode.iloc[0] if not mode.empty else "Unknown"
-                    else:  # constant
-                        val = "Unknown"
-                    new_learned[col] = val
+                # Luôn tính toán giá trị thay thế
+                if strategy == "mode":
+                    mode = data[col].mode()
+                    val = mode.iloc[0] if not mode.empty else "Unknown"
+                else:  # constant
+                    val = "Unknown"
+                new_learned[col] = val
         
         # TRANSFORM: Áp dụng
         if strategy == "drop":
@@ -643,7 +644,8 @@ class DataTransformer:
         if fit or scaler is None:
             if strategy == 'standard': scaler = StandardScaler()
             elif strategy == 'robust': scaler = RobustScaler()
-            else: scaler = StandardScaler()
+            else:
+                raise ValueError(f"Invalid scaling strategy '{strategy}'. Supported: 'standard', 'robust'.")
             
             if cols_to_scale:
                 target[cols_to_scale] = scaler.fit_transform(target[cols_to_scale])
