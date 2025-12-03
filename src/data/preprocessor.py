@@ -106,24 +106,22 @@ class DataPreprocessor:
     def load_data(
         self,
         filepath: str,
-        numeric_cols: Optional[list[str]] = None,
-        auto_convert_numeric: bool = False,
+        auto_convert_numeric: bool = True,
         auto_convert_threshold: float = 0.8
     ) -> DataPreprocessor:
         """
-        Nạp dữ liệu, chuẩn hóa tên cột, chuyển đổi các cột số nếu cần thiết.
+        Nạp dữ liệu, chuẩn hóa tên cột, tự động chuyển đổi các cột số nếu cần.
         
         Parameters
         ----------
         filepath : str
             Đường dẫn tới file dữ liệu. Hỗ trợ: .csv, .xlsx, .xls, .json.
-        numeric_cols : list or None, optional
-            Danh sách các cột cần chuyển đổi sang kiểu số. Mặc định là None.
         auto_convert_numeric : bool, optional
             Nếu True, tự động phát hiện và chuyển đổi các cột có thể là số.
-            Mặc định là False.
+            Mặc định là True.
         auto_convert_threshold : float, optional
-            Ngưỡng tối thiểu để tự động chuyển đổi cột sang số. Mặc định là 0.8.
+            Ngưỡng tối thiểu để tự động chuyển đổi cột sang số (0.0 - 1.0).
+            Mặc định là 0.8 (80%).
         
         Returns
         -------
@@ -136,11 +134,11 @@ class DataPreprocessor:
         # 2. Clean column names
         self.data = DataIO.clean_column_names(self.data)
         
-        # 3. Convert numeric
-        if numeric_cols:
-            self.data = DataTransformer.convert_columns_to_numeric(self.data, numeric_cols)
-        elif auto_convert_numeric:
-            self.data = DataTransformer.auto_convert_numeric_columns(self.data, threshold=auto_convert_threshold)
+        # 3. Auto convert numeric columns
+        if auto_convert_numeric:
+            self.data = DataTransformer.auto_convert_numeric_columns(
+                self.data, threshold=auto_convert_threshold
+            )
             
         # 4. Auto detect types
         self.auto_detect_columns()
@@ -472,6 +470,29 @@ class DataPreprocessor:
         """
         if self.data is None: raise ValueError("Data not loaded.")
         self.data = DataTransformer.remove_duplicates(self.data, subset)
+        return self
+
+    def drop_null_targets(self, target_column: str) -> DataPreprocessor:
+        """
+        Loại bỏ các hàng có giá trị target null.
+        
+        Parameters
+        ----------
+        target_column : str
+            Tên cột target cần kiểm tra.
+        
+        Returns
+        -------
+        self
+            Trả về instance để cho phép method chaining.
+        
+        Raises
+        ------
+        ValueError
+            Nếu dữ liệu chưa được nạp.
+        """
+        if self.data is None: raise ValueError("Data not loaded.")
+        self.data = DataTransformer.drop_null_targets(self.data, target_column)
         return self
 
     def drop_features(self, features_to_drop: list[str]) -> DataPreprocessor:

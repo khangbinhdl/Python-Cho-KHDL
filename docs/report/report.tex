@@ -577,14 +577,13 @@ Sau khi cố định quy trình tiền xử lý như trên, nhóm tiến hành t
     \label{fig:compare_models}
 \end{figure}
 
-Quan sát Hình~\ref{fig:compare_models}, có thể thấy các mô hình phát triển từ \textit{linear regression} đều cho giá trị $R^2$ gần như tương đương nhau, cùng đạt khoảng \textbf{0.9972}. 
-Sự sai khác ở 3 metrics còn lại (MAE, MSE, RMSE) là tương đối nhỏ và không mang ý nghĩa thực tiễn quá lớn trong bối cảnh bài toán, do đó có thể bỏ qua.
+Quan sát Hình~\ref{fig:compare_models}, có thể thấy các mô hình phát triển từ \textit{linear regression} đều cho giá trị $R^2$ gần như tương đương nhau, cùng đạt khoảng \textbf{0.996}. 
 
-Dựa trên nhận định này, nhóm quyết định lựa chọn mô hình \textbf{Lasso} làm mô hình chính để phân tích sâu hơn.
+Dựa vào chỉ số MAE, các mô hình phát triển từ \textit{linear regression} có sai số tuyệt đối chỉ có khoảng \textbf{7 calories}, giá trị này vô cùng thấp trong thực tế.  
 
-\subsection{Phân tích đặc trưng quan trọng với mô hình Lasso}
 
-Sau khi lựa chọn mô hình Lasso và tối ưu siêu tham số, nhóm tiến hành trích xuất trọng số của các đặc trưng để xác định mức độ quan trọng tương đối của từng biến đầu vào. 
+\subsection{Phân tích đặc trưng quan trọng của 6 mô hình}
+
 Kết quả trực quan hoá các đặc trưng quan trọng được thể hiện trong Hình~\ref{fig:lasso_importance}.
 
 \begin{figure}[H]
@@ -594,7 +593,8 @@ Kết quả trực quan hoá các đặc trưng quan trọng được thể hi�
     \label{fig:lasso_importance}
 \end{figure}
 
-Từ Hình~\ref{fig:lasso_importance}, cả 6 mô hình đều đồng thuận rằng \textbf{Total Fat (g)} và \textbf{Carbs (g)} là hai đặc trưng quan trọng nhất ảnh hưởng đến lượng Calories của món ăn nhanh.
+Từ Hình~\ref{fig:lasso_importance}, Đa số đều kết luận \text{Protein (g)}, \textbf{Total Fat (g)} và \textbf{Carbs (g)} là ba đặc trưng quan trọng nhất ảnh hưởng đến giá trị Calories, điều này hoàn toàn phù hợp với kiến thức dinh dưỡng cơ bản.
+
 
 \section{Bảng công việc}
 

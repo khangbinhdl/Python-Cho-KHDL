@@ -115,6 +115,8 @@ if __name__ == "__main__":
 	# Loại bỏ duplicate trước khi chia train/test
 	preprocessor.remove_duplicates()
 
+	# Loại bỏ các hàng có target null (không có ý nghĩa)
+	preprocessor.drop_null_targets(target_column=target_col)
 	
 	# Lấy dữ liệu tạm thời (đã clean cơ bản)
 	current_data = preprocessor.get_processed_data()

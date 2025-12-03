@@ -51,33 +51,6 @@ class DataTransformer:
         }
 
     @staticmethod
-    def convert_columns_to_numeric(data: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
-        """
-        Chuyển đổi các cột được chỉ định thành kiểu số.
-        
-        Parameters
-        ----------
-        data : DataFrame
-            DataFrame chứa các cột cần chuyển đổi.
-        columns : list
-            Danh sách tên các cột cần chuyển đổi sang kiểu số.
-        
-        Returns
-        -------
-        DataFrame
-            DataFrame với các cột đã được chuyển đổi sang kiểu số.
-        """
-        if not columns:
-            return data
-            
-        DataTransformer._log(f"Converting {len(columns)} columns to numeric: {columns}")
-        for col in columns:
-            if col in data.columns and data[col].dtype == 'object':
-                data[col] = data[col].str.replace(',', '').str.strip()
-                data[col] = pd.to_numeric(data[col], errors='coerce')
-        return data
-
-    @staticmethod
     def auto_convert_numeric_columns(data: pd.DataFrame, threshold: float = 0.8) -> pd.DataFrame:
         """
         Tự động phát hiện và chuyển đổi các cột object có thể là số.
@@ -192,6 +165,186 @@ class DataTransformer:
         return data
 
     @staticmethod
+    def _handle_missing_numeric(
+        data: pd.DataFrame,
+        columns: list[str],
+        strategy: str,
+        learned_values: dict[str, Any],
+        exclude_features: list[str],
+        fit: bool
+    ) -> tuple[pd.DataFrame, dict[str, Any]]:
+        """
+        Xử lý giá trị thiếu cho các cột số.
+        
+        Parameters
+        ----------
+        data : DataFrame
+            DataFrame chứa dữ liệu cần xử lý.
+        columns : list
+            Danh sách các cột số cần xử lý.
+        strategy : str
+            Chiến lược xử lý ('mean', 'median', 'mode', 'drop', 'ffill', 'bfill').
+        learned_values : dict
+            Dictionary chứa các giá trị đã học (tên cột -> giá trị điền).
+        exclude_features : list
+            Danh sách các cột không xử lý.
+        fit : bool
+            Nếu True, học các giá trị thống kê từ data.
+        
+        Returns
+        -------
+        tuple
+            (DataFrame, dict) - DataFrame đã xử lý và dictionary learned_values cập nhật.
+        """
+        if not columns:
+            return data, learned_values
+        
+        cols_to_process = [c for c in columns if c not in exclude_features]
+        new_learned = learned_values.copy()
+        
+        # FIT: Học tham số
+        if fit and strategy in ("mean", "median", "mode"):
+            for col in cols_to_process:
+                if data[col].isna().any():
+                    if strategy == "mean":
+                        val = data[col].mean()
+                    elif strategy == "median":
+                        val = data[col].median()
+                    else:  # mode
+                        mode = data[col].mode()
+                        val = mode.iloc[0] if not mode.empty else data[col].median()
+                    new_learned[col] = val
+        
+        # TRANSFORM: Áp dụng
+        if strategy == "drop":
+            if cols_to_process:
+                data = data.dropna(subset=cols_to_process)
+        elif strategy in ("mean", "median", "mode"):
+            for col in cols_to_process:
+                val = new_learned.get(col)
+                if val is not None:
+                    data[col] = data[col].fillna(val)
+        elif strategy == "ffill":
+            if cols_to_process:
+                data[cols_to_process] = data[cols_to_process].ffill()
+        elif strategy == "bfill":
+            if cols_to_process:
+                data[cols_to_process] = data[cols_to_process].bfill()
+        
+        return data, new_learned
+
+    @staticmethod
+    def _handle_missing_categorical(
+        data: pd.DataFrame,
+        columns: list[str],
+        strategy: str,
+        learned_values: dict[str, Any],
+        exclude_features: list[str],
+        fit: bool
+    ) -> tuple[pd.DataFrame, dict[str, Any]]:
+        """
+        Xử lý giá trị thiếu cho các cột phân loại.
+        
+        Parameters
+        ----------
+        data : DataFrame
+            DataFrame chứa dữ liệu cần xử lý.
+        columns : list
+            Danh sách các cột phân loại cần xử lý.
+        strategy : str
+            Chiến lược xử lý ('mode', 'constant', 'drop', 'ffill', 'bfill').
+        learned_values : dict
+            Dictionary chứa các giá trị đã học (tên cột -> giá trị điền).
+        exclude_features : list
+            Danh sách các cột không xử lý.
+        fit : bool
+            Nếu True, học các giá trị thống kê từ data.
+        
+        Returns
+        -------
+        tuple
+            (DataFrame, dict) - DataFrame đã xử lý và dictionary learned_values cập nhật.
+        """
+        if not columns:
+            return data, learned_values
+        
+        cols_to_process = [c for c in columns if c not in exclude_features]
+        new_learned = learned_values.copy()
+        
+        # FIT: Học tham số
+        if fit and strategy in ("mode", "constant"):
+            for col in cols_to_process:
+                if data[col].isna().any():
+                    if strategy == "mode":
+                        mode = data[col].mode()
+                        val = mode.iloc[0] if not mode.empty else "Unknown"
+                    else:  # constant
+                        val = "Unknown"
+                    new_learned[col] = val
+        
+        # TRANSFORM: Áp dụng
+        if strategy == "drop":
+            if cols_to_process:
+                data = data.dropna(subset=cols_to_process)
+        elif strategy == "mode":
+            for col in cols_to_process:
+                val = new_learned.get(col)
+                if val is not None:
+                    data[col] = data[col].fillna(val)
+                else:
+                    # Fallback nếu không tìm thấy trong learned (e.g. cột mới)
+                    mode = data[col].mode()
+                    val = mode.iloc[0] if not mode.empty else "Unknown"
+                    data[col] = data[col].fillna(val)
+        elif strategy == "constant":
+            for col in cols_to_process:
+                val = new_learned.get(col, "Unknown")
+                data[col] = data[col].fillna(val)
+        elif strategy == "ffill":
+            if cols_to_process:
+                data[cols_to_process] = data[cols_to_process].ffill()
+        elif strategy == "bfill":
+            if cols_to_process:
+                data[cols_to_process] = data[cols_to_process].bfill()
+        
+        return data, new_learned
+
+    @staticmethod
+    def _handle_missing_datetime(
+        data: pd.DataFrame,
+        columns: list[str],
+        strategy: str
+    ) -> pd.DataFrame:
+        """
+        Xử lý giá trị thiếu cho các cột datetime.
+        
+        Parameters
+        ----------
+        data : DataFrame
+            DataFrame chứa dữ liệu cần xử lý.
+        columns : list
+            Danh sách các cột datetime cần xử lý.
+        strategy : str
+            Chiến lược xử lý ('drop', 'ffill', 'bfill').
+        
+        Returns
+        -------
+        DataFrame
+            DataFrame đã xử lý.
+        """
+        if not columns:
+            return data
+        
+        if strategy == "drop":
+            data = data.dropna(subset=columns)
+        elif strategy == "ffill":
+            data[columns] = data[columns].ffill()
+        elif strategy == "bfill":
+            data[columns] = data[columns].bfill()
+        
+        return data
+
+    @staticmethod
     def handle_missing_values(
         data: pd.DataFrame,
         strategies: dict[str, str],
@@ -201,6 +354,9 @@ class DataTransformer:
     ) -> tuple[pd.DataFrame, dict[str, dict[str, Any]]]:
         """
         Xử lý giá trị thiếu theo các chiến lược được chỉ định.
+        
+        Hàm này tổng hợp việc xử lý missing values cho 3 loại dữ liệu:
+        numeric, categorical và datetime.
         
         Parameters
         ----------
@@ -228,97 +384,48 @@ class DataTransformer:
             (DataFrame, dict) - DataFrame đã xử lý và dictionary learned_values.
         """
         target = data.copy()
-        if exclude_features is None:
-            exclude_features = []
-            
+        exclude_features = exclude_features or []
+        
+        # Lấy chiến lược cho từng loại
         num_strategy = strategies.get('num', 'median')
         cat_strategy = strategies.get('cat', 'mode')
         dt_strategy = strategies.get('dt', 'drop')
         
+        # Phát hiện loại cột
         col_types = DataTransformer.auto_detect_columns(target)
         numeric_cols = col_types['numeric']
         categorical_cols = col_types['categorical']
         datetime_cols = col_types['datetime']
         
+        # Khởi tạo learned_values
         new_learned_values = {'num': {}, 'cat': {}}
         if learned_values:
-            new_learned_values = learned_values.copy()
+            new_learned_values = {
+                'num': learned_values.get('num', {}).copy(),
+                'cat': learned_values.get('cat', {}).copy()
+            }
 
         DataTransformer._log(f"Handling missing values fit={fit} | strategies={strategies}")
-
-        # 1. FIT (Học tham số)
-        if fit:
-            # Numeric
-            if numeric_cols and num_strategy in ("mean", "median", "mode"):
-                for col in numeric_cols:
-                    if col in exclude_features: continue
-                    if target[col].isna().any():
-                        if num_strategy == "mean": val = target[col].mean()
-                        elif num_strategy == "median": val = target[col].median()
-                        else: 
-                            mode = target[col].mode()
-                            val = mode.iloc[0] if not mode.empty else target[col].median()
-                        new_learned_values['num'][col] = val
-            
-            # Categorical
-            if categorical_cols and cat_strategy in ("mode", "constant"):
-                for col in categorical_cols:
-                    if col in exclude_features: continue
-                    if target[col].isna().any():
-                        if cat_strategy == "mode":
-                            mode = target[col].mode()
-                            val = mode.iloc[0] if not mode.empty else "Unknown"
-                        else: val = "Unknown"
-                        new_learned_values['cat'][col] = val
-
-        # 2. TRANSFORM (Áp dụng)
         initial_rows = len(target)
 
-        # Datetime
-        if datetime_cols:
-            if dt_strategy == "drop":
-                target = target.dropna(subset=datetime_cols)
-            elif dt_strategy == "ffill":
-                target[datetime_cols] = target[datetime_cols].ffill()
-            elif dt_strategy == "bfill":
-                target[datetime_cols] = target[datetime_cols].bfill()
+        # 1. Xử lý datetime
+        target = DataTransformer._handle_missing_datetime(
+            target, datetime_cols, dt_strategy
+        )
 
-        # Numeric
-        if numeric_cols:
-            cols_to_process = [c for c in numeric_cols if c not in exclude_features]
-            if num_strategy == "drop":
-                if cols_to_process: target = target.dropna(subset=cols_to_process)
-            elif num_strategy in ("mean", "median", "mode"):
-                for col in cols_to_process:
-                    val = new_learned_values['num'].get(col)
-                    if val is not None: target[col] = target[col].fillna(val)
-            elif num_strategy == "ffill":
-                if cols_to_process: target[cols_to_process] = target[cols_to_process].ffill()
-            elif num_strategy == "bfill":
-                if cols_to_process: target[cols_to_process] = target[cols_to_process].bfill()
+        # 2. Xử lý numeric
+        target, new_learned_values['num'] = DataTransformer._handle_missing_numeric(
+            target, numeric_cols, num_strategy,
+            new_learned_values['num'], exclude_features, fit
+        )
 
-        # Categorical
-        if categorical_cols:
-            cols_to_process = [c for c in categorical_cols if c not in exclude_features]
-            if cat_strategy == "drop":
-                if cols_to_process: target = target.dropna(subset=cols_to_process)
-            elif cat_strategy == "mode":
-                for col in cols_to_process:
-                    val = new_learned_values['cat'].get(col)
-                    if val is not None: target[col] = target[col].fillna(val)
-                    else: # Fallback if not found in learned (e.g. new col)
-                         mode = target[col].mode()
-                         val = mode.iloc[0] if not mode.empty else "Unknown"
-                         target[col] = target[col].fillna(val)
-            elif cat_strategy == "constant":
-                for col in cols_to_process:
-                    val = new_learned_values['cat'].get(col, "Unknown")
-                    target[col] = target[col].fillna(val)
-            elif cat_strategy == "ffill":
-                if cols_to_process: target[cols_to_process] = target[cols_to_process].ffill()
-            elif cat_strategy == "bfill":
-                if cols_to_process: target[cols_to_process] = target[cols_to_process].bfill()
+        # 3. Xử lý categorical
+        target, new_learned_values['cat'] = DataTransformer._handle_missing_categorical(
+            target, categorical_cols, cat_strategy,
+            new_learned_values['cat'], exclude_features, fit
+        )
 
+        # Log số hàng đã xóa
         rows_removed = initial_rows - len(target)
         if rows_removed > 0:
             DataTransformer._log(f"Dropped {rows_removed} rows due to missing values")
@@ -577,6 +684,35 @@ class DataTransformer:
         return data
 
     @staticmethod
+    def drop_null_targets(
+        data: pd.DataFrame,
+        target_column: str
+    ) -> pd.DataFrame:
+        """
+        Loại bỏ các hàng có giá trị target null.
+        
+        Parameters
+        ----------
+        data : DataFrame
+            DataFrame chứa dữ liệu cần xử lý.
+        target_column : str
+            Tên cột target cần kiểm tra.
+        
+        Returns
+        -------
+        DataFrame
+            DataFrame đã loại bỏ các hàng có target null.
+        """
+        initial_rows = len(data)
+        data = data.dropna(subset=[target_column]).reset_index(drop=True)
+        rows_removed = initial_rows - len(data)
+        
+        if rows_removed > 0:
+            DataTransformer._log(f"Dropped {rows_removed} rows with null target '{target_column}'")
+        
+        return data
+
+    @staticmethod
     def drop_features(data: pd.DataFrame, features: list[str]) -> pd.DataFrame:
         """
         Xóa các cột được chỉ định khỏi DataFrame.
@@ -589,7 +725,7 @@ class DataTransformer:
             Danh sách tên các cột cần xóa.
         
         Returns
-        -------
+        -------s
         DataFrame
             DataFrame đã xóa các cột được chỉ định.
         """

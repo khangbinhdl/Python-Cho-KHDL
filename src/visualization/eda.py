@@ -208,11 +208,6 @@ class EDA:
 			for line in skewness_df.to_string(index=False).splitlines():
 				self._log(line)
 
-			self._log("\nInterpretation:")
-			self._log("  - Highly skewed: |skewness| > 1")
-			self._log("  - Moderately skewed: 0.5 < |skewness| <= 1")
-			self._log("  - Fairly symmetric: |skewness| <= 0.5")
-
 	def correlation_analysis(
 		self,
 		method: str = 'pearson',

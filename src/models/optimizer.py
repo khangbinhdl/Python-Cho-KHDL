@@ -3,11 +3,14 @@ from __future__ import annotations
 from typing import Any, Optional, Union
 
 import optuna
+from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 from numpy.typing import ArrayLike
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import ElasticNet, Lasso, Ridge
+from sklearn.linear_model import ElasticNet
 from sklearn.model_selection import cross_val_score
+from sklearn.tree import DecisionTreeRegressor
+from xgboost import XGBRegressor
 
 from src.utils.logging import get_logger
 
@@ -123,9 +126,8 @@ class BayesianOptimizer:
 		Các model được hỗ trợ:
 		- RandomForest: n_estimators, max_depth, min_samples_split, min_samples_leaf, max_features
 		- LightGBM: n_estimators, learning_rate, num_leaves, max_depth, min_child_samples, subsample, colsample_bytree, reg_alpha, reg_lambda
-		- Ridge: alpha
-		- Lasso: alpha
 		- ElasticNet: alpha, l1_ratio
+		- DecisionTree: max_depth, min_samples_split, min_samples_leaf, max_features
 		"""
 		if model_name == 'LinearRegression':
 			return None
@@ -149,15 +151,34 @@ class BayesianOptimizer:
 				'reg_alpha': ('float', 1e-8, 10.0, True),
 				'reg_lambda': ('float', 1e-8, 10.0, True)
 			},
-			'Ridge': {
-				'alpha': ('float', 1e-3, 100.0, True)
+			'XGBoost': {
+				'n_estimators': ('int', 100, 1000),
+				'learning_rate': ('float', 0.005, 0.3, True),
+				'max_depth': ('int', 3, 15),
+				'min_child_weight': ('int', 1, 20),
+				'subsample': ('float', 0.5, 1.0),
+				'colsample_bytree': ('float', 0.5, 1.0),
+				'reg_alpha': ('float', 1e-8, 10.0, True),
+				'reg_lambda': ('float', 1e-8, 10.0, True),
+				'gamma': ('float', 1e-8, 5.0, True)
 			},
-			'Lasso': {
-				'alpha': ('float', 1e-4, 10.0, True)
+			'CatBoost': {
+				'iterations': ('int', 100, 1000),
+				'learning_rate': ('float', 0.005, 0.3, True),
+				'depth': ('int', 3, 12),
+				'l2_leaf_reg': ('float', 1e-8, 10.0, True),
+				'bagging_temperature': ('float', 0.0, 1.0),
+				'border_count': ('int', 32, 255)
 			},
 			'ElasticNet': {
 				'alpha': ('float', 1e-4, 10.0, True),
 				'l1_ratio': ('float', 0.0, 1.0)
+			},
+			'DecisionTree': {
+				'max_depth': ('int', 3, 30),
+				'min_samples_split': ('int', 2, 20),
+				'min_samples_leaf': ('int', 1, 10),
+				'max_features': ('categorical', ['sqrt', 'log2', None])
 			}
 		}
 		
@@ -167,7 +188,7 @@ class BayesianOptimizer:
 		self,
 		model_name: str,
 		trial: optuna.trial.Trial
-	) -> Optional[Union[RandomForestRegressor, LGBMRegressor, Ridge, Lasso, ElasticNet]]:
+	) -> Optional[Union[RandomForestRegressor, LGBMRegressor, XGBRegressor, CatBoostRegressor, ElasticNet, DecisionTreeRegressor]]:
 		"""
 		Tạo model instance với parameters từ Optuna trial.
 		
@@ -175,7 +196,7 @@ class BayesianOptimizer:
 		----------
 		model_name : str
 			Tên model cần tạo. Hỗ trợ: 'RandomForest', 'LightGBM',
-			'Ridge', 'Lasso', 'ElasticNet'.
+			'XGBoost', 'CatBoost', 'ElasticNet', 'DecisionTree'.
 		trial : optuna.trial.Trial
 			Optuna trial object để suggest parameters.
 			
@@ -212,18 +233,24 @@ class BayesianOptimizer:
 		
 		# Tạo model instance
 		if model_name == 'RandomForest':
-			params['n_jobs'] = 2
+			params['n_jobs'] = 3
 			return RandomForestRegressor(**params)
 		elif model_name == 'LightGBM':
-			params['n_jobs'] = 2
+			params['n_jobs'] = 3
 			params['verbose'] = -1
 			return LGBMRegressor(**params)
-		elif model_name == 'Ridge':
-			return Ridge(**params)
-		elif model_name == 'Lasso':
-			return Lasso(**params)
+		elif model_name == 'XGBoost':
+			params['n_jobs'] = 3
+			params['verbosity'] = 0
+			return XGBRegressor(**params)
+		elif model_name == 'CatBoost':
+			params['verbose'] = 0
+			params['allow_writing_files'] = False  # Ngăn tạo folder catboost_info
+			return CatBoostRegressor(**params)
 		elif model_name == 'ElasticNet':
 			return ElasticNet(**params)
+		elif model_name == 'DecisionTree':
+			return DecisionTreeRegressor(**params)
 		else:
 			return None
 
@@ -292,7 +319,7 @@ class BayesianOptimizer:
 		best_params = study.best_params
 		best_score = study.best_value
 		
-		self._log(f"✓ Best R²: {best_score:.4f}")
+		self._log(f"✓ Best R2: {best_score:.4f}")
 		self._log(f"✓ Best Params: {best_params}")
 
 		return best_params

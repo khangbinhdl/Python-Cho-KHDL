@@ -23,7 +23,7 @@ def run_experiment() -> None:
     logger.info(f"Log file: {log_path}")
     
     file_path = 'data/raw/FastFoodNutritionMenuV3.csv'
-    target_col = 'calories'
+    target_col = 'saturated_fat_g'
     
     # Parameters to iterate
     num_strategies = ['mean', 'median', 'mode', 'drop']
@@ -62,11 +62,14 @@ def run_experiment() -> None:
             preprocessor.convert_to_datetime()
             
             # Drop cột rác và clean giá trị âm
-            preprocessor.drop_features(['calories_from_fat', 'weight_watchers_pnts', 'company', 'item'])
+            preprocessor.drop_features(['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g'])
             preprocessor.clean_negative_values()
             
             # Loại bỏ duplicate trước khi chia train/test
             preprocessor.remove_duplicates()
+            
+            # Loại bỏ các hàng có target null (không có ý nghĩa)
+            preprocessor.drop_null_targets(target_column=target_col)
             
             # =========================================================================
             # 2. CHIA DỮ LIỆU TRAIN/TEST

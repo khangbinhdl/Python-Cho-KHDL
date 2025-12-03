@@ -104,7 +104,7 @@ class ModelVisualizer:
 		save_path: Optional[str] = None
 	) -> None:
 		"""
-		Vẽ biểu đồ feature importance.
+		Vẽ biểu đồ feature importance của model tốt nhất.
 		
 		Parameters
 		----------

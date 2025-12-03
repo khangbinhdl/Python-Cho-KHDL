@@ -4,10 +4,13 @@ from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
+from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import ElasticNet, Lasso, LinearRegression, Ridge
+from sklearn.linear_model import ElasticNet
 from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeRegressor
+from xgboost import XGBRegressor
 
 from src.models.evaluator import ModelEvaluator
 from src.models.optimizer import BayesianOptimizer
@@ -28,11 +31,11 @@ class ModelTrainer:
     random_state : int
         Seed cho reproducibility.
     data : DataFrame or None
-        Dữ liệu gốc được nạp vào.
+        Dữ liệu gốc được nạp vào. Được giải phóng sau khi split_data().
     train_df : DataFrame or None
-        Dữ liệu training sau khi split.
+        Dữ liệu training sau khi split. Được giải phóng sau khi set_training_data().
     test_df : DataFrame or None
-        Dữ liệu testing sau khi split.
+        Dữ liệu testing sau khi split. Được giải phóng sau khi set_training_data().
     X_train : DataFrame or None
         Features của tập training.
     X_test : DataFrame or None
@@ -47,10 +50,10 @@ class ModelTrainer:
         Dictionary chứa các models đã được huấn luyện.
     results : list
         Danh sách kết quả đánh giá các models.
-    best_model : object or None
-        Model có hiệu suất tốt nhất.
-    best_model_name : str or None
-        Tên của model tốt nhất.
+    best_model_name : str or None (property)
+        Tên của model tốt nhất, được suy ra từ results (R² cao nhất).
+    best_model : object or None (property)
+        Model có hiệu suất tốt nhất, được lấy từ trained_models[best_model_name].
     """
 
     def __init__(self, random_state: int = 42) -> None:
@@ -78,11 +81,25 @@ class ModelTrainer:
         self.models: dict[str, Any] = {}  # Model templates (chưa train)
         self.trained_models: dict[str, Any] = {}  # Models đã train
         self.results: list[dict[str, Any]] = []  # Kết quả đánh giá
-        self.best_model: Optional[Any] = None  # Model tốt nhất
-        self.best_model_name: Optional[str] = None  # Tên model tốt nhất
 
         np.random.seed(random_state)
         self._log("ModelTrainer initialized with random_state={}".format(random_state))
+
+    @property
+    def best_model_name(self) -> Optional[str]:
+        """Tên của model tốt nhất, suy ra từ results (R² cao nhất)."""
+        if not self.results:
+            return None
+        best_result = max(self.results, key=lambda x: x.get('r2_score', float('-inf')))
+        return best_result.get('model_name')
+    
+    @property
+    def best_model(self) -> Optional[Any]:
+        """Model có hiệu suất tốt nhất, được lấy từ trained_models."""
+        name = self.best_model_name
+        if name is None:
+            return None
+        return self.trained_models.get(name)
 
     def __str__(self) -> str:
         """Biểu diễn chuỗi thân thiện với người dùng."""
@@ -156,6 +173,10 @@ class ModelTrainer:
             random_state=self.random_state, stratify=stratify
         )
         self._log(f"Split complete. Train shape: {self.train_df.shape}, Test shape: {self.test_df.shape}")
+        
+        # Giải phóng bộ nhớ - data gốc không còn cần thiết sau khi split
+        self.data = None
+        
         return self.train_df, self.test_df
 
     def set_training_data(
@@ -184,6 +205,10 @@ class ModelTrainer:
         self.X_test = test_processed.drop(columns=[target_col])
         self.y_test = test_processed[target_col]
         
+        # Giải phóng bộ nhớ - train_df, test_df không còn cần thiết
+        self.train_df = None
+        self.test_df = None
+        
         self._log(f"Ready for training. X_train: {self.X_train.shape}, X_test: {self.X_test.shape}")
 
     def initialize_models(self) -> ModelTrainer:
@@ -191,7 +216,7 @@ class ModelTrainer:
         Khởi tạo danh sách các mô hình Machine Learning.
         
         Khởi tạo các mô hình regression bao gồm:
-        LinearRegression, Ridge, Lasso, ElasticNet, RandomForest, LightGBM.
+        ElasticNet, RandomForest, LightGBM, DecisionTree.
         
         Returns
         -------
@@ -199,24 +224,32 @@ class ModelTrainer:
             Trả về instance để cho phép method chaining.
         """
         self.models = {
-            'LinearRegression': LinearRegression(),
-            
-            'Ridge': Ridge(random_state=self.random_state),
-            
-            'Lasso': Lasso(random_state=self.random_state),
-            
             'ElasticNet': ElasticNet(random_state=self.random_state),
             
             'RandomForest': RandomForestRegressor(
                 random_state=self.random_state,
-                n_jobs=2
+                n_jobs=3
             ),
 
             'LightGBM': LGBMRegressor(
                 random_state=self.random_state,
                 verbose=-1,
-                n_jobs=2
+                n_jobs=3
             ),
+
+            'XGBoost': XGBRegressor(
+                random_state=self.random_state,
+                n_jobs=3,
+                verbosity=0
+            ),
+
+            'CatBoost': CatBoostRegressor(
+                random_state=self.random_state,
+                verbose=0,
+                allow_writing_files=False  # Ngăn tạo folder catboost_info
+            ),
+
+            'DecisionTree': DecisionTreeRegressor(random_state=self.random_state),
         }
         
         self._log(f"Initialized {len(self.models)} models: {list(self.models.keys())}")
@@ -314,10 +347,6 @@ class ModelTrainer:
         if model_name not in self.models:
             raise ValueError(f"Model '{model_name}' not found.")
 
-        if model_name == 'LinearRegression':
-            self._log("LinearRegression does not require optimization. Skipping.")
-            return None
-
         self._log(f"Starting optimization for {model_name}...")
         
         try:
@@ -384,20 +413,14 @@ class ModelTrainer:
         
         self._log("Evaluating models...")
         self.results = []
-        best_score = -np.inf
         
         for name, model in self.trained_models.items():
             result = ModelEvaluator.evaluate_model(model, self.X_test, self.y_test, name)
             
             if result:
                 self.results.append(result)
-                
-                # Cập nhật best model dựa trên R2
-                if result['r2_score'] > best_score:
-                    best_score = result['r2_score']
-                    self.best_model = model
-                    self.best_model_name = name
         
+        # best_model_name được tính tự động qua property từ self.results
         return {'results': self.results, 'best_model_name': self.best_model_name}
 
     def get_feature_importance(
