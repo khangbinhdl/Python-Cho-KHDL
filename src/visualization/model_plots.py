@@ -1,8 +1,13 @@
+from __future__ import annotations
+
+import os
+from typing import Any, Optional
+
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 import pandas as pd
-import os
+import seaborn as sns
+
 from src.utils.logging import get_logger
 
 # Thiết lập style cho seaborn
@@ -24,20 +29,20 @@ class ModelVisualizer:
 		Dictionary chứa 'results' (list of dicts) và 'best_model_name' (str)
 	"""
 	
-	def __init__(self, evaluation_results):
+	def __init__(self, evaluation_results: dict[str, Any]) -> None:
 		"""
 		Parameters
 		----------
 		evaluation_results : dict
 			Kết quả từ ModelTrainer.evaluate_models()
 		"""
-		self.evaluation_results = evaluation_results
+		self.evaluation_results: dict[str, Any] = evaluation_results
 		
 	@staticmethod
-	def _log(message):
+	def _log(message: str) -> None:
 		MODEL_VIS_LOGGER.info(message)
 	
-	def plot_model_comparison(self, save_path=None):
+	def plot_model_comparison(self, save_path: Optional[str] = None) -> None:
 		"""
 		Vẽ 4 biểu đồ so sánh MSE, RMSE, MAE, R² của các models.
 		
@@ -93,7 +98,11 @@ class ModelVisualizer:
 			self._log(f"✓ Plot saved: {save_path}")
 		plt.show()
 	
-	def plot_feature_importance(self, importance_df, save_path=None):
+	def plot_feature_importance(
+		self,
+		importance_df: pd.DataFrame,
+		save_path: Optional[str] = None
+	) -> None:
 		"""
 		Vẽ biểu đồ feature importance.
 		

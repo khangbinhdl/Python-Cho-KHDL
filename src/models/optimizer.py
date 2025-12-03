@@ -1,8 +1,14 @@
+from __future__ import annotations
+
+from typing import Any, Optional, Union
+
 import optuna
-from sklearn.model_selection import cross_val_score
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import Ridge, Lasso, ElasticNet
 from lightgbm import LGBMRegressor
+from numpy.typing import ArrayLike
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import ElasticNet, Lasso, Ridge
+from sklearn.model_selection import cross_val_score
+
 from src.utils.logging import get_logger
 
 # Tắt bớt log của Optuna
@@ -34,7 +40,13 @@ class BayesianOptimizer:
 	>>> best_params = optimizer.optimize('RandomForest', n_trials=50)
 	"""
 
-	def __init__(self, X_train, y_train, random_state=42, cv=5):
+	def __init__(
+		self,
+		X_train: ArrayLike,
+		y_train: ArrayLike,
+		random_state: int = 42,
+		cv: int = 5
+	) -> None:
 		"""
 		Khởi tạo BayesianOptimizer.
 		
@@ -49,12 +61,12 @@ class BayesianOptimizer:
 		cv : int, optional
 			Số fold cho cross-validation. Mặc định là 5
 		"""
-		self.X_train = X_train
-		self.y_train = y_train
-		self.random_state = random_state
-		self.cv = cv
+		self.X_train: ArrayLike = X_train
+		self.y_train: ArrayLike = y_train
+		self.random_state: int = random_state
+		self.cv: int = cv
 
-	def __str__(self):
+	def __str__(self) -> str:
 		"""
 		Biểu diễn chuỗi thân thiện với người dùng
 		
@@ -66,7 +78,7 @@ class BayesianOptimizer:
 		n_samples = len(self.X_train) if hasattr(self.X_train, '__len__') else 0
 		return f"BayesianOptimizer: {n_samples} samples, cv={self.cv}"
 
-	def __repr__(self):
+	def __repr__(self) -> str:
 		"""
 		Biểu diễn chuỗi dành cho developer
 		
@@ -78,7 +90,7 @@ class BayesianOptimizer:
 		return f"BayesianOptimizer(random_state={self.random_state}, cv={self.cv})"
 
 	@staticmethod
-	def _log(message):
+	def _log(message: str) -> None:
 		"""
 		Ghi log thông điệp với logger của Optimizer
 		
@@ -89,7 +101,7 @@ class BayesianOptimizer:
 		"""
 		LOGGER.info(message)
 
-	def _get_search_space(self, model_name):
+	def _get_search_space(self, model_name: str) -> Optional[dict[str, tuple[Any, ...]]]:
 		"""
 		Trả về search space cho từng model.
 		
@@ -151,7 +163,11 @@ class BayesianOptimizer:
 		
 		return search_spaces.get(model_name, None)
 
-	def _create_model(self, model_name, trial):
+	def _create_model(
+		self,
+		model_name: str,
+		trial: optuna.trial.Trial
+	) -> Optional[Union[RandomForestRegressor, LGBMRegressor, Ridge, Lasso, ElasticNet]]:
 		"""
 		Tạo model instance với parameters từ Optuna trial.
 		
@@ -211,7 +227,7 @@ class BayesianOptimizer:
 		else:
 			return None
 
-	def optimize(self, model_name, n_trials=20):
+	def optimize(self, model_name: str, n_trials: int = 20) -> Optional[dict[str, Any]]:
 		"""
 		Chạy Bayesian Optimization để tìm parameters tối ưu.
 		

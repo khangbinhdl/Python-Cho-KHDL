@@ -1,3 +1,10 @@
+from __future__ import annotations
+
+from typing import Any, Optional, Union
+
+import pandas as pd
+from sklearn.preprocessing import RobustScaler, StandardScaler
+
 from src.data.io import DataIO
 from src.data.transformer import DataTransformer
 from src.utils.logging import get_logger
@@ -33,7 +40,14 @@ class DataPreprocessor:
         Dictionary lưu trữ các encoder cho từng cột.
     """
 
-    def __init__(self, num_strategy='median', cat_strategy='mode', dt_strategy='drop', scaling_strategy='standard', outlier_method='iqr'):
+    def __init__(
+        self,
+        num_strategy: str = 'median',
+        cat_strategy: str = 'mode',
+        dt_strategy: str = 'drop',
+        scaling_strategy: str = 'standard',
+        outlier_method: str = 'iqr'
+    ) -> None:
         """
         Khởi tạo đối tượng DataPreprocessor.
         
@@ -60,36 +74,42 @@ class DataPreprocessor:
             Các giá trị hợp lệ: 'iqr', 'zscore', 'isolation_forest'.
             Mặc định là 'iqr'.
         """
-        self.data = None
+        self.data: Optional[pd.DataFrame] = None
         
         # Config
-        self.num_strategy = num_strategy
-        self.cat_strategy = cat_strategy
-        self.dt_strategy = dt_strategy
-        self.scaling_strategy = scaling_strategy
-        self.outlier_method = outlier_method
+        self.num_strategy: str = num_strategy
+        self.cat_strategy: str = cat_strategy
+        self.dt_strategy: str = dt_strategy
+        self.scaling_strategy: str = scaling_strategy
+        self.outlier_method: str = outlier_method
 
         # State
-        self.scaler = None
-        self.encoders = {}
-        self.missing_num_values = {}
-        self.missing_cat_values = {}
-        self.scaled_cols_ = [] # Track scaled columns
+        self.scaler: Optional[Union[StandardScaler, RobustScaler]] = None
+        self.encoders: dict[str, Any] = {}
+        self.missing_num_values: dict[str, Any] = {}
+        self.missing_cat_values: dict[str, Any] = {}
+        self.scaled_cols_: list[str] = [] # Track scaled columns
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"DataPreprocessor(num='{self.num_strategy}', cat='{self.cat_strategy}', dt='{self.dt_strategy}', "
                 f"scaling='{self.scaling_strategy}', outlier='{self.outlier_method}')")
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.data is None:
             return "DataPreprocessor (chưa nạp dữ liệu)"
         return f"DataPreprocessor: {self.data.shape[0]} dòng, {self.data.shape[1]} cột"
 
     @staticmethod
-    def _log(message):
+    def _log(message: str) -> None:
         LOGGER.info(message)
 
-    def load_data(self, filepath, numeric_cols=None, auto_convert_numeric=False, auto_convert_threshold=0.8):
+    def load_data(
+        self,
+        filepath: str,
+        numeric_cols: Optional[list[str]] = None,
+        auto_convert_numeric: bool = False,
+        auto_convert_threshold: float = 0.8
+    ) -> DataPreprocessor:
         """
         Nạp dữ liệu, chuẩn hóa tên cột, chuyển đổi các cột số nếu cần thiết.
         
@@ -126,7 +146,7 @@ class DataPreprocessor:
         self.auto_detect_columns()
         return self
 
-    def save_data(self, filepath):
+    def save_data(self, filepath: str) -> None:
         """
         Lưu dữ liệu đã xử lý vào file.
         
@@ -137,7 +157,7 @@ class DataPreprocessor:
         """
         DataIO.save_data(self.data, filepath)
 
-    def auto_detect_columns(self):
+    def auto_detect_columns(self) -> DataPreprocessor:
         """
         Phân loại các cột theo kiểu dữ liệu.
         
@@ -166,7 +186,11 @@ class DataPreprocessor:
         self._log(f"Datetime cols: {self.datetime_cols}")
         return self
 
-    def convert_to_datetime(self, columns=None, date_format='%Y-%m-%d'):
+    def convert_to_datetime(
+        self,
+        columns: Optional[list[str]] = None,
+        date_format: str = '%Y-%m-%d'
+    ) -> DataPreprocessor:
         """
         Chuyển đổi các cột sang kiểu datetime.
         
@@ -193,7 +217,7 @@ class DataPreprocessor:
         self.auto_detect_columns()
         return self
 
-    def clean_negative_values(self):
+    def clean_negative_values(self) -> DataPreprocessor:
         """
         Làm sạch giá trị âm bằng cách thay thế bằng giá trị tuyệt đối.
         
@@ -211,7 +235,12 @@ class DataPreprocessor:
         self.data = DataTransformer.clean_negative_values(self.data)
         return self
 
-    def handle_missing_values(self, data=None, exclude_features=None, fit=False):
+    def handle_missing_values(
+        self,
+        data: Optional[pd.DataFrame] = None,
+        exclude_features: Optional[list[str]] = None,
+        fit: bool = False
+    ) -> Union[DataPreprocessor, pd.DataFrame]:
         """
         Xử lý các giá trị thiếu trong dữ liệu.
         
@@ -267,7 +296,11 @@ class DataPreprocessor:
         else:
             return processed_data
 
-    def handle_outliers(self, data=None, exclude_features=None):
+    def handle_outliers(
+        self,
+        data: Optional[pd.DataFrame] = None,
+        exclude_features: Optional[list[str]] = None
+    ) -> Union[DataPreprocessor, pd.DataFrame]:
         """
         Xử lý các giá trị ngoại lai.
         
@@ -309,7 +342,7 @@ class DataPreprocessor:
         else:
             return processed_data
 
-    def encode_categorical(self, strategy='onehot'):
+    def encode_categorical(self, strategy: str = 'onehot') -> DataPreprocessor:
         """
         Mã hóa các cột phân loại thành dạng số.
         
@@ -337,7 +370,12 @@ class DataPreprocessor:
         self.auto_detect_columns()
         return self
 
-    def scale_features(self, data=None, exclude_features=None, fit=False):
+    def scale_features(
+        self,
+        data: Optional[pd.DataFrame] = None,
+        exclude_features: Optional[list[str]] = None,
+        fit: bool = False
+    ) -> Union[DataPreprocessor, pd.DataFrame]:
         """
         Chuẩn hóa (scaling) các cột số.
         
@@ -382,7 +420,7 @@ class DataPreprocessor:
         else:
             return processed_data
 
-    def remove_duplicates(self, subset=None):
+    def remove_duplicates(self, subset: Optional[list[str]] = None) -> DataPreprocessor:
         """
         Xóa các hàng trùng lặp trong DataFrame.
         
@@ -406,7 +444,7 @@ class DataPreprocessor:
         self.data = DataTransformer.remove_duplicates(self.data, subset)
         return self
 
-    def drop_features(self, features_to_drop):
+    def drop_features(self, features_to_drop: list[str]) -> DataPreprocessor:
         """
         Xóa các cột được chỉ định khỏi DataFrame.
         
@@ -430,7 +468,7 @@ class DataPreprocessor:
         self.auto_detect_columns()
         return self
 
-    def get_processed_data(self):
+    def get_processed_data(self) -> Optional[pd.DataFrame]:
         """
         Trả về dữ liệu đã được xử lý.
         

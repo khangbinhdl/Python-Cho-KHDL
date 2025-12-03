@@ -1,9 +1,14 @@
-import joblib
-import pickle
-import os
+from __future__ import annotations
+
 import json
-import pandas as pd
+import os
+import pickle
 from datetime import datetime
+from typing import Any, Optional, Union
+
+import joblib
+import pandas as pd
+
 from src.utils.logging import get_logger
 
 # Logger riêng
@@ -15,11 +20,11 @@ class ModelIO:
     """
 
     @staticmethod
-    def _log(message):
+    def _log(message: str) -> None:
         LOGGER.info(message)
 
     @staticmethod
-    def load_model(filepath, method='joblib'):
+    def load_model(filepath: str, method: str = 'joblib') -> Any:
         """
         Nạp mô hình đã lưu từ file.
 
@@ -58,7 +63,12 @@ class ModelIO:
             raise
 
     @staticmethod
-    def save_model(model, model_name, filepath=None, method='joblib'):
+    def save_model(
+        model: Any,
+        model_name: str,
+        filepath: Optional[str] = None,
+        method: str = 'joblib'
+    ) -> str:
         """
         Lưu mô hình đã huấn luyện vào file.
 
@@ -114,7 +124,11 @@ class ModelIO:
             raise
 
     @staticmethod
-    def save_results(results, filepath=None, format='csv'):
+    def save_results(
+        results: list[dict[str, Any]],
+        filepath: Optional[str] = None,
+        format: str = 'csv'
+    ) -> Optional[str]:
         """
         Lưu kết quả đánh giá các mô hình vào file.
 

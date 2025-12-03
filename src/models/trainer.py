@@ -1,12 +1,16 @@
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
-from sklearn.ensemble import RandomForestRegressor
-from lightgbm import LGBMRegressor
+from __future__ import annotations
 
-from src.models.optimizer import BayesianOptimizer
+from typing import Any, Optional, Union
+
+import numpy as np
+import pandas as pd
+from lightgbm import LGBMRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import ElasticNet, Lasso, LinearRegression, Ridge
+from sklearn.model_selection import train_test_split
+
 from src.models.evaluator import ModelEvaluator
+from src.models.optimizer import BayesianOptimizer
 from src.utils.logging import get_logger
 
 # Logger riêng
@@ -49,7 +53,7 @@ class ModelTrainer:
         Tên của model tốt nhất.
     """
 
-    def __init__(self, random_state=42):
+    def __init__(self, random_state: int = 42) -> None:
         """
         Khởi tạo ModelTrainer.
         
@@ -58,43 +62,44 @@ class ModelTrainer:
         random_state : int, optional
             Seed cho reproducibility. Mặc định là 42.
         """
-        self.random_state = random_state
+        self.random_state: int = random_state
         
         # Các biến chứa dữ liệu
-        self.data = None
-        self.train_df = None
-        self.test_df = None
-        self.X_train = None
-        self.X_test = None
-        self.y_train = None
-        self.y_test = None
+        self.data: Optional[pd.DataFrame] = None
+        self.train_df: Optional[pd.DataFrame] = None
+        self.test_df: Optional[pd.DataFrame] = None
+        self.X_train: Optional[pd.DataFrame] = None
+        self.X_test: Optional[pd.DataFrame] = None
+        self.y_train: Optional[pd.Series] = None
+        self.y_test: Optional[pd.Series] = None
+        self.target_column: Optional[str] = None
 
         # Các biến liên quan đến models
-        self.models = {}  # Model templates (chưa train)
-        self.trained_models = {}  # Models đã train
-        self.results = []  # Kết quả đánh giá
-        self.best_model = None  # Model tốt nhất
-        self.best_model_name = None  # Tên model tốt nhất
+        self.models: dict[str, Any] = {}  # Model templates (chưa train)
+        self.trained_models: dict[str, Any] = {}  # Models đã train
+        self.results: list[dict[str, Any]] = []  # Kết quả đánh giá
+        self.best_model: Optional[Any] = None  # Model tốt nhất
+        self.best_model_name: Optional[str] = None  # Tên model tốt nhất
 
         np.random.seed(random_state)
         self._log("ModelTrainer initialized with random_state={}".format(random_state))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Biểu diễn chuỗi thân thiện với người dùng."""
         trained_count = len(self.trained_models)
         if trained_count == 0:
             return "ModelTrainer (chưa huấn luyện model nào)"
         return f"ModelTrainer: {trained_count} models đã train, best={self.best_model_name}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Biểu diễn chuỗi dành cho developer."""
         return f"ModelTrainer(random_state={self.random_state}, trained={len(self.trained_models)})"
 
     @staticmethod
-    def _log(message):
+    def _log(message: str) -> None:
         LOGGER.info(message)
 
-    def load_data(self, data, target_column='calories'):
+    def load_data(self, data: pd.DataFrame, target_column: str = 'calories') -> ModelTrainer:
         """
         Nạp dữ liệu đã được tiền xử lý vào ModelTrainer.
         
@@ -123,7 +128,11 @@ class ModelTrainer:
         
         return self
 
-    def split_data(self, test_size=0.2, stratify=None):
+    def split_data(
+        self,
+        test_size: float = 0.2,
+        stratify: Optional[pd.Series] = None
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
         Chia dữ liệu thành tập train và test.
         
@@ -149,7 +158,12 @@ class ModelTrainer:
         self._log(f"Split complete. Train shape: {self.train_df.shape}, Test shape: {self.test_df.shape}")
         return self.train_df, self.test_df
 
-    def set_training_data(self, train_processed, test_processed, target_col):
+    def set_training_data(
+        self,
+        train_processed: pd.DataFrame,
+        test_processed: pd.DataFrame,
+        target_col: str
+    ) -> None:
         """
         Thiết lập dữ liệu đã xử lý và tách thành X, y.
         
@@ -172,7 +186,7 @@ class ModelTrainer:
         
         self._log(f"Ready for training. X_train: {self.X_train.shape}, X_test: {self.X_test.shape}")
 
-    def initialize_models(self):
+    def initialize_models(self) -> ModelTrainer:
         """
         Khởi tạo danh sách các mô hình Machine Learning.
         
@@ -208,7 +222,7 @@ class ModelTrainer:
         self._log(f"Initialized {len(self.models)} models: {list(self.models.keys())}")
         return self
 
-    def train_models(self, models_to_train=None):
+    def train_models(self, models_to_train: Optional[list[str]] = None) -> ModelTrainer:
         """
         Huấn luyện các mô hình.
         
@@ -259,7 +273,13 @@ class ModelTrainer:
         self._log(f"Training completed. {len(self.trained_models)}/{len(models_to_train)} models trained successfully")
         return self
 
-    def optimize_params(self, model_name, n_trials=20, cv=5, n_jobs=1):
+    def optimize_params(
+        self,
+        model_name: str,
+        n_trials: int = 20,
+        cv: int = 5,
+        n_jobs: int = 1
+    ) -> Optional[dict[str, Any]]:
         """
         Tối ưu hóa siêu tham số của model bằng Bayesian Optimization.
         
@@ -337,7 +357,7 @@ class ModelTrainer:
             self._log(f"✗ Error during optimization of {model_name}: {str(e)}")
             return None
 
-    def evaluate_models(self):
+    def evaluate_models(self) -> dict[str, Union[list[dict[str, Any]], Optional[str]]]:
         """
         Đánh giá tất cả các mô hình đã huấn luyện trên tập test.
         
@@ -380,7 +400,11 @@ class ModelTrainer:
         
         return {'results': self.results, 'best_model_name': self.best_model_name}
 
-    def get_feature_importance(self, model_name=None, top_n=None):
+    def get_feature_importance(
+        self,
+        model_name: Optional[str] = None,
+        top_n: Optional[int] = None
+    ) -> pd.DataFrame:
         """
         Lấy độ quan trọng của các features từ mô hình.
         

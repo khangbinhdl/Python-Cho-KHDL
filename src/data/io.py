@@ -1,6 +1,12 @@
-import pandas as pd
+from __future__ import annotations
+
 import os
 import re
+from logging import Logger
+from typing import Optional
+
+import pandas as pd
+
 from src.utils.logging import get_logger
 
 # Logger riêng
@@ -12,11 +18,11 @@ class DataIO:
     """
 
     @staticmethod
-    def _log(message):
+    def _log(message: str) -> None:
         LOGGER.info(message)
 
     @staticmethod
-    def load_data(filepath):
+    def load_data(filepath: str) -> pd.DataFrame:
         """
         Nạp dữ liệu từ các file (CSV, XLSX, JSON) vào DataFrame.
 
@@ -59,7 +65,7 @@ class DataIO:
             raise
 
     @staticmethod
-    def save_data(data, filepath):
+    def save_data(data: Optional[pd.DataFrame], filepath: str) -> None:
         """
         Lưu dữ liệu vào file CSV.
 
@@ -89,7 +95,7 @@ class DataIO:
             raise
 
     @staticmethod
-    def clean_column_names(data):
+    def clean_column_names(data: pd.DataFrame) -> pd.DataFrame:
         """
         Chuẩn hóa tên cột của DataFrame.
         
@@ -122,8 +128,8 @@ class DataIO:
         )
 
         # Chống trùng tên cột
-        seen = {}
-        def dedup(name):
+        seen: dict[str, int] = {}
+        def dedup(name: str) -> str:
             n = name if name != '' else 'col'
             seen[n] = seen.get(n, 0) + 1
             return n if seen[n] == 1 else f"{n}_{seen[n]-1}"

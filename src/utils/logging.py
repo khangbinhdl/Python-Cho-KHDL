@@ -1,13 +1,18 @@
 """
 Centralized logging setup utilities
 """
+from __future__ import annotations
+
 import logging
 import os
 from datetime import datetime
-from logging import StreamHandler, FileHandler, Formatter
+from logging import FileHandler, Formatter, Logger, StreamHandler
 
 
-def setup_logging(log_dir="outputs/logs", log_name="pipeline"):
+def setup_logging(
+    log_dir: str = "outputs/logs",
+    log_name: str = "pipeline"
+) -> str:
     """
     Thiết lập hệ thống logging tập trung cho toàn bộ project.
     
@@ -58,7 +63,7 @@ def setup_logging(log_dir="outputs/logs", log_name="pipeline"):
     return log_path
 
 
-def get_logger(name):
+def get_logger(name: str) -> Logger:
     """
     Lấy logger với tên chỉ định, cấu hình sẵn để sử dụng.
     

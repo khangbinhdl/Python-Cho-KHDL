@@ -1,6 +1,12 @@
+from __future__ import annotations
+
+from typing import Any, Optional, Union
+
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+from numpy.typing import ArrayLike
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
 from src.utils.logging import get_logger
 
 # Logger riêng
@@ -12,11 +18,16 @@ class ModelEvaluator:
     """
 
     @staticmethod
-    def _log(message):
+    def _log(message: str) -> None:
         LOGGER.info(message)
 
     @staticmethod
-    def evaluate_model(model, X_test, y_test, model_name):
+    def evaluate_model(
+        model: Any,
+        X_test: pd.DataFrame,
+        y_test: pd.Series,
+        model_name: str
+    ) -> Optional[dict[str, Union[str, float]]]:
         """
         Đánh giá một mô hình trên tập test.
 
@@ -44,7 +55,7 @@ class ModelEvaluator:
             mae = mean_absolute_error(y_test, y_pred)
             r2 = r2_score(y_test, y_pred)
 
-            result = {
+            result: dict[str, Union[str, float]] = {
                 'model_name': model_name,
                 'mse': mse,
                 'rmse': rmse, 
@@ -60,7 +71,12 @@ class ModelEvaluator:
             return None
 
     @staticmethod
-    def get_feature_importance(model, feature_names, model_name, top_n=None):
+    def get_feature_importance(
+        model: Any,
+        feature_names: ArrayLike,
+        model_name: str,
+        top_n: Optional[int] = None
+    ) -> pd.DataFrame:
         """
         Lấy độ quan trọng của các features từ mô hình.
 

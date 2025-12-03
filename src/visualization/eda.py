@@ -1,8 +1,13 @@
+from __future__ import annotations
+
+import os
+from typing import Optional
+
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 import pandas as pd
-import os
+import seaborn as sns
+
 from src.utils.logging import get_logger
 
 # Thiết lập style cho seaborn
@@ -27,7 +32,7 @@ class EDA:
 		Dữ liệu cần phân tích
 	"""
 	
-	def __init__(self, data, show_plots=True):
+	def __init__(self, data: pd.DataFrame, show_plots: bool = True) -> None:
 		"""
 		Khởi tạo đối tượng EDA với dữ liệu
 		
@@ -38,10 +43,10 @@ class EDA:
 		show_plots : bool, optional
 			Quyết định có hiển thị các biểu đồ hay không. Mặc định là True.
 		"""
-		self.data = data
-		self.show_plots = show_plots
+		self.data: pd.DataFrame = data
+		self.show_plots: bool = show_plots
 
-	def __str__(self):
+	def __str__(self) -> str:
 		"""
 		Biểu diễn chuỗi thân thiện với người dùng
 		
@@ -54,7 +59,7 @@ class EDA:
 			return "EDA (chưa có dữ liệu)"
 		return f"EDA: {self.data.shape[0]} dòng, {self.data.shape[1]} cột"
 
-	def __repr__(self):
+	def __repr__(self) -> str:
 		"""
 		Biểu diễn chuỗi dành cho developer
 		
@@ -67,7 +72,7 @@ class EDA:
 		return f"EDA(rows={shape[0]}, cols={shape[1]}, show_plots={self.show_plots})"
 		
 	@staticmethod
-	def _log(message):
+	def _log(message: str) -> None:
 		"""
 		Ghi log thông điệp với logger của EDA
 		
@@ -79,7 +84,7 @@ class EDA:
 		LOGGER.info(message)
 
 	@staticmethod
-	def _sep():
+	def _sep() -> None:
 		"""
 		In ra một dòng phân cách trong log
 		
@@ -89,7 +94,7 @@ class EDA:
 		LOGGER.info("")      # một dòng trống có timestamp
 		LOGGER.info(SEP)     # separator có timestamp
 
-	def summary_statistics(self, save_path=None):
+	def summary_statistics(self, save_path: Optional[str] = None) -> None:
 		"""
 		In ra các thống kê mô tả cơ bản của các cột số
 		
@@ -208,7 +213,11 @@ class EDA:
 			self._log("  - Moderately skewed: 0.5 < |skewness| <= 1")
 			self._log("  - Fairly symmetric: |skewness| <= 0.5")
 
-	def correlation_analysis(self, method='pearson', save_path=None):
+	def correlation_analysis(
+		self,
+		method: str = 'pearson',
+		save_path: Optional[str] = None
+	) -> None:
 		"""
 		Phân tích tương quan giữa các cột số và vẽ heatmap
 		
@@ -272,7 +281,7 @@ class EDA:
 		else:
 			print("Không có cột số nào để tính toán tương quan.")
 
-	def data_distribution(self, save_path=None):
+	def data_distribution(self, save_path: Optional[str] = None) -> None:
 		"""
 		Trực quan hóa phân phối của các cột số bằng Histogram và KDE
 		
@@ -360,7 +369,7 @@ class EDA:
 		else:
 			plt.close()
 	
-	def boxplot_analysis(self, save_path=None):
+	def boxplot_analysis(self, save_path: Optional[str] = None) -> None:
 		"""
 		Trực quan hóa các boxplot để phát hiện ngoại lai (outliers)
 		
@@ -446,7 +455,11 @@ class EDA:
 		else:
 			plt.close()
 
-	def perform_eda(self, corr_method='pearson', save_path='EDA'):
+	def perform_eda(
+		self,
+		corr_method: str = 'pearson',
+		save_path: str = 'EDA'
+	) -> None:
 		"""
 		Thực hiện toàn bộ quy trình EDA cho các cột số
 		

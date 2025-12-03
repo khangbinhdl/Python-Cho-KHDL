@@ -1,7 +1,12 @@
-import pandas as pd
+from __future__ import annotations
+
+from typing import Any, Optional, Union
+
 import numpy as np
-from sklearn.preprocessing import StandardScaler, RobustScaler, LabelEncoder
+import pandas as pd
 from sklearn.ensemble import IsolationForest
+from sklearn.preprocessing import LabelEncoder, RobustScaler, StandardScaler
+
 from src.utils.logging import get_logger
 
 # Logger riêng
@@ -14,11 +19,11 @@ class DataTransformer:
     """
 
     @staticmethod
-    def _log(message):
+    def _log(message: str) -> None:
         LOGGER.info(message)
 
     @staticmethod
-    def auto_detect_columns(data):
+    def auto_detect_columns(data: pd.DataFrame) -> dict[str, list[str]]:
         """
         Tự động phát hiện và phân loại các cột theo kiểu dữ liệu.
         
@@ -35,9 +40,9 @@ class DataTransformer:
             - 'categorical': Danh sách các cột phân loại
             - 'datetime': Danh sách các cột ngày giờ
         """
-        numeric_cols = data.select_dtypes(include=np.number).columns.tolist()
-        categorical_cols = data.select_dtypes(include=['object', 'category']).columns.tolist()
-        datetime_cols = data.select_dtypes(include=['datetime64']).columns.tolist()
+        numeric_cols: list[str] = data.select_dtypes(include=np.number).columns.tolist()
+        categorical_cols: list[str] = data.select_dtypes(include=['object', 'category']).columns.tolist()
+        datetime_cols: list[str] = data.select_dtypes(include=['datetime64']).columns.tolist()
         
         return {
             'numeric': numeric_cols,
@@ -46,7 +51,7 @@ class DataTransformer:
         }
 
     @staticmethod
-    def convert_columns_to_numeric(data, columns):
+    def convert_columns_to_numeric(data: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
         """
         Chuyển đổi các cột được chỉ định thành kiểu số.
         
@@ -73,7 +78,7 @@ class DataTransformer:
         return data
 
     @staticmethod
-    def auto_convert_numeric_columns(data, threshold=0.8):
+    def auto_convert_numeric_columns(data: pd.DataFrame, threshold: float = 0.8) -> pd.DataFrame:
         """
         Tự động phát hiện và chuyển đổi các cột object có thể là số.
         
@@ -118,7 +123,11 @@ class DataTransformer:
         return data
 
     @staticmethod
-    def convert_to_datetime(data, columns=None, date_format='%Y-%m-%d'):
+    def convert_to_datetime(
+        data: pd.DataFrame,
+        columns: Optional[list[str]] = None,
+        date_format: str = '%Y-%m-%d'
+    ) -> pd.DataFrame:
         """
         Chuyển đổi các cột sang kiểu datetime.
         
@@ -162,7 +171,7 @@ class DataTransformer:
         return data
 
     @staticmethod
-    def clean_negative_values(data):
+    def clean_negative_values(data: pd.DataFrame) -> pd.DataFrame:
         """
         Thay thế giá trị âm bằng giá trị tuyệt đối trong các cột số.
         
@@ -183,7 +192,13 @@ class DataTransformer:
         return data
 
     @staticmethod
-    def handle_missing_values(data, strategies, learned_values=None, exclude_features=None, fit=False):
+    def handle_missing_values(
+        data: pd.DataFrame,
+        strategies: dict[str, str],
+        learned_values: Optional[dict[str, dict[str, Any]]] = None,
+        exclude_features: Optional[list[str]] = None,
+        fit: bool = False
+    ) -> tuple[pd.DataFrame, dict[str, dict[str, Any]]]:
         """
         Xử lý giá trị thiếu theo các chiến lược được chỉ định.
         
@@ -311,7 +326,11 @@ class DataTransformer:
         return target.reset_index(drop=True), new_learned_values
 
     @staticmethod
-    def handle_outliers(data, method='iqr', exclude_features=None):
+    def handle_outliers(
+        data: pd.DataFrame,
+        method: str = 'iqr',
+        exclude_features: Optional[list[str]] = None
+    ) -> pd.DataFrame:
         """
         Xử lý ngoại lai trong các cột số.
         
@@ -370,7 +389,10 @@ class DataTransformer:
         return target.reset_index(drop=True)
 
     @staticmethod
-    def encode_categorical(data, strategy='onehot'):
+    def encode_categorical(
+        data: pd.DataFrame,
+        strategy: str = 'onehot'
+    ) -> tuple[pd.DataFrame, dict[str, LabelEncoder]]:
         """
         Mã hóa các cột phân loại thành dạng số.
         
@@ -406,7 +428,13 @@ class DataTransformer:
         return target, encoders
 
     @staticmethod
-    def scale_features(data, strategy='standard', scaler=None, exclude_features=None, fit=False):
+    def scale_features(
+        data: pd.DataFrame,
+        strategy: str = 'standard',
+        scaler: Optional[Union[StandardScaler, RobustScaler]] = None,
+        exclude_features: Optional[list[str]] = None,
+        fit: bool = False
+    ) -> tuple[pd.DataFrame, Union[StandardScaler, RobustScaler], list[str]]:
         """
         Chuẩn hóa (scaling) các cột số.
         
@@ -449,13 +477,6 @@ class DataTransformer:
             if cols_to_scale:
                 target[cols_to_scale] = scaler.fit_transform(target[cols_to_scale])
         else:
-            # Transform using fitted scaler
-            # Cần đảm bảo cols_to_scale khớp với scaler. 
-            # Ở đây giả định scaler đã fit trên đúng tập cột này hoặc scaler của sklearn xử lý được.
-            # Sklearn scaler mong đợi đúng số lượng features.
-            # Nếu cols_to_scale khác với lúc fit, sẽ lỗi.
-            # DataPreprocessor cần quản lý việc này (lưu scaled_cols_).
-            # Ở đây ta chỉ gọi transform.
             if cols_to_scale:
                 try:
                     target[cols_to_scale] = scaler.transform(target[cols_to_scale])
@@ -465,7 +486,10 @@ class DataTransformer:
         return target, scaler, cols_to_scale
 
     @staticmethod
-    def remove_duplicates(data, subset=None):
+    def remove_duplicates(
+        data: pd.DataFrame,
+        subset: Optional[list[str]] = None
+    ) -> pd.DataFrame:
         """
         Loại bỏ các hàng trùng lặp trong DataFrame.
         
@@ -489,7 +513,7 @@ class DataTransformer:
         return data
 
     @staticmethod
-    def drop_features(data, features):
+    def drop_features(data: pd.DataFrame, features: list[str]) -> pd.DataFrame:
         """
         Xóa các cột được chỉ định khỏi DataFrame.
         

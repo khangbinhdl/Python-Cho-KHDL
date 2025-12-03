@@ -1,11 +1,18 @@
 """
 Configuration loading utilities
 """
+from __future__ import annotations
+
 import configparser
 import os
+from argparse import Namespace
+from typing import Any, Optional
 
 
-def load_config(config_path, args=None):
+def load_config(
+    config_path: str,
+    args: Optional[Namespace] = None
+) -> configparser.ConfigParser:
     """
     Tải cấu hình từ file .ini và kết hợp với arguments từ command line.
     
@@ -71,7 +78,12 @@ def load_config(config_path, args=None):
     return config
 
 
-def get_config_value(config, section, key, default=None):
+def get_config_value(
+    config: configparser.ConfigParser,
+    section: str,
+    key: str,
+    default: Optional[Any] = None
+) -> Any:
     """
     Lấy giá trị từ config với xử lý exception và giá trị mặc định.
     

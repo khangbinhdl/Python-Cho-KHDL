@@ -1,5 +1,8 @@
-import sys
+from __future__ import annotations
+
+import itertools
 import os
+import sys
 from pathlib import Path
 
 # Tự động thêm thư mục gốc project vào sys.path
@@ -8,14 +11,13 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 import pandas as pd
-import os
-import itertools
+
 from src.data.preprocessor import DataPreprocessor
 from src.models.trainer import ModelTrainer
-from src.utils.logging import setup_logging, get_logger
+from src.utils.logging import get_logger, setup_logging
 
 # Setup logging to file only to avoid cluttering terminal
-def run_experiment():
+def run_experiment() -> None:
     log_path = setup_logging(log_dir="outputs/logs", log_name="experiment")
     logger = get_logger("EXPERIMENT")
     logger.info(f"Log file: {log_path}")

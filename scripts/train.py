@@ -1,5 +1,8 @@
-import sys
+from __future__ import annotations
+
+import argparse
 import os
+import sys
 from pathlib import Path
 
 # Tự động thêm thư mục gốc project vào sys.path
@@ -7,18 +10,17 @@ project_root = str(Path(__file__).parent.parent.absolute())
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+import pandas as pd
+
 from src.data.preprocessor import DataPreprocessor
+from src.models.io import ModelIO
+from src.models.trainer import ModelTrainer
+from src.utils.config import load_config
+from src.utils.logging import get_logger, setup_logging
 from src.visualization.eda import EDA
 from src.visualization.model_plots import ModelVisualizer
-from src.models.trainer import ModelTrainer
-from src.models.io import ModelIO
-from src.utils.logging import setup_logging, get_logger
-from src.utils.config import load_config
-import pandas as pd
-import argparse
-import configparser
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
 	"""Phân tích các tham số dòng lệnh"""
 	parser = argparse.ArgumentParser(description='ML Pipeline for Fast Food Nutrition Data')
 	
