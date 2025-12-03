@@ -65,9 +65,6 @@ def run_experiment() -> None:
             preprocessor.drop_features(['calories_from_fat', 'weight_watchers_pnts', 'company', 'item'])
             preprocessor.clean_negative_values()
             
-            # Categorical encoding (Làm trước split để đảm bảo đồng bộ cột)
-            preprocessor.encode_categorical(strategy='onehot')
-            
             # Loại bỏ duplicate trước khi chia train/test
             preprocessor.remove_duplicates()
             
@@ -82,8 +79,13 @@ def run_experiment() -> None:
             # =========================================================================
             # 3. XỬ LÝ TẬP TRAIN (FIT & TRANSFORM)
             # =========================================================================
+            # Categorical encoding: Fit trên train
+            train_processed = preprocessor.encode_categorical(
+                data=train_df, strategy='onehot', fit=True
+            )
+            
             # Missing: Học từ train -> điền vào train
-            train_processed = preprocessor.handle_missing_values(data=train_df, fit=True)
+            train_processed = preprocessor.handle_missing_values(data=train_processed, fit=True)
             
             # Outliers: Chỉ loại bỏ trên tập TRAIN
             train_processed = preprocessor.handle_outliers(
@@ -101,8 +103,13 @@ def run_experiment() -> None:
             # =========================================================================
             # 4. XỬ LÝ TẬP TEST (CHỈ TRANSFORM)
             # =========================================================================
+            # Categorical encoding: Transform test với encoder đã fit
+            test_processed = preprocessor.encode_categorical(
+                data=test_df, strategy='onehot', fit=False
+            )
+            
             # Missing: Dùng giá trị đã học từ train -> điền vào test
-            test_processed = preprocessor.handle_missing_values(data=test_df, fit=False)
+            test_processed = preprocessor.handle_missing_values(data=test_processed, fit=False)
             
             # Scaling: Dùng tham số đã học từ train -> scale test
             test_processed = preprocessor.scale_features(

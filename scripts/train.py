@@ -8,7 +8,7 @@ from pathlib import Path
 # Tự động thêm thư mục gốc project vào sys.path
 project_root = str(Path(__file__).parent.parent.absolute())
 if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+	sys.path.insert(0, project_root)
 
 import pandas as pd
 
@@ -111,11 +111,6 @@ if __name__ == "__main__":
 	if config.getboolean('PREPROCESSING', 'clean_negative_values'):
 		logger.info("Cleaning negative values...")
 		preprocessor.clean_negative_values()
-	
-	# Categorical encoding (Làm trước split để đảm bảo đồng bộ cột)
-	categorical_encoding = config.get('PREPROCESSING', 'categorical_encoding')
-	logger.info(f"Encoding categorical features with strategy: {categorical_encoding}")
-	preprocessor.encode_categorical(strategy=categorical_encoding)
 
 	# Loại bỏ duplicate trước khi chia train/test
 	preprocessor.remove_duplicates()
@@ -136,22 +131,33 @@ if __name__ == "__main__":
 
 	logger.info("Processing Split Data (Preventing Leakage)...")
 	
+	# Lấy categorical encoding strategy từ config
+	categorical_encoding = config.get('PREPROCESSING', 'categorical_encoding')
+	
 	# DEBUG: Kiểm tra missing values trước khi xử lý
 	logger.info(f"Train NaN count before processing: {train_df.isna().sum().sum()}")
 	logger.info(f"Test NaN count before processing: {test_df.isna().sum().sum()}")
 
 	# --- Xử lý tập TRAIN (FIT & TRANSFORM) ---
-	# 1. Missing: Học median từ train -> điền vào train
-	train_processed = preprocessor.handle_missing_values(data=train_df, fit=True)
-	logger.info(f"Train NaN count after missing handling: {train_processed.isna().sum().sum()}")
+	# 1. Categorical encoding: Fit trên train
+	logger.info(f"Encoding categorical features with strategy: {categorical_encoding}")
+	train_processed = preprocessor.encode_categorical(
+		data=train_df, strategy=categorical_encoding, fit=True
+	)
 	
-	# 2. Outliers: Chỉ loại bỏ trên tập TRAIN
+	# 2. Outliers: Xóa outliers TRƯỚC khi impute để không làm sai lệch phân phối
+	#    Chỉ loại bỏ trên tập TRAIN (không xóa trên TEST)
 	train_processed = preprocessor.handle_outliers(
 		data=train_processed, 
 		exclude_features=[target_col] 
 	)
+	logger.info(f"Train size after outlier removal: {len(train_processed)}")
 	
-	# 3. Scaling: Học min/max/std từ train -> scale train
+	# 3. Missing: Học median/mode từ train (sau khi đã loại outliers) -> điền vào train
+	train_processed = preprocessor.handle_missing_values(data=train_processed, fit=True)
+	logger.info(f"Train NaN count after missing handling: {train_processed.isna().sum().sum()}")
+	
+	# 4. Scaling: Học min/max/std từ train -> scale train
 	train_processed = preprocessor.scale_features(
 		data=train_processed, 
 		exclude_features=[target_col], 
@@ -160,12 +166,18 @@ if __name__ == "__main__":
 
 	logger.info(f"Train NaN count after scaling: {train_processed.isna().sum().sum()}")
 	
+	
 	# --- Xử lý tập TEST (CHỈ TRANSFORM) ---
-	# 1. Missing: Dùng median đã học từ train -> điền vào test
-	test_processed = preprocessor.handle_missing_values(data=test_df, fit=False)
+	# 1. Categorical encoding: Transform test với encoder đã fit
+	test_processed = preprocessor.encode_categorical(
+		data=test_df, strategy=categorical_encoding, fit=False
+	)
+	
+	# 2. Missing: Dùng median đã học từ train -> điền vào test
+	test_processed = preprocessor.handle_missing_values(data=test_processed, fit=False)
 	logger.info(f"Test NaN count after missing handling: {test_processed.isna().sum().sum()}")
 	
-	# 2. Scaling: Dùng tham số đã học từ train -> scale test
+	# 3. Scaling: Dùng tham số đã học từ train -> scale test
 	test_processed = preprocessor.scale_features(
 		data=test_processed, 
 		exclude_features=[target_col], 

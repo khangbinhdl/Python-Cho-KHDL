@@ -5,7 +5,7 @@ from typing import Any, Optional, Union
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
-from sklearn.preprocessing import LabelEncoder, RobustScaler, StandardScaler
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, RobustScaler, StandardScaler
 
 from src.utils.logging import get_logger
 
@@ -391,10 +391,16 @@ class DataTransformer:
     @staticmethod
     def encode_categorical(
         data: pd.DataFrame,
-        strategy: str = 'onehot'
-    ) -> tuple[pd.DataFrame, dict[str, LabelEncoder]]:
+        strategy: str = 'onehot',
+        encoders: Optional[dict[str, Any]] = None,
+        fit: bool = False
+    ) -> tuple[pd.DataFrame, dict[str, Any]]:
         """
         Mã hóa các cột phân loại thành dạng số.
+        
+        Hỗ trợ fit/transform riêng biệt cho train/test set.
+        - Label Encoding: Unknown values sẽ được gán giá trị -1.
+        - One-Hot Encoding: Unknown values sẽ thành vector [0, 0, 0, ...].
         
         Parameters
         ----------
@@ -403,8 +409,15 @@ class DataTransformer:
         strategy : str, optional
             Phương pháp mã hóa:
             - 'label': Label Encoding (gán số nguyên cho mỗi category)
-            - 'onehot': One-Hot Encoding (tạo cột dummy, drop_first=True)
+            - 'onehot': One-Hot Encoding (tạo cột dummy)
             Mặc định là 'onehot'.
+        encoders : dict or None, optional
+            Dictionary chứa thông tin encoding đã fit từ train set.
+            Nếu None và fit=True, sẽ tạo encoders mới. Mặc định là None.
+        fit : bool, optional
+            Nếu True, fit encoders với data (cho train set).
+            Nếu False, sử dụng encoders đã fit (cho test set).
+            Mặc định là False.
         
         Returns
         -------
@@ -413,17 +426,68 @@ class DataTransformer:
         """
         target = data.copy()
         categorical_cols = target.select_dtypes(include=['object', 'category']).columns.tolist()
-        encoders = {}
         
-        DataTransformer._log(f"Encoding categorical features using: '{strategy}'")
+        if encoders is None:
+            encoders = {}
+        
+        DataTransformer._log(f"[Encode] strategy='{strategy}', fit={fit}")
         
         if strategy == 'label':
-            for col in categorical_cols:
-                le = LabelEncoder()
-                target[col] = le.fit_transform(target[col])
-                encoders[col] = le
+            if fit:
+                # Fit: Học mapping từ train set
+                for col in categorical_cols:
+                    unique_vals = target[col].unique().tolist()
+                    mapping = {val: idx for idx, val in enumerate(unique_vals)}
+                    encoders[col] = mapping
+                    target[col] = target[col].map(mapping)
+            else:
+                # Transform: Áp dụng mapping đã học, unknown -> -1
+                for col in categorical_cols:
+                    if col in encoders:
+                        mapping = encoders[col]
+                        target[col] = target[col].map(lambda x: mapping.get(x, -1))
+                    else:
+                        DataTransformer._log(f"Warning: No encoder found for column '{col}'")
+                        
         elif strategy == 'onehot':
-            target = pd.get_dummies(target, columns=categorical_cols, drop_first=True)
+            if not categorical_cols:
+                return target, encoders
+                
+            if fit:
+                # Fit: Tạo và fit OneHotEncoder
+                ohe = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+                encoded_data = ohe.fit_transform(target[categorical_cols])
+                
+                # Lưu encoder và tên cột
+                encoders['_onehot_encoder'] = ohe
+                encoders['_onehot_cols'] = categorical_cols
+                
+                # Tạo tên cột mới
+                feature_names = ohe.get_feature_names_out(categorical_cols)
+                encoded_df = pd.DataFrame(encoded_data, columns=feature_names, index=target.index)
+                
+                # Ghép với data gốc và xóa cột categorical
+                target = target.drop(columns=categorical_cols)
+                target = pd.concat([target, encoded_df], axis=1)
+            else:
+                # Transform: Sử dụng encoder đã fit
+                if '_onehot_encoder' in encoders:
+                    ohe = encoders['_onehot_encoder']
+                    original_cols = encoders['_onehot_cols']
+                    
+                    # Chỉ transform các cột có trong encoder gốc
+                    cols_to_encode = [c for c in categorical_cols if c in original_cols]
+                    
+                    if cols_to_encode:
+                        # Unknown values sẽ tự động thành [0, 0, 0, ...] với handle_unknown='ignore'
+                        encoded_data = ohe.transform(target[cols_to_encode])
+                        feature_names = ohe.get_feature_names_out(original_cols)
+                        encoded_df = pd.DataFrame(encoded_data, columns=feature_names, index=target.index)
+                        
+                        target = target.drop(columns=cols_to_encode)
+                        target = pd.concat([target, encoded_df], axis=1)
+                else:
+                    DataTransformer._log("Warning: No OneHotEncoder found in encoders")
             
         return target, encoders
 

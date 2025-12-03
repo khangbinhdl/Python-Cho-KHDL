@@ -342,33 +342,63 @@ class DataPreprocessor:
         else:
             return processed_data
 
-    def encode_categorical(self, strategy: str = 'onehot') -> DataPreprocessor:
+    def encode_categorical(
+        self,
+        data: Optional[pd.DataFrame] = None,
+        strategy: str = 'onehot',
+        fit: bool = False
+    ) -> Union[DataPreprocessor, pd.DataFrame]:
         """
         Mã hóa các cột phân loại thành dạng số.
         
+        Hỗ trợ fit/transform riêng biệt cho train/test set.
+        - Label Encoding: Unknown values sẽ được gán giá trị -1.
+        - One-Hot Encoding: Unknown values sẽ thành vector [0, 0, 0, ...].
+        
         Parameters
         ----------
+        data : DataFrame or None, optional
+            DataFrame cần xử lý. Nếu None, xử lý dữ liệu nội bộ.
+            Mặc định là None.
         strategy : str, optional
             Phương pháp mã hóa:
             - 'label': Label Encoding
-            - 'onehot': One-Hot Encoding (drop_first=True)
+            - 'onehot': One-Hot Encoding
             Mặc định là 'onehot'.
+        fit : bool, optional
+            Nếu True, fit encoders với data (cho train set).
+            Nếu False, sử dụng encoders đã fit (cho test set).
+            Mặc định là False.
         
         Returns
         -------
-        self
-            Trả về instance để cho phép method chaining.
+        self or DataFrame
+            Nếu data=None, trả về self. Ngược lại trả về DataFrame đã xử lý.
         
         Raises
         ------
         ValueError
-            Nếu dữ liệu chưa được nạp.
+            Nếu dữ liệu chưa được nạp và data=None.
         """
-        if self.data is None: raise ValueError("Data not loaded.")
+        if data is None:
+            if self.data is None: raise ValueError("Data not loaded.")
+            target = self.data
+        else:
+            target = data
         
-        self.data, self.encoders = DataTransformer.encode_categorical(self.data, strategy)
-        self.auto_detect_columns()
-        return self
+        processed_data, new_encoders = DataTransformer.encode_categorical(
+            target, strategy, self.encoders, fit
+        )
+        
+        if fit:
+            self.encoders = new_encoders
+        
+        if data is None:
+            self.data = processed_data
+            self.auto_detect_columns()
+            return self
+        else:
+            return processed_data
 
     def scale_features(
         self,
