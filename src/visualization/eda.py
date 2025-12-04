@@ -94,6 +94,51 @@ class EDA:
 		LOGGER.info("")      # một dòng trống có timestamp
 		LOGGER.info(SEP)     # separator có timestamp
 
+	def _plot_single_correlation(
+		self,
+		numeric_data: pd.DataFrame,
+		method: str,
+		save_path: Optional[str] = None
+	) -> None:
+		"""
+		Vẽ một correlation heatmap cho phương pháp cụ thể
+		
+		Parameters
+		----------
+		numeric_data : DataFrame
+			Dữ liệu số để tính tương quan
+		method : str
+			Phương pháp tính tương quan ('pearson', 'spearman', 'kendall')
+		save_path : str, optional
+			Đường dẫn thư mục để lưu biểu đồ
+		"""
+		correlation_matrix = numeric_data.corr(method=method)
+		plt.figure(figsize=(10, 8))
+		sns.heatmap(
+			correlation_matrix,
+			annot=True,
+			fmt='.2f',
+			cmap='coolwarm',
+			center=0,
+			square=True,
+			linewidths=0.5,
+			cbar_kws={"shrink": 0.8}
+		)
+		plt.title(f'Correlation Heatmap ({method.capitalize()})', fontsize=16, fontweight='bold')
+		plt.tight_layout()
+		
+		# Lưu biểu đồ nếu có đường dẫn
+		if save_path:
+			os.makedirs(save_path, exist_ok=True)
+			filename = f'{save_path}/correlation_heatmap_{method}.png'
+			plt.savefig(filename, dpi=300, bbox_inches='tight', facecolor='white')
+			self._log(f"✓ Correlation heatmap ({method}) saved to: {filename}")
+		
+		if self.show_plots:
+			plt.show()
+		else:
+			plt.close()
+
 	def summary_statistics(self, save_path: Optional[str] = None) -> None:
 		"""
 		In ra các thống kê mô tả cơ bản của các cột số
@@ -223,7 +268,7 @@ class EDA:
 		----------
 		method : str, optional
 			Phương pháp tính tương quan.
-			Các giá trị hợp lệ: 'pearson', 'spearman', 'kendall'.
+			Các giá trị hợp lệ: 'pearson', 'spearman', 'kendall', 'all'.
 			Mặc định là 'pearson'
 		save_path : str, optional
 			Đường dẫn thư mục để lưu biểu đồ. Nếu None, chỉ hiển thị.
@@ -248,31 +293,12 @@ class EDA:
 		numeric_data = self.data.select_dtypes(include=np.number)
 
 		if not numeric_data.empty:
-			correlation_matrix = numeric_data.corr(method=method)
-
-			# Vẽ heatmap cho ma trận tương quan sử dụng Seaborn
-			plt.figure(figsize=(10, 8))
-			sns.heatmap(correlation_matrix, 
-						annot=True,  # Hiển thị giá trị tương quan
-						fmt='.2f',   # Định dạng 2 chữ số thập phân
-						cmap='coolwarm',  # Bảng màu
-						center=0,    # Đặt trung tâm tại 0
-						square=True,  # Các ô vuông
-						linewidths=0.5,  # Đường viền giữa các ô
-						cbar_kws={"shrink": 0.8})  # Thanh màu
-			plt.title(f'Correlation Heatmap ({method.capitalize()})', fontsize=16, fontweight='bold')
-			plt.tight_layout()
-			
-			# Lưu biểu đồ nếu có đường dẫn
-			if save_path:
-				os.makedirs(save_path, exist_ok=True)
-				plt.savefig(f'{save_path}/correlation_heatmap.png', dpi=300, bbox_inches='tight', facecolor='white')
-				self._log(f"✓ Correlation heatmap saved to: {save_path}/correlation_heatmap.png")
-			
-			if self.show_plots:
-				plt.show()
+			# Nếu method='all', vẽ cả 3 loại correlation
+			if method == 'all':
+				for m in ['pearson', 'spearman', 'kendall']:
+					self._plot_single_correlation(numeric_data, m, save_path)
 			else:
-				plt.close()
+				self._plot_single_correlation(numeric_data, method, save_path)
 		else:
 			self._log("No numeric columns found for correlation analysis.")
 
@@ -465,7 +491,7 @@ class EDA:
 		----------
 		corr_method : str, optional
 			Phương pháp tính tương quan cho correlation_analysis.
-			Các giá trị hợp lệ: 'pearson', 'spearman', 'kendall'.
+			Các giá trị hợp lệ: 'pearson', 'spearman', 'kendall', 'all'.
 			Mặc định là 'pearson'
 		save_path : str, optional
 			Đường dẫn thư mục để lưu tất cả biểu đồ. Nếu None, chỉ hiển thị.

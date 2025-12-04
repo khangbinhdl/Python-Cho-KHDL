@@ -90,23 +90,23 @@ if __name__ == "__main__":
 	# Chuyển đổi datetime nếu có (tách riêng khỏi auto_detect_columns)
 	preprocessor.convert_to_datetime()
 
+	# Drop cột rác và clean giá trị âm (từ config)
+	drop_features_list = [f.strip() for f in config.get('PREPROCESSING', 'drop_features').split(',') if f.strip()]
+	if drop_features_list:
+		logger.info(f"Dropping features: {drop_features_list}")
+		preprocessor.drop_features(drop_features_list)
+
 	# =========================================================================
 	# 2. EDA TRƯỚC KHI XỬ LÝ DỮ LIỆU
 	# =========================================================================
 
 	if config.getboolean('VISUALIZATION', 'enable_eda'):
 		eda_before = EDA(preprocessor.get_processed_data(), show_plots=False)
-		eda_before.perform_eda(save_path=config.get('OUTPUT', 'eda_before_path'))
+		eda_before.perform_eda(corr_method='all', save_path=config.get('OUTPUT', 'eda_before_path'))
 
 	# =========================================================================
 	# 3. Chia dữ liệu TRAIN/TEST, TIẾN HÀNH XỬ LÝ DỮ LIỆU
 	# =========================================================================
-
-	# Drop cột rác và clean giá trị âm (từ config)
-	drop_features_list = [f.strip() for f in config.get('PREPROCESSING', 'drop_features').split(',') if f.strip()]
-	if drop_features_list:
-		logger.info(f"Dropping features: {drop_features_list}")
-		preprocessor.drop_features(drop_features_list)
 	
 	if config.getboolean('PREPROCESSING', 'clean_negative_values'):
 		logger.info("Cleaning negative values...")
@@ -202,7 +202,7 @@ if __name__ == "__main__":
 	
 	if config.getboolean('VISUALIZATION', 'enable_eda'):
 		eda_after = EDA(merged_df, show_plots=False)
-		eda_after.perform_eda(save_path=config.get('OUTPUT', 'eda_after_path'))
+		eda_after.perform_eda(corr_method='all', save_path=config.get('OUTPUT', 'eda_after_path'))
 
 	# =========================================================================
 	# 5. HUẤN LUYỆN & ĐÁNH GIÁ
