@@ -8,50 +8,11 @@
 \usepackage{amsmath, amssymb}    % Công thức toán học nâng cao
 \usepackage{fancyhdr}            % Tùy chỉnh header/footer
 \usepackage{xcolor}              % Tạo màu sắc cho văn bản/code
-\usepackage{listings}            % Chèn mã nguồn có highlight
 \usepackage{geometry}            % Tùy chỉnh lề trang
 \usepackage{hyperref}            % Tạo hyperlink và link mục lục
 \usepackage{float}               % Hỗ trợ tùy chọn float [H]
 \geometry{a4paper, margin=2.5cm}
 
-% ---------------- Code Style ----------------
-\definecolor{codegreen}{rgb}{0,0.6,0}
-\definecolor{codegray}{rgb}{0.5,0.5,0.5}
-\definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-
-\lstdefinestyle{pythonstyle}{
-    backgroundcolor=\color{backcolour},
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{magenta},
-    stringstyle=\color{codepurple},
-    basicstyle=\ttfamily\footnotesize,
-    breaklines=true,
-    keepspaces=true,
-    numbers=left,
-    numbersep=5pt,
-    showstringspaces=false,
-    tabsize=2
-}
-
-\lstdefinestyle{prologstyle}{
-    language=Prolog,
-    backgroundcolor=\color{backcolour},
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{blue},
-    stringstyle=\color{codepurple},
-    basicstyle=\ttfamily\footnotesize,
-    breaklines=true,
-    keepspaces=true,
-    numbers=left,
-    numbersep=5pt,
-    showstringspaces=false,
-    tabsize=2,
-    morekeywords={
-        is, not, mod, div, false, true,
-        repeat, fail, halt
-    }
-}
 
 % ---------------- Header & Footer ----------------
 \fancyhf{}
@@ -145,9 +106,7 @@ Weight Watchers Pnts & Điểm số theo hệ thống đánh giá dinh dưỡng 
 \label{tab:data_description}
 \end{table}
 
-Hình~\ref{fig:distribution} thể hiện phân phối của các đặc trưng (features) trước xử lý, cho thấy dữ liệu có độ lệch khá lớn ở nhiều thuộc tính dinh dưỡng.
-
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
     
     \includegraphics[width=0.75\textwidth]{../../outputs/plots/eda/before/distribution_all.png}
@@ -155,82 +114,93 @@ Hình~\ref{fig:distribution} thể hiện phân phối của các đặc trưng 
     \label{fig:distribution}
 \end{figure}
 
-Hình~\ref{fig:missing} cho thấy phân bố các giá trị khuyết (missing values), trong đó \textbf{Calories from Fat} là đặc trưng có tỉ lệ thiếu nhiều nhất.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.75\textwidth]{../../outputs/plots/eda/before/missing_values.png}
     \caption{Biểu đồ giá trị khuyết trong dữ liệu}
     \label{fig:missing}
 \end{figure}
 
-Biểu đồ hộp của các đặc trưng quan trọng được thể hiện ở Hình~\ref{fig:boxplot}, cho thấy bộ dữ liệu chứa khá nhiều giá trị ngoại lai (outliers).
-
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{../../outputs/plots/eda/before/boxplot_all.png}
     \caption{Biểu đồ hộp (boxplot) các đặc trưng}
     \label{fig:boxplot}
 \end{figure}
 
-Cuối cùng, Hình~\ref{fig:heatmap} trình bày ma trận tương quan giữa các đặc trưng dinh dưỡng.
-
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{../../outputs/plots/eda/before/correlation_heatmap.png}
-    \caption{Heatmap tương quan các đặc trưng}
-    \label{fig:heatmap}
+    \includegraphics[width=0.7\textwidth]{../../outputs/plots/eda/before/correlation_heatmap_pearson.png}
+    \caption{Heatmap tương quan các đặc trưng (Pearson)}
+    \label{fig:heatmap_pearson}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{../../outputs/plots/eda/before/correlation_heatmap_spearman.png}
+    \caption{Heatmap tương quan các đặc trưng (Spearman)}
+    \label{fig:heatmap_spearman}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{../../outputs/plots/eda/before/correlation_heatmap_kendall.png}
+    \caption{Heatmap tương quan các đặc trưng (Kendall)}
+    \label{fig:heatmap_kendall}
 \end{figure}
 
 \subsection{Phân tích dữ liệu}
+\indent \indent Bộ dữ liệu này có phân phối lệch phải với toàn bộ đặc trưng, chứa khá nhiều giá trị ngoại lai (outliers), ta sẽ phải xem xét để quyết định áp dụng các phương pháp xử lý phù hợp.
 
-Dựa trên heatmap tương quan ở Hình~\ref{fig:heatmap}, nhóm thu được một số nhận xét quan trọng:
+Hình~\ref{fig:missing} minh họa số lượng giá trị khuyết trong từng đặc trưng, điều đáng chú ý là cột mục tiêu \textbf{saturated\_fat\_g} cũng có một lượng giá trị khuyết, ta sẽ phải bỏ các hàng bị thiếu này đi, ngoài ra khi xem xét kĩ hơn, các hàng này đều chứa giá trị thiếu ở các đặc trưng của nó.
+
+Dựa trên heatmap tương quan ở Hình~\ref{fig:heatmap_pearson}, Hình~\ref{fig:heatmap_spearman} và Hình~\ref{fig:heatmap_kendall}, ta rút được một số nhận xét quan trọng sau:
 
 \begin{itemize}
-    \item \textbf{Calories from Fat} và \textbf{Total Fat (g)} có tương quan gần như tuyệt đối $\approx 1$  
-    Điều này hợp lý về mặt dinh dưỡng:
-    \[
-    \text{Calories from Fat} \approx \text{Total Fat (g)} \times 9,
-    \]
-    nên hai cột này chứa cùng thông tin, chỉ khác đơn vị.  
-    Thêm vào đó, Calories from Fat có nhiều missing values nhất, nên nhóm \textbf{loại bỏ Calories from Fat}.
-
-    \item \textbf{Weight Watchers Pnts} có tương quan rất cao với \textbf{Calories}, vì bản chất nó được tính dựa trên lượng calo.  
-    Giữ lại đặc trưng này sẽ gây \textbf{rò rỉ dữ liệu (data leakage)}, do mô hình sẽ gián tiếp nhìn thấy biến mục tiêu.  
-    Vì vậy nhóm \textbf{loại bỏ Weight Watchers Pnts}.
-
-    \item \textbf{Company} và \textbf{Item} chỉ mang tính mô tả tên chuỗi cửa hàng và tên món ăn, không chứa thông tin dinh dưỡng.  
-    Việc mã hóa các cột này sẽ làm tăng số chiều không cần thiết, nên nhóm quyết định \textbf{loại bỏ cả hai}.
+    \item \textbf{cholesterol\_mg}, \textbf{sodium\_mg} và \textbf{protein\_g} là các đặc trưng có tương quan cao nhất với mục tiêu.
+    \item Đặc trưng \textbf{protein\_g} có tương quan khá cao với các đặc trưng khác, điều này có thể dẫn tới đa colinearity, ảnh hưởng tới hiệu năng mô hình.
 \end{itemize}
 
-Tóm lại, các cột bị loại bỏ gồm:
-\[
-\text{Calories from Fat, Weight Watchers Pnts, Company, Item}
-\]
-
-Ngoài ra, dựa trên ngữ nghĩa dinh dưỡng của dữ liệu, nhóm quyết định \textbf{chuyển toàn bộ giá trị âm thành giá trị dương} (do đây khả năng là lỗi nhập liệu—typo), thay vì loại bỏ danh sách mẫu.
-
-Dựa trên Hình~\ref{fig:boxplot}, dữ liệu tồn tại khá nhiều ngoại lệ, do đó cần có bước xử lý ngoại lai trước khi huấn luyện mô hình.
+Dựa trên ngữ nghĩa thực tế, ta sẽ \textbf{chuyển toàn bộ giá trị âm thành giá trị dương} (nếu có tại đây chính là lỗi nhập liệu—typo).
 
 \subsection{Ý nghĩa thực tiễn của bài toán}
-\label{sec:thuctien}
+
+Việc ước lượng hàm lượng chất béo xấu (bao gồm \textit{saturated fat} và \textit{trans fat}) từ các chỉ số dinh dưỡng dễ thu thập như \textit{cholesterol}, \textit{sodium} (dựa vào nhãn thành phần), \textit{carbohydrate}, \textit{fiber}, \textit{sugars} và \textit{protein} (có thể cân dễ dàng ở nhà) mang lại nhiều ý nghĩa thực tiễn quan trọng trong đời sống hằng ngày, đặc biệt trong bối cảnh người dùng phổ thông không có điều kiện đo lường chính xác các thành phần chất béo bằng thiết bị chuyên dụng.
+
+\subsubsection{Đối với người nội trợ}
 
 \begin{itemize}
-    \item \textbf{Hỗ trợ người dùng kiểm soát dinh dưỡng:}  
-    \begin{itemize}
-        \item Ước lượng nhanh lượng calories trong bữa ăn.
-        \item Lựa chọn món ăn phù hợp với chế độ ăn kiêng hoặc nhu cầu tập luyện.
-        \item Ra quyết định tốt hơn khi buộc phải chọn các sản phẩm thức ăn nhanh.
-    \end{itemize}
-
-    \item \textbf{Hỗ trợ chuỗi cửa hàng và doanh nghiệp thực phẩm:}  
-    \begin{itemize}
-        \item Ước lượng calories cho món mới khi thay đổi công thức.
-        \item Tối ưu menu để có nhiều lựa chọn “healthy”.
-    \end{itemize}
+    \item Ước lượng nhanh mức độ chất béo xấu trong bữa ăn hằng ngày.
+    \item Điều chỉnh lượng gia vị, dầu mỡ và các thực phẩm có nguồn gốc động vật.
+    \item Chủ động bảo vệ sức khỏe tim mạch cho các thành viên trong gia đình.
 \end{itemize}
 
-Nhìn chung, mô hình dự đoán lượng calories không chỉ là một bài toán hồi quy đơn thuần mà còn là một \textbf{công cụ hỗ trợ ra quyết định} hữu ích cho người tiêu dùng và doanh nghiệp trong ngành thực phẩm.
+\subsubsection{Đối với người ăn kiêng và người tập luyện}
+
+\begin{itemize}
+    \item Duy trì tỷ lệ mỡ cơ thể ở mức hợp lý.
+    \item Hạn chế nguy cơ rối loạn mỡ máu trong quá trình ăn kiêng kéo dài.
+    \item Tối ưu hoá hiệu quả tập luyện thông qua chế độ dinh dưỡng lành mạnh.
+\end{itemize}
+Mô hình dự đoán giúp nhóm đối tượng này kiểm soát chất béo một cách chủ động ngay cả khi không có sẵn thông tin chi tiết trên nhãn thực phẩm.
+
+\subsubsection{Đối với người bình thường có nhu cầu theo dõi sức khỏe}
+
+Đối với người trưởng thành bình thường, việc duy trì lượng \textit{saturated fat} trong giới hạn khuyến nghị (dưới 10\% tổng năng lượng mỗi ngày, lý tưởng dưới 7\%) giúp giảm đáng kể nguy cơ mắc các bệnh tim mạch, cao huyết áp và tiểu đường type 2. Hệ thống ước lượng từ mô hình học máy có thể:
+\begin{itemize}
+    \item Cảnh báo sớm khi lượng chất béo xấu vượt ngưỡng an toàn.
+    \item Hỗ trợ người dùng điều chỉnh khẩu phần ăn hợp lý theo từng ngày.
+    \item Hình thành thói quen ăn uống khoa học và bền vững.
+\end{itemize}
+
+\subsubsection{Ứng dụng trong tương lai}
+
+\begin{itemize}
+    \item Thực hiện triển khai trên các ứng dụng điện thoại.
+    \item Hỗ trợ tích hợp tính toán Cholesterol và Sodium nhanh hơn thay vì phải tìm kiếm nhập liệu thủ công.
+\end{itemize}
+
 
 \section{Giới thiệu các Class và phương thức trong project}
 \label{sec:class_methods}
@@ -514,25 +484,42 @@ Class chuyên biệt để trực quan hóa hiệu năng của các mô hình sa
 \section{Tổng quan thư viện và phương pháp tối ưu siêu tham số}
 
 \subsection{Thư viện học máy sử dụng}
-Trong nghiên cứu này, ba thư viện chính được sử dụng gồm \textbf{Scikit-learn (sklearn)}, \textbf{LightGBM} và \textbf{Optuna}. 
+Trong nghiên cứu này, bốn thư viện chính được sử dụng gồm \textbf{Scikit-learn (sklearn)}, \textbf{LightGBM}, \textbf{XGBoost} và \textbf{Optuna}. 
 
 Sklearn là thư viện phổ biến trong Python, cung cấp đầy đủ các thuật toán học máy truyền thống như hồi quy tuyến tính, cây quyết định và các phương pháp đánh giá mô hình. 
 
 LightGBM là thư viện chuyên dụng cho các mô hình cây tăng cường (Gradient Boosting), có tốc độ huấn luyện nhanh và hiệu quả cao với tập dữ liệu lớn. 
 
+XGBoost là thư viện học máy mạnh mẽ dựa trên cây quyết định, nổi tiếng với khả năng xử lý dữ liệu khuyết thiếu và tối ưu hóa hiệu suất tính toán.
+
 Optuna là thư viện tối ưu siêu tham số tự động, hỗ trợ nhiều chiến lược tìm kiếm tiên tiến.
 
 \subsection{Các mô hình được sử dụng}
-Các mô hình hồi quy được áp dụng trong nghiên cứu gồm: \textbf{Linear Regression}, \textbf{Ridge Regression}, \textbf{Lasso Regression}, \textbf{Elastic Net}, \textbf{Decision Tree Regression} và \textbf{LightGBM Regression}. 
-Nhóm mô hình tuyến tính giúp phân tích mối quan hệ tuyến tính giữa biến đầu vào và đầu ra, trong khi Decision Tree và LightGBM có khả năng mô hình hóa quan hệ phi tuyến phức tạp.
+Các mô hình hồi quy được áp dụng trong nghiên cứu gồm: \textbf{Elastic Net}, \textbf{Decision Tree Regression}, \textbf{Random Forest Regression}, \textbf{LightGBM Regression} và \textbf{XGBoost Regression}. 
+
+Elastic Net là mô hình tuyến tính kết hợp regularization L1 và L2, giúp phân tích mối quan hệ tuyến tính giữa biến đầu vào và đầu ra. 
+
+Các mô hình còn lại thuộc họ cây quyết định (tree-based) có khả năng mô hình hóa quan hệ phi tuyến phức tạp, trong đó Random Forest, LightGBM và XGBoost là các ensemble methods với hiệu suất cao.
 
 \subsection{Chỉ số đánh giá mô hình}
 Hiệu quả của các mô hình được đánh giá thông qua ba chỉ số chính: \textbf{R-squared ($R^2$)}, \textbf{Mean Squared Error (MSE)} và \textbf{Mean Absolute Error (MAE)}. 
-Chỉ số $R^2$ phản ánh mức độ giải thích của mô hình đối với dữ liệu, trong khi MSE và MAE đo lường sai số dự đoán giữa giá trị thực và giá trị dự đoán.
+\begin{itemize}
+    \item \textbf{Mean Squared Error (MSE)}: Công thức tính:
+    \[MSE = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2\]
+    MSE nên được sử dụng khi ta muốn phạt nặng các sai số lớn, tuy nhiên nó bị ảnh hưởng lớn bởi các giá trị ngoại lai.
+    \item \textbf{Mean Absolute Error (MAE)}: Công thức tính:
+    \[MAE = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|\]
+    MAE nên được sử dụng khi ta muốn đánh giá sai số trung bình.
+    \item \textbf{R-squared ($R^2$)}: Công thức tính:
+    \[R^2 = 1 - \frac{\sum_{i=1}^{n} (y_i - \hat{y}_i)^2}{\sum_{i=1}^{n} (y_i - \bar{y})^2}\]
+    $R^2$ thể hiện khả năng giải thích biến động của các đặc trưng đầu vào đối với biến mục tiêu. Giá trị $R^2$ càng gần 1 thì mô hình càng tốt. 
+\end{itemize}
+
 
 \subsection{Tối ưu siêu tham số bằng phương pháp Bayesian}
 Quá trình tối ưu siêu tham số được thực hiện bằng phương pháp \textbf{Bayesian Optimization} thông qua thư viện Optuna. 
-Phương pháp này xây dựng một mô hình xác suất cho hàm mục tiêu và lựa chọn bộ siêu tham số tối ưu dựa trên chiến lược cân bằng giữa khai thác và khám phá, giúp giảm đáng kể số lần thử nghiệm so với tìm kiếm lưới (Grid Search).
+Phương pháp này xây dựng một mô hình xác suất cho hàm mục tiêu và lựa chọn bộ siêu tham số tối ưu dựa trên chiến lược cân bằng giữa khai thác và khám phá, giúp giảm đáng kể số lần thử nghiệm so với Grid Search và Random Search.
+
 
 
 \section{Kết quả thực nghiệm}
@@ -543,7 +530,9 @@ Cụ thể:
 \begin{itemize}
     \item \textbf{Sheet 1}: Giá trị trung bình các metrics cho từng cấu hình tiền xử lý và mô hình.
     \item \textbf{Sheet 2}: Tên mô hình cho ra kết quả tốt nhất tương ứng với từng phương pháp xử lý dữ liệu.
-    \item \textbf{Sheet 3}: Toàn bộ kết quả của tất cả các lần chạy, phục vụ cho việc đối chiếu và phân tích chi tiết.
+    \item \textbf{Sheet 3}: Toàn bộ kết quả của tất cả mô hình ở các lần chạy.
+    \item \textbf{Sheet 4}: Sắp xếp các kết quả ở Sheet 1 theo $R^2$ giảm dần.
+    \item \textbf{Sheet 5}: Sắp xếp toàn bộ kết quả ở Sheet 3 tăng dần, để xác định đâu là phương pháp kém hoặc mô hình kém.
 \end{itemize}
 
 Dựa trên kết quả trung bình các metrics, nhóm tiến hành xếp hạng các cấu hình tiền xử lý và thu được \textbf{top 5} phương pháp có kết quả trung bình tốt nhất như trong Bảng~\ref{tab:top5_preprocess}.
@@ -553,18 +542,20 @@ Dựa trên kết quả trung bình các metrics, nhóm tiến hành xếp hạn
 \begin{tabular}{|l|l|l|l|}
 \hline
 \textbf{num\_strategy} & \textbf{scaling\_strategy} & \textbf{outlier\_method} & \textbf{r2\_score}  \\ \hline
-drop   & standard & zscore & 0.9695            \\ \hline
-drop   & robust   & zscore & 0.9638            \\ \hline
-mode   & standard & zscore & 0.9564            \\ \hline
-median & standard & zscore & 0.9530            \\ \hline
-drop   & standard & isolation\_forest & 0.9513 \\ \hline
+drop   & standard & zscore & 0.768401 \\ \hline
+median & standard & zscore & 0.762583 \\ \hline
+mean   & standard & zscore & 0.7609   \\ \hline
+drop   & robust   & zscore & 0.759774 \\ \hline
+mode   & standard & zscore & 0.758823 \\ \hline
 \end{tabular}
 \caption{Top 5 cấu hình tiền xử lý dữ liệu có kết quả trung bình tốt nhất}
 \label{tab:top5_preprocess}
 \end{table}
 
-Có thể thấy, các cấu hình sử dụng kết hợp \texttt{standard} scaling và phát hiện ngoại lệ bằng \texttt{zscore} thường xuyên xuất hiện trong nhóm tốt nhất, trong đó phương án \texttt{drop, standard, zscore} cho kết quả ổn định và nổi trội. Ngoài ra sau khi đã hoàn thành huấn luyện tất cả các phương pháp, ta thấy trong bài toán này các mô hình họ cây có kết quả không tốt bằng các mô hình tuyến tính.
-\textbf{Do đó, ở các bước tiếp theo, nhóm lựa chọn cấu hình tiền xử lý gồm: loại bỏ giá trị khuyết (\texttt{drop}), chuẩn hoá \texttt{standard}, và xử lý ngoại lệ bằng \texttt{zscore} để tiến hành tối ưu siêu tham số cho mô hình.}
+Dựa vào Sheet 5, ta nhận thấy mô hình Elastic Net luôn cho ra kết quả tệ nhất có thể ảnh hưởng tới các phương pháp được lựa chọn. Ngoài ra việc loại bỏ outlier bằng thuật toán Isolation Forest với các tham số mặc định không cho ra kết quả tốt giống như phương pháp IQR và Z-score.
+
+Do đó, ở các bước tiếp theo, nhóm lựa chọn cấu hình tiền xử lý gồm: loại bỏ giá trị khuyết (\texttt{drop}), chuẩn hoá \texttt{standard}, và xử lý ngoại lệ bằng \texttt{zscore} để tiến hành trực quan các kết quả\footnote{Ở đây không thực hiện tối ưu siêu tham số vì cho ra kết quả tệ hơn khi chưa sử dụng tối ưu, nguyên nhân có thể do overfitting so sánh 2 biểu đồ\ref{fig:compare_models} và \ref{fig:compare_models_optimized}}.
+
 
 \subsection{So sánh các mô hình học máy}
 
@@ -573,28 +564,42 @@ Sau khi cố định quy trình tiền xử lý như trên, nhóm tiến hành t
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.75\linewidth]{../../outputs/plots/model_comparison.png}
-    \caption{Kết quả so sánh 6 mô hình học máy}
+    \caption{Kết quả so sánh các mô hình học máy trước khi tối ưu siêu tham số}
     \label{fig:compare_models}
 \end{figure}
 
-Quan sát Hình~\ref{fig:compare_models}, có thể thấy các mô hình phát triển từ \textit{linear regression} đều cho giá trị $R^2$ gần như tương đương nhau, cùng đạt khoảng \textbf{0.996}. 
+Quan sát Hình~\ref{fig:compare_models}, \textbf{XGBoost Regression} là mô hình có hiệu năng tốt nhất trên cả 4 metrics, với $R^2$ đạt 0.8714 có thể nói rằng mô hình này dự đoán khá tốt với bộ dữ liệu hiện tại.
 
-Dựa vào chỉ số MAE, các mô hình phát triển từ \textit{linear regression} có sai số tuyệt đối chỉ có khoảng \textbf{7 calories}, giá trị này vô cùng thấp trong thực tế.  
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.75\linewidth]{../../outputs/plots/model_comparison_optimized.png}
+    \caption{Kết quả so sánh các mô hình học máy sau khi tối ưu siêu tham số}
+    \label{fig:compare_models_optimized}
+\end{figure}
 
+Khi thực hiện tối ưu siêu tham số với hàm mục tiêu là tối đa hoá $R^2$, ta thu được kết quả như trong Hình~\ref{fig:compare_models_optimized}. Các mô hình có hiệu suất cao trước khi tối ưu như XGBoost, LightGBM không có sự cải thiện, mô hình Random Forest không hề có sự thay đổi.
 
-\subsection{Phân tích đặc trưng quan trọng của 6 mô hình}
+\subsection{Phân tích đặc trưng quan trọng của các mô hình}
 
-Kết quả trực quan hoá các đặc trưng quan trọng được thể hiện trong Hình~\ref{fig:lasso_importance}.
+Kết quả trực quan hoá các đặc trưng quan trọng được thể hiện trong Hình~\ref{fig:all_importance}.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{../../outputs/plots/feature_importance_all_models.png}
-    \caption{Các đặc trưng quan trọng theo 6 mô hình}
-    \label{fig:lasso_importance}
+    \caption{Các đặc trưng quan trọng theo đề xuất của 5 mô hình trước khi tối ưu}
+    \label{fig:all_importance}
 \end{figure}
 
-Từ Hình~\ref{fig:lasso_importance}, Đa số đều kết luận \text{Protein (g)}, \textbf{Total Fat (g)} và \textbf{Carbs (g)} là ba đặc trưng quan trọng nhất ảnh hưởng đến giá trị Calories, điều này hoàn toàn phù hợp với kiến thức dinh dưỡng cơ bản.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../../outputs/plots/feature_importance_all_models_optimized.png}
+    \caption{Các đặc trưng quan trọng theo đề xuất của 5 mô hình sau khi tối ưu}
+    \label{fig:all_importance_optimized}
+\end{figure}
 
+Từ Hình~\ref{fig:all_importance}, có tới 4 mô hình đồng thuận rằng các đặc trưng \textbf{cholesterol\_mg} là yếu tố quan trọng nhất ảnh hưởng đến hàm lượng \textbf{saturated\_fat\_g}. 
+
+Mặc dù \textbf{sugars\_g} không có độ tương quan cao với mục tiêu, trái lại được mô hình XGBoost đánh giá là quan trọng gấp 3 lần so với \textbf{fiber\_g} là đặc trưng có tương quan mạnh khi chúng ta phân tích ở Hình~\ref{fig:heatmap_pearson}, Hình~\ref{fig:heatmap_spearman} và Hình~\ref{fig:heatmap_kendall}. Có thể mô hình XGBoost đã phát hiện ra mối quan hệ phi tuyến phức tạp giữa \textbf{sugars\_g} và \textbf{saturated\_fat\_g} mà các mô hình tuyến tính không thể nắm bắt được, do đó nó có kết quả tốt nhất, điều này càng củng cố hơn khi ta phân tích đặc trưng ở Hình~\ref{fig:all_importance_optimized}, \textbf{sugars\_g} được đánh giá khá thấp.
 
 \section{Bảng công việc}
 

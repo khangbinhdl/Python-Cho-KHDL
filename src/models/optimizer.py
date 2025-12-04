@@ -268,7 +268,7 @@ class BayesianOptimizer:
 		Notes
 		-----
 		Sử dụng cross-validation với scoring='r2'.
-		Optimization direction là 'maximize' để tìm R² lớn nhất.
+		Optimization direction là 'maximize' để tìm R2 lớn nhất.
 		"""
 		# Skip LinearRegression
 		if model_name == 'LinearRegression':
@@ -289,21 +289,21 @@ class BayesianOptimizer:
 				if model is None:
 					return float('-inf')
 				
-				# Cross-validation scoring với R²
+				# Cross-validation scoring với R2
 				scores = cross_val_score(
 					model, self.X_train, self.y_train, 
 					cv=self.cv, 
 					scoring='r2', 
 					n_jobs=1
 				)
-				# Trả về R² trung bình
+				# Trả về R2 trung bình
 				return scores.mean()
 				
 			except Exception as e:
 				self._log(f"✗ Trial failed: {e}")
 				return float('-inf')
 
-		# Chạy optimization với direction='maximize' cho R²
+		# Chạy optimization với direction='maximize' cho R2
 		study = optuna.create_study(direction='maximize')
 		study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
 
