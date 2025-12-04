@@ -139,33 +139,20 @@ class EDA:
 		else:
 			plt.close()
 
-	def summary_statistics(self, save_path: Optional[str] = None) -> None:
+	def _dataset_information(self) -> None:
 		"""
-		In ra các thống kê mô tả cơ bản của các cột số
+		Hiển thị thông tin tổng quan về dataset
 		
-		Hiển thị các chỉ số thống kê như count, mean, std, min, max, 
-		và các phân vị (25%, 50%, 75%) cho tất cả các cột số trong DataFrame.
-		Bổ sung thông tin về kiểu dữ liệu, giá trị thiếu, trùng lặp, value counts và độ lệch.
-
-		Parameters
-		----------
-		save_path : str, optional
-			Đường dẫn thư mục để lưu biểu đồ. Nếu None, chỉ hiển thị.
-			Mặc định là None
-
+		Bao gồm số lượng dòng, cột, kiểu dữ liệu và bộ nhớ sử dụng.
+		
 		Raises
 		------
 		ValueError
 			Nếu dữ liệu chưa được nạp
-		
-		Notes
-		-----
-		Sử dụng phương thức describe() của pandas để tính toán các thống kê
 		"""
 		if self.data is None:
 			raise ValueError("Data not loaded. Call load_data() first.")
 		
-		# 1. Tổng quan info
 		self._sep()
 		self._log("DATASET INFORMATION")
 		self._log(SEP)
@@ -174,16 +161,50 @@ class EDA:
 		self.data.info(buf=buf)
 		for line in buf.getvalue().splitlines():
 			self._log(line)
+	
+	def _descriptive_statistics(self) -> None:
+		"""
+		Hiển thị thống kê mô tả cho các cột số
 		
-		# 2. Thống kê mô tả
+		Bao gồm count, mean, std, min, max và các phân vị (25%, 50%, 75%)
+		cho tất cả các cột có kiểu dữ liệu số.
+		
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+		
 		self._sep()
 		self._log("SUMMARY STATISTICS FOR NUMERIC COLUMNS")
 		self._log(SEP)
 		desc = self.data.describe().to_string()
 		for line in desc.splitlines():
 			self._log(line)
+	
+	def _missing_values_analysis(self, save_path: Optional[str] = None) -> None:
+		"""
+		Phân tích và trực quan hóa giá trị thiếu
 		
-		# 3. Missing values
+		Tính toán số lượng và tỷ lệ phần trăm giá trị thiếu cho từng cột,
+		sau đó vẽ biểu đồ barplot để trực quan hóa.
+		
+		Parameters
+		----------
+		save_path : str, optional
+			Đường dẫn thư mục để lưu biểu đồ. Nếu None, chỉ hiển thị.
+			Mặc định là None
+		
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+		
 		missing_counts = self.data.isnull().sum()
 		missing_percentages = (missing_counts / len(self.data)) * 100
 		missing_data = pd.DataFrame({
@@ -225,14 +246,41 @@ class EDA:
 			self._sep()
 			self._log("MISSING VALUES: No missing values found")
 			self._log(SEP)
+	
+	def _duplicate_rows_analysis(self) -> None:
+		"""
+		Phân tích số lượng dòng trùng lặp trong dataset
 		
-		# 4. Duplicate rows
+		Đếm và hiển thị số lượng dòng có giá trị trùng lặp hoàn toàn.
+		
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+		
 		duplicate_count = self.data.duplicated().sum()
 		self._sep()
 		self._log(f"DUPLICATE ROWS: {duplicate_count} rows")
 		self._log(SEP)
+	
+	def _value_counts_analysis(self) -> None:
+		"""
+		Hiển thị top 5 giá trị phổ biến nhất cho mỗi cột
 		
-		# 5. Value counts (Top 5 cho mỗi cột)
+		Phân tích tần suất xuất hiện của các giá trị trong từng cột,
+		hiển thị 5 giá trị có tần suất cao nhất.
+		
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+		
 		self._sep()
 		self._log("VALUE COUNTS (TOP 5 FOR EACH COLUMN)")
 		self._log(SEP)
@@ -241,8 +289,29 @@ class EDA:
 			top5 = self.data[col].value_counts().head(5).to_string()
 			for line in top5.splitlines():
 				self._log(line)
+	
+	def _skewness_analysis(self) -> None:
+		"""
+		Phân tích độ lệch (skewness) của các cột số
 		
-		# 6. Skewness cho các cột số
+		Tính toán hệ số skewness để đánh giá tính đối xứng của phân phối dữ liệu.
+		Giá trị dương cho thấy phân phối lệch phải, giá trị âm cho thấy phân phối lệch trái.
+		
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		
+		Notes
+		-----
+		- Skewness = 0: phân phối đối xứng hoàn hảo
+		- |Skewness| < 0.5: phân phối gần như đối xứng
+		- 0.5 < |Skewness| < 1: phân phối lệch vừa phải
+		- |Skewness| > 1: phân phối lệch mạnh
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+		
 		numeric_cols = self.data.select_dtypes(include=np.number).columns
 		if len(numeric_cols) > 0:
 			self._sep()
@@ -252,6 +321,41 @@ class EDA:
 			skewness_df = pd.DataFrame({'Column': skewness.index, 'Skewness': skewness.values})
 			for line in skewness_df.to_string(index=False).splitlines():
 				self._log(line)
+	
+	def summary_statistics(self, save_path: Optional[str] = None) -> None:
+		"""
+		In ra các thống kê mô tả cơ bản của dataset
+		
+		Thực hiện phân tích toàn diện bao gồm:
+		- Thông tin tổng quan dataset
+		- Thống kê mô tả các cột số
+		- Phân tích giá trị thiếu
+		- Phân tích dòng trùng lặp
+		- Phân tích tần suất giá trị
+		- Phân tích độ lệch phân phối
+
+		Parameters
+		----------
+		save_path : str, optional
+			Đường dẫn thư mục để lưu biểu đồ. Nếu None, chỉ hiển thị.
+			Mặc định là None
+
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		
+		Notes
+		-----
+		Hàm này gọi tuần tự 6 hàm phân tích riêng biệt để cung cấp
+		cái nhìn tổng quan về dataset.
+		"""
+		self._dataset_information()                    # 1. Tổng quan info
+		self._descriptive_statistics()                 # 2. Thống kê mô tả
+		self._missing_values_analysis(save_path)       # 3. Missing values
+		self._duplicate_rows_analysis()                # 4. Duplicate rows
+		self._value_counts_analysis()                  # 5. Value counts
+		self._skewness_analysis()                      # 6. Skewness
 
 	def correlation_analysis(
 		self,
