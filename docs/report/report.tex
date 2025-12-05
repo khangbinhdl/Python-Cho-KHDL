@@ -74,7 +74,7 @@
 \section{Giới thiệu bài toán và dữ liệu}
 \label{sec:intro_dataset}
 
-Trong project này, bài toán được lựa chọn là \textbf{hồi quy (regression)}, với mục tiêu dự đoán \textbf{lượng khối lượng chất béo của các món ăn nhanh} tại những chuỗi cửa hàng lớn, dựa trên các đặc trưng dinh dưỡng của từng sản phẩm.
+Trong project này, bài toán được lựa chọn là \textbf{hồi quy (regression)}, với mục tiêu dự đoán \textbf{khối lượng chất béo bão hòa của các món ăn nhanh} tại những chuỗi cửa hàng lớn, dựa trên các đặc trưng dinh dưỡng cơ bản, dễ dàng tính toán được của từng sản phẩm.
 
 \noindent Bộ dữ liệu sử dụng là \textit{Fast\_Food\_Dataset}, được công bố trên Kaggle\footnote{\url{https://www.kaggle.com/datasets/tan5577/nutritonal-fast-food-dataset}}.
 
@@ -105,6 +105,22 @@ Weight Watchers Pnts & Điểm số theo hệ thống đánh giá dinh dưỡng 
 \caption{Bảng mô tả dữ liệu Fast\_Food\_Dataset}
 \label{tab:data_description}
 \end{table}
+
+Các cột được loại bỏ:
+\begin{itemize}
+    \item \textbf{Company} và \textbf{item}: Đây là các đặc trưng không mang bất cứ ý nghĩa nào trong bài toán.
+    \item \textbf{Calories} và \textbf{Calories from Fat}: Hai đặc trưng này có mối quan hệ chặt chẽ với nhau.
+    \[
+        \text{Calories from Fat} = \text{Total Fat (g)} \times 9 
+    \]
+    Và ngoài ra Calories có thể được tính như sau:
+    \[
+        \text{Calories} = \text{Proten (g)} \times 4 + \text{Carbs (g)} \times 4 + \text{Total Fat (g)} \times 9
+    \]
+    Vậy có thể thấy nếu giữ cả 2 cột này sẽ dễ dàng xảy ra hiện tượng đa cộng tuyến, cho ra kết quả không tốt.
+    \item \textbf{Total Fat (g)} và \textbf{Trans Fat (g)}: Hai đặc trưng này chỉ có thể đo chính xác bằng thiết bị chuyên dụng\footnote{Khác với Cholesterol và Sodium, ta có thể ước lượng quy đổi dễ dàng hơn do nó ít bị biến đổi khi chế biến, ngoài ra được ghi rất rõ trong các nhãn sản phẩm khi mua hàng}, ta chỉ có thể ước lượng với sai số lớn từ các bảng quy đổi trên mạng.
+    \item \textbf{Weight Watchers Pnts}: Điểm số này được tính toán dựa trên \textbf{Calories} là chủ yếu, dữ lại không mang nhiều ý nghĩa trong việc dự đoán chất béo bão hòa.
+\end{itemize}
 
 \begin{figure}[H]
     \centering
@@ -240,7 +256,7 @@ Class chuyên trách việc Đọc/Ghi file và chuẩn hóa tên cột.
 
 \begin{classbox}{DataTransformer}
 Class chứa các thuật toán cốt lõi để xử lý dữ liệu như: xử lý giá trị thiếu, xử lý ngoại lai, chuẩn hóa, mã hóa, và chuyển đổi kiểu dữ liệu.
-\texttt{DataTransformer} hoạt động ở dạng các hàm thuần (pure functions) trên \texttt{DataFrame}.
+\texttt{DataTransformer} hoạt động ở dạng các hàm thuần (pure functions/static methods) trên \texttt{DataFrame}.
 
 \vspace{0.2cm}
 \textbf{Methods:}
@@ -249,12 +265,9 @@ Class chứa các thuật toán cốt lõi để xử lý dữ liệu như: xử
     Tự động phát hiện và phân loại các cột theo nhóm: \textit{numeric}, \textit{categorical}, \textit{datetime}. 
     Thông tin này được dùng để quyết định chiến lược tiền xử lý phù hợp cho từng loại cột.
     
-    \item[convert\_columns\_to\_numeric(data, columns)] 
-    Ép kiểu các cột được chỉ định thành kiểu số (int/float), xử lý các ký tự không hợp lệ (ví dụ: dấu phẩy, ký hiệu đơn vị...).
-    
     \item[auto\_convert\_numeric\_columns(data, threshold)] 
     Tự động rà soát các cột kiểu \texttt{object} và cố gắng chuyển sang kiểu số. 
-    Nếu tỉ lệ giá trị chuyển đổi thành công vượt \texttt{threshold}, cột đó sẽ được coi là cột số.
+    Nếu tỉ lệ giá trị chuyển đổi thành công vượt \texttt{threshold} (mặc định 80\%), cột đó sẽ được chuyển đổi thành kiểu số.
     
     \item[convert\_to\_datetime(data, columns, date\_format)] 
     Chuyển đổi các cột được chỉ định sang kiểu \texttt{datetime} theo định dạng ngày tháng cung cấp, hỗ trợ chuẩn hóa dữ liệu thời gian.
@@ -263,21 +276,24 @@ Class chứa các thuật toán cốt lõi để xử lý dữ liệu như: xử
     Thay thế tất cả giá trị âm trong các cột số bằng giá trị tuyệt đối của chúng. 
     Điều này bám sát quyết định xử lý ở Mục~\ref{sec:intro_dataset}, vì các chỉ số dinh dưỡng không nên mang giá trị âm.
     
-    \item[handle\_missing\_values(data, strategies, ...)] 
-    Xử lý giá trị thiếu theo chiến lược cấu hình (điền bằng \texttt{mean}, \texttt{median}, \texttt{mode} hoặc \texttt{drop}). 
-    Cho phép cấu hình khác nhau cho từng cột hoặc từng nhóm cột.
+    \item[handle\_missing\_values(data, strategies, learned\_values, exclude\_features, fit)] 
+    Xử lý giá trị thiếu theo chiến lược cấu hình cho từng loại cột (numeric, categorical, datetime). 
+    Hỗ trợ chế độ \texttt{fit=True} để học tham số từ train set và \texttt{fit=False} để áp dụng cho test set, tránh \textit{data leakage}.
     
-    \item[handle\_outliers(data, method, ...)] 
-    Phát hiện và xử lý các giá trị ngoại lai trong cột số sử dụng các phương pháp như \texttt{IQR}, \texttt{Z-score} hoặc \texttt{Isolation Forest}, phù hợp với phần mô tả ở Hình~\ref{fig:boxplot}.
+    \item[handle\_outliers(data, method, exclude\_features)] 
+    Phát hiện và loại bỏ các hàng chứa giá trị ngoại lai trong cột số sử dụng các phương pháp như \texttt{IQR}, \texttt{Z-score} hoặc \texttt{Isolation Forest}, phù hợp với phần mô tả ở Hình~\ref{fig:boxplot}.
     
-    \item[encode\_categorical(data, strategy)] 
-    Mã hóa các biến phân loại thành dạng số để mô hình có thể sử dụng (hỗ trợ \texttt{Label Encoding} và \texttt{One-Hot Encoding}).
+    \item[encode\_categorical(data, strategy, encoders, fit)] 
+    Mã hóa các biến phân loại thành dạng số để mô hình có thể sử dụng. Hỗ trợ \texttt{Label Encoding} và \texttt{One-Hot Encoding} với cơ chế fit/transform riêng biệt cho train/test set.
     
-    \item[scale\_features(data, strategy, ...)] 
+    \item[scale\_features(data, strategy, scaler, exclude\_features, fit)] 
     Chuẩn hóa dữ liệu số về cùng một khoảng (sử dụng \texttt{StandardScaler} hoặc \texttt{RobustScaler}), khớp với các chiến lược scaling đã trình bày trong Bảng~\ref{tab:top5_preprocess}.
     
     \item[remove\_duplicates(data, subset)] 
     Kiểm tra và loại bỏ các hàng trùng lặp hoàn toàn hoặc trùng trên một tập cột con (\texttt{subset}), giúp giảm nhiễu.
+    
+    \item[drop\_null\_targets(data, target\_column)] 
+    Loại bỏ các hàng có giá trị target null, đảm bảo dữ liệu huấn luyện không chứa nhãn thiếu.
     
     \item[drop\_features(data, features)] 
     Loại bỏ hoàn toàn các cột không cần thiết hoặc đã được xác định là gây ra \textit{data leakage}.
@@ -288,47 +304,50 @@ Class chứa các thuật toán cốt lõi để xử lý dữ liệu như: xử
 
 \begin{classbox}{DataPreprocessor}
 Class đóng vai trò \textit{orchestrator} (bộ điều phối), kết hợp \texttt{DataIO} và \texttt{DataTransformer} để tạo thành một pipeline xử lý dữ liệu hoàn chỉnh. 
-Class này lưu giữ trạng thái của dữ liệu trong quá trình biến đổi.
+Class này lưu giữ trạng thái của dữ liệu trong quá trình biến đổi và hỗ trợ method chaining.
 
 \vspace{0.2cm}
 \textbf{Methods:}
 \begin{methodlist}
-    \item[\_\_init\_\_(...)] 
-    Khởi tạo đối tượng với các tham số cấu hình cho toàn bộ quy trình (chiến lược xử lý missing values, scaling, outlier, encoding...).
+    \item[\_\_init\_\_(num\_strategy, cat\_strategy, dt\_strategy, scaling\_strategy, outlier\_method)] 
+    Khởi tạo đối tượng với các tham số cấu hình cho toàn bộ quy trình: chiến lược xử lý missing values cho từng loại cột (numeric, categorical, datetime), phương pháp scaling và phương pháp xử lý outlier.
     
-    \item[load\_data(filepath, ...)] 
-    Gọi \texttt{DataIO.load\_data()} để nạp dữ liệu từ file và thực hiện ngay các bước chuẩn hóa sơ bộ như chuẩn hóa tên cột, ép kiểu cơ bản.
+    \item[load\_data(filepath, auto\_convert\_numeric, auto\_convert\_threshold)] 
+    Gọi \texttt{DataIO.load\_data()} để nạp dữ liệu từ file, thực hiện chuẩn hóa tên cột và tự động chuyển đổi các cột có thể là số nếu \texttt{auto\_convert\_numeric=True}.
     
     \item[save\_data(filepath)] 
-    Lưu trạng thái dữ liệu hiện tại (sau khi xử lý) xuống file, giúp tái sử dụng hoặc chia sẻ cho các bước phân tích khác.
+    Lưu trạng thái dữ liệu hiện tại (sau khi xử lý) xuống file CSV, giúp tái sử dụng hoặc chia sẻ cho các bước phân tích khác.
     
     \item[auto\_detect\_columns()] 
     Phân loại các cột (numeric, categorical, datetime) và lưu thông tin này vào thuộc tính nội bộ của class.
     
-    \item[convert\_to\_datetime(...)] 
+    \item[convert\_to\_datetime(columns, date\_format)] 
     Gọi hàm chuyển đổi ngày tháng và cập nhật lại \texttt{DataFrame} nội bộ.
     
     \item[clean\_negative\_values()] 
     Thực hiện làm sạch giá trị âm trên dữ liệu hiện có, đảm bảo tính hợp lý về mặt ngữ nghĩa dinh dưỡng.
     
-    \item[handle\_missing\_values(...)] 
-    Thực hiện xử lý giá trị thiếu. 
-    Hỗ trợ chế độ \texttt{fit} (học tham số điền trên train set) và \texttt{transform} (áp dụng cùng tham số đó cho test set) để tránh \textit{data leakage}.
+    \item[handle\_missing\_values(data, exclude\_features, fit)] 
+    Xử lý giá trị thiếu theo chiến lược đã cấu hình. 
+    Hỗ trợ chế độ \texttt{fit=True} (học tham số điền trên train set) và \texttt{fit=False} (áp dụng cùng tham số đó cho test set) để tránh \textit{data leakage}.
     
-    \item[handle\_outliers(...)] 
-    Loại bỏ hoặc cắt ngưỡng các giá trị ngoại lai theo cấu hình được chỉ định.
+    \item[handle\_outliers(data, exclude\_features)] 
+    Loại bỏ các hàng chứa giá trị ngoại lai dựa trên phương pháp đã được cấu hình (\texttt{outlier\_method}).
     
-    \item[encode\_categorical(...)] 
+    \item[encode\_categorical(data, strategy, fit)] 
     Mã hóa biến phân loại và lưu trữ các encoder để áp dụng nhất quán cho dữ liệu mới.
     
-    \item[scale\_features(...)] 
+    \item[scale\_features(data, exclude\_features, fit)] 
     Chuẩn hóa dữ liệu số, lưu lại \texttt{scaler} đã \texttt{fit} để dùng cho tập kiểm tra hoặc dữ liệu triển khai thực tế.
     
-    \item[remove\_duplicates(...)] 
+    \item[remove\_duplicates(subset)] 
     Loại bỏ các hàng trùng lặp trên dữ liệu hiện tại.
     
-    \item[drop\_features(...)] 
-    Xóa các cột không còn cần thiết (ví dụ: \texttt{Calories from Fat}, \texttt{Weight Watchers Pnts}, \texttt{Company}, \texttt{Item} như phân tích ở mục trước).
+    \item[drop\_null\_targets(target\_column)] 
+    Loại bỏ các hàng có giá trị target null, đảm bảo dữ liệu huấn luyện hợp lệ.
+    
+    \item[drop\_features(features\_to\_drop)] 
+    Xóa các cột không còn cần thiết (ví dụ: \texttt{calories\_from\_fat}, \texttt{weight\_watchers\_pnts}, \texttt{company}, \texttt{item} như phân tích ở mục trước).
     
     \item[get\_processed\_data()] 
     Trả về \texttt{DataFrame} kết quả sau khi đã trải qua toàn bộ pipeline tiền xử lý.
@@ -351,9 +370,9 @@ Class tiện ích (utility) cung cấp các phương thức tĩnh để tính to
     Dự đoán trên tập test và tính toán các metrics: \texttt{MSE}, \texttt{RMSE}, \texttt{MAE}, \texttt{R\textsuperscript{2}}. 
     Kết quả được trả về dưới dạng \texttt{dict} để dễ lưu trữ và phân tích.
     
-    \item[get\_feature\_importance(model, feature\_names, ...)] 
-    Trích xuất độ quan trọng của các đặc trưng từ mô hình đã huấn luyện (hỗ trợ cả mô hình tuyến tính và tree-based). 
-    Kết quả này liên kết trực tiếp với phần phân tích ở Hình~\ref{fig:lasso_importance}.
+    \item[get\_feature\_importance(model, feature\_names, model\_name, top\_n)] 
+    Trích xuất độ quan trọng của các đặc trưng từ mô hình đã huấn luyện (hỗ trợ cả mô hình tuyến tính với \texttt{coef\_} và tree-based với \texttt{feature\_importances\_}). 
+    Kết quả này liên kết trực tiếp với phần phân tích ở Hình~\ref{fig:all_importance}.
 \end{methodlist}
 \end{classbox}
 
@@ -367,13 +386,13 @@ Class chịu trách nhiệm \textit{serialization} (lưu trữ) và \textit{dese
 \begin{methodlist}
     \item[load\_model(filepath, method)] 
     Đọc file mô hình từ ổ cứng và khôi phục thành object Python. 
-    Hỗ trợ các phương thức như \texttt{joblib} và \texttt{pickle}.
+    Hỗ trợ các phương thức: \texttt{'joblib'} (mặc định) và \texttt{'pickle'}.
     
-    \item[save\_model(model, model\_name, ...)] 
-    Lưu object mô hình xuống file để tái sử dụng sau này, có thể tự động gắn thêm \texttt{timestamp} nếu không chỉ định tên file cụ thể.
+    \item[save\_model(model, model\_name, filepath, method)] 
+    Lưu object mô hình xuống file để tái sử dụng sau này. Nếu \texttt{filepath=None}, tự động tạo tên file với \texttt{timestamp} trong thư mục \texttt{'outputs/models/'}.
     
     \item[save\_results(results, filepath, format)] 
-    Xuất kết quả đánh giá (metrics) ra file CSV hoặc JSON, giúp liên kết với file Google Sheets trong Mục~\ref{sec:ket_qua_thuc_nghiem}.
+    Xuất danh sách kết quả đánh giá (metrics) ra file CSV hoặc JSON, giúp liên kết với file Google Sheets trong Mục~\ref{sec:ket_qua_thuc_nghiem}.
 \end{methodlist}
 \end{classbox}
 
@@ -381,36 +400,44 @@ Class chịu trách nhiệm \textit{serialization} (lưu trữ) và \textit{dese
 
 \begin{classbox}{ModelTrainer}
 Class trung tâm quản lý quy trình huấn luyện, kết nối giữa dữ liệu đã xử lý, các thuật toán mô hình và bước tối ưu siêu tham số.
+Việc đánh giá và IO được tách ra các module riêng (\texttt{ModelEvaluator}, \texttt{ModelIO}).
+
+\vspace{0.2cm}
+\textbf{Attributes:}
+\begin{itemize}
+    \item \texttt{best\_model\_name}: Property trả về tên model có $R^2$ cao nhất từ \texttt{results}.
+    \item \texttt{best\_model}: Property trả về model object tốt nhất từ \texttt{trained\_models}.
+\end{itemize}
 
 \vspace{0.2cm}
 \textbf{Methods:}
 \begin{methodlist}
-    \item[\_\_init\_\_(random\_state)] 
-    Khởi tạo Trainer với \texttt{random\_state} cố định để đảm bảo tính tái lập (\textit{reproducibility}).
+    \item[\_\_init\_\_(random\_state, n\_jobs)] 
+    Khởi tạo Trainer với \texttt{random\_state} cố định để đảm bảo tính tái lập (\textit{reproducibility}) và số jobs song song \texttt{n\_jobs}.
     
     \item[load\_data(data, target\_column)] 
-    Nhận dữ liệu đã tiền xử lý và xác định cột mục tiêu \texttt{target\_column} (trong project là \texttt{Calories}).
+    Nhận dữ liệu đã tiền xử lý và xác định cột mục tiêu \texttt{target\_column} (trong project này là \texttt{'saturated\_fat\_g'}).
     
     \item[split\_data(test\_size, stratify)] 
-    Chia dữ liệu thành tập Train/Test theo tỉ lệ chỉ định, hỗ trợ \texttt{stratify} nếu cần.
+    Chia dữ liệu thành tập Train/Test theo tỉ lệ chỉ định, hỗ trợ \texttt{stratify} nếu cần. Giải phóng bộ nhớ data gốc sau khi split.
     
-    \item[set\_training\_data(train\_processed, test\_processed, ...)] 
-    Thiết lập dữ liệu đầu vào (\texttt{X}) và nhãn (\texttt{y}) cho quá trình huấn luyện từ các \texttt{DataFrame} đã xử lý.
+    \item[set\_training\_data(train\_processed, test\_processed, target\_col)] 
+    Thiết lập dữ liệu đầu vào (\texttt{X}) và nhãn (\texttt{y}) cho quá trình huấn luyện từ các \texttt{DataFrame} đã xử lý. Tách X và y, giải phóng train\_df, test\_df.
     
     \item[initialize\_models()] 
-    Khởi tạo danh sách các mô hình sẽ dùng: \texttt{LinearRegression}, \texttt{Ridge}, \texttt{Lasso}, \texttt{ElasticNet}, \texttt{DecisionTree/RandomForest}, \texttt{LightGBM}...
+    Khởi tạo danh sách các mô hình sẽ dùng: \texttt{ElasticNet}, \texttt{RandomForest}, \texttt{LightGBM}, \texttt{XGBoost}, \texttt{DecisionTree}.
     
     \item[train\_models(models\_to\_train)] 
     Thực hiện vòng lặp \texttt{fit} cho các mô hình được yêu cầu.
     
-    \item[optimize\_params(model\_name, ...)] 
+    \item[optimize\_params(model\_name, n\_trials, cv, n\_jobs)] 
     Sử dụng Bayesian Optimization (thông qua Optuna) để tìm bộ siêu tham số tốt nhất cho một mô hình cụ thể.
     
     \item[evaluate\_models()] 
-    Đánh giá toàn bộ các mô hình đã huấn luyện trên tập Test và tìm ra mô hình tốt nhất dựa trên \texttt{R\textsuperscript{2}} (kết quả liên quan tới Hình~\ref{fig:compare_models}).
+    Đánh giá toàn bộ các mô hình đã huấn luyện trên tập Test bằng \texttt{ModelEvaluator} và tự động xác định mô hình tốt nhất dựa trên \texttt{R\textsuperscript{2}}.
     
     \item[get\_feature\_importance(model\_name, top\_n)] 
-    Lấy danh sách các đặc trưng quan trọng nhất ảnh hưởng đến kết quả dự đoán của mô hình đó.
+    Lấy danh sách các đặc trưng quan trọng nhất ảnh hưởng đến kết quả dự đoán của mô hình đó. Nếu không chỉ định \texttt{model\_name}, sử dụng \texttt{best\_model}.
 \end{methodlist}
 \end{classbox}
 
@@ -418,15 +445,16 @@ Class trung tâm quản lý quy trình huấn luyện, kết nối giữa dữ l
 
 \begin{classbox}{BayesianOptimizer}
 Class chuyên biệt thực hiện tối ưu hóa siêu tham số sử dụng thư viện \texttt{Optuna}.
+Định nghĩa sẵn không gian tìm kiếm (Search Space) cho từng loại model và sử dụng Bayesian Optimization để tìm kiếm tham số tối ưu.
 
 \vspace{0.2cm}
 \textbf{Methods:}
 \begin{methodlist}
-    \item[\_\_init\_\_(X\_train, y\_train, ...)] 
-    Khởi tạo Optimizer với dữ liệu huấn luyện và cấu hình Cross-Validation.
+    \item[\_\_init\_\_(X\_train, y\_train, random\_state, cv, n\_jobs)] 
+    Khởi tạo Optimizer với dữ liệu huấn luyện, \texttt{random\_state} cho reproducibility, số fold cross-validation \texttt{cv} và số jobs song song \texttt{n\_jobs}.
     
     \item[optimize(model\_name, n\_trials)] 
-    Định nghĩa không gian tìm kiếm (search space) cho từng loại model và chạy quá trình tối ưu hóa để tối đa hóa \texttt{R\textsuperscript{2}} trên tập validation.
+    Định nghĩa không gian tìm kiếm (search space) cho từng loại model (\texttt{RandomForest}, \texttt{LightGBM}, \texttt{XGBoost}, \texttt{ElasticNet}, \texttt{DecisionTree}) và chạy quá trình tối ưu hóa với direction='maximize' để tối đa hóa \texttt{R\textsuperscript{2}} trên tập validation.
 \end{methodlist}
 \end{classbox}
 
@@ -446,19 +474,19 @@ Class thực hiện \textit{Exploratory Data Analysis} (Phân tích Dữ liệu 
     Khởi tạo với dữ liệu cần phân tích và cờ \texttt{show\_plots} để quyết định có hiển thị trực tiếp biểu đồ hay chỉ lưu file.
     
     \item[summary\_statistics(save\_path)] 
-    Tính toán và hiển thị các thống kê mô tả, kiểm tra giá trị thiếu, trùng lặp và độ lệch (skewness) của dữ liệu.
+    Thực hiện phân tích toàn diện: thông tin dataset, thống kê mô tả các cột số, phân tích giá trị khuyết (với barplot), phân tích dòng trùng lặp, tần suất giá trị và độ lệch (skewness) của dữ liệu.
     
     \item[correlation\_analysis(method, save\_path)] 
-    Tính toán ma trận tương quan (Pearson, Spearman...) và vẽ Heatmap, tương ứng với Hình~\ref{fig:heatmap}.
+    Tính toán ma trận tương quan và vẽ Heatmap. Hỗ trợ các phương pháp: \texttt{'pearson'}, \texttt{'spearman'}, \texttt{'kendall'} hoặc \texttt{'all'} để vẽ cả 3 loại, tương ứng với Hình~\ref{fig:heatmap_pearson}, \ref{fig:heatmap_spearman}, \ref{fig:heatmap_kendall}.
     
     \item[data\_distribution(save\_path)] 
-    Vẽ biểu đồ histogram kết hợp đường cong mật độ (KDE) để xem phân phối của từng biến số, như Hình~\ref{fig:distribution}.
+    Vẽ biểu đồ histogram kết hợp đường cong mật độ (KDE) cho tất cả các cột số trên cùng một figure với nhiều subplots, như Hình~\ref{fig:distribution}.
     
     \item[boxplot\_analysis(save\_path)] 
-    Vẽ boxplot cho các đặc trưng số nhằm trực quan hóa ngoại lệ, như Hình~\ref{fig:boxplot}.
+    Vẽ boxplot cho các đặc trưng số trên cùng một figure với nhiều subplots nhằm trực quan hóa ngoại lệ, như Hình~\ref{fig:boxplot}.
     
     \item[perform\_eda(corr\_method, save\_path)] 
-    Phương thức tiện ích chạy toàn bộ quy trình EDA theo trình tự chuẩn: thống kê mô tả, phân phối, tương quan, boxplot...
+    Phương thức tiện ích chạy toàn bộ quy trình EDA theo trình tự chuẩn: \texttt{summary\_statistics()}, \texttt{correlation\_analysis()}, \texttt{data\_distribution()}, \texttt{boxplot\_analysis()}.
 \end{methodlist}
 \end{classbox}
 
@@ -471,13 +499,13 @@ Class chuyên biệt để trực quan hóa hiệu năng của các mô hình sa
 \textbf{Methods:}
 \begin{methodlist}
     \item[\_\_init\_\_(evaluation\_results)] 
-    Khởi tạo với kết quả đánh giá thu được từ \texttt{ModelTrainer} (ví dụ: bảng metrics của từng mô hình).
+    Khởi tạo với kết quả đánh giá thu được từ \texttt{ModelTrainer.evaluate\_models()} (dictionary chứa \texttt{'results'} và \texttt{'best\_model\_name'}).
     
     \item[plot\_model\_comparison(save\_path)] 
-    Vẽ biểu đồ cột so sánh các chỉ số MSE, RMSE, MAE, R\textsuperscript{2} giữa các mô hình, tương ứng với Hình~\ref{fig:compare_models}.
+    Vẽ 4 biểu đồ cột so sánh các chỉ số MSE, RMSE, MAE, R\textsuperscript{2} giữa các mô hình trên cùng một figure, highlight model tốt nhất bằng màu khác, tương ứng với Hình~\ref{fig:compare_models}.
     
     \item[plot\_feature\_importance(importance\_df, save\_path)] 
-    Vẽ biểu đồ thanh ngang thể hiện mức độ đóng góp của từng đặc trưng vào quyết định của mô hình, tương ứng với Hình~\ref{fig:lasso_importance}.
+    Vẽ biểu đồ thanh ngang thể hiện mức độ đóng góp của từng đặc trưng vào quyết định của mô hình. Tự động sắp xếp theo importance giảm dần, tương ứng với Hình~\ref{fig:all_importance}.
 \end{methodlist}
 \end{classbox}
 
@@ -486,30 +514,30 @@ Class chuyên biệt để trực quan hóa hiệu năng của các mô hình sa
 \subsection{Thư viện học máy sử dụng}
 Trong nghiên cứu này, bốn thư viện chính được sử dụng gồm \textbf{Scikit-learn (sklearn)}, \textbf{LightGBM}, \textbf{XGBoost} và \textbf{Optuna}. 
 
-Sklearn là thư viện phổ biến trong Python, cung cấp đầy đủ các thuật toán học máy truyền thống như hồi quy tuyến tính, cây quyết định và các phương pháp đánh giá mô hình. 
+\textbf{Sklearn} là thư viện phổ biến trong Python, cung cấp đầy đủ các thuật toán học máy truyền thống như hồi quy tuyến tính, cây quyết định và các phương pháp đánh giá mô hình. 
 
-LightGBM là thư viện chuyên dụng cho các mô hình cây tăng cường (Gradient Boosting), có tốc độ huấn luyện nhanh và hiệu quả cao với tập dữ liệu lớn. 
+\textbf{LightGBM} là thư viện chuyên dụng cho các mô hình cây tăng cường (Gradient Boosting), có tốc độ huấn luyện nhanh và hiệu quả cao với tập dữ liệu lớn. 
 
-XGBoost là thư viện học máy mạnh mẽ dựa trên cây quyết định, nổi tiếng với khả năng xử lý dữ liệu khuyết thiếu và tối ưu hóa hiệu suất tính toán.
+\textbf{XGBoost} là thư viện học máy mạnh mẽ dựa trên cây quyết định, nổi tiếng với khả năng xử lý dữ liệu khuyết thiếu và tối ưu hóa hiệu suất tính toán.
 
-Optuna là thư viện tối ưu siêu tham số tự động, hỗ trợ nhiều chiến lược tìm kiếm tiên tiến.
+\textbf{Optuna} là thư viện tối ưu siêu tham số tự động, hỗ trợ nhiều chiến lược tìm kiếm tiên tiến.
 
 \subsection{Các mô hình được sử dụng}
 Các mô hình hồi quy được áp dụng trong nghiên cứu gồm: \textbf{Elastic Net}, \textbf{Decision Tree Regression}, \textbf{Random Forest Regression}, \textbf{LightGBM Regression} và \textbf{XGBoost Regression}. 
 
-Elastic Net là mô hình tuyến tính kết hợp regularization L1 và L2, giúp phân tích mối quan hệ tuyến tính giữa biến đầu vào và đầu ra. 
+\textbf{Elastic Net} là mô hình tuyến tính kết hợp regularization L1 và L2, giúp phân tích mối quan hệ tuyến tính giữa biến đầu vào và đầu ra. 
 
-Các mô hình còn lại thuộc họ cây quyết định (tree-based) có khả năng mô hình hóa quan hệ phi tuyến phức tạp, trong đó Random Forest, LightGBM và XGBoost là các ensemble methods với hiệu suất cao.
+Các mô hình còn lại thuộc họ cây quyết định (tree-based) có khả năng mô hình hóa quan hệ phi tuyến phức tạp, trong đó \textbf{Random Forest}, \textbf{LightGBM} và \textbf{XGBoost} là các mô hình ensemble, được xây dựng ra cải thiện \textbf{Decision Tree}.
 
 \subsection{Chỉ số đánh giá mô hình}
 Hiệu quả của các mô hình được đánh giá thông qua ba chỉ số chính: \textbf{R-squared ($R^2$)}, \textbf{Mean Squared Error (MSE)} và \textbf{Mean Absolute Error (MAE)}. 
 \begin{itemize}
     \item \textbf{Mean Squared Error (MSE)}: Công thức tính:
     \[MSE = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2\]
-    MSE nên được sử dụng khi ta muốn phạt nặng các sai số lớn, tuy nhiên nó bị ảnh hưởng lớn bởi các giá trị ngoại lai.
+    MSE nên được sử dụng khi ta muốn phạt nặng các sai số lớn, tuy nhiên nó bị ảnh hưởng nếu xuất hiện giá trị ngoại lai.
     \item \textbf{Mean Absolute Error (MAE)}: Công thức tính:
     \[MAE = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|\]
-    MAE nên được sử dụng khi ta muốn đánh giá sai số trung bình.
+    MAE nên được sử dụng khi ta muốn đánh giá sai số tuyệt đối trung bình.
     \item \textbf{R-squared ($R^2$)}: Công thức tính:
     \[R^2 = 1 - \frac{\sum_{i=1}^{n} (y_i - \hat{y}_i)^2}{\sum_{i=1}^{n} (y_i - \bar{y})^2}\]
     $R^2$ thể hiện khả năng giải thích biến động của các đặc trưng đầu vào đối với biến mục tiêu. Giá trị $R^2$ càng gần 1 thì mô hình càng tốt. 
@@ -542,24 +570,24 @@ Dựa trên kết quả trung bình các metrics, nhóm tiến hành xếp hạn
 \begin{tabular}{|l|l|l|l|}
 \hline
 \textbf{num\_strategy} & \textbf{scaling\_strategy} & \textbf{outlier\_method} & \textbf{r2\_score}  \\ \hline
-drop   & standard & zscore & 0.768401 \\ \hline
-median & standard & zscore & 0.762583 \\ \hline
-mean   & standard & zscore & 0.7609   \\ \hline
-drop   & robust   & zscore & 0.759774 \\ \hline
-mode   & standard & zscore & 0.758823 \\ \hline
+drop   & standard & zscore            & 0.762583344 \\ \hline
+median & standard & zscore            & 0.762583344 \\ \hline
+mean   & standard & zscore            & 0.760899558 \\ \hline
+mode   & standard & isolation\_forest & 0.759473055 \\ \hline
+drop   & standard & isolation\_forest & 0.759182476 \\ \hline
 \end{tabular}
 \caption{Top 5 cấu hình tiền xử lý dữ liệu có kết quả trung bình tốt nhất}
 \label{tab:top5_preprocess}
 \end{table}
 
-Dựa vào Sheet 5, ta nhận thấy mô hình Elastic Net luôn cho ra kết quả tệ nhất có thể ảnh hưởng tới các phương pháp được lựa chọn. Ngoài ra việc loại bỏ outlier bằng thuật toán Isolation Forest với các tham số mặc định không cho ra kết quả tốt giống như phương pháp IQR và Z-score.
+Dựa vào Sheet 5, ta nhận thấy mô hình Elastic Net luôn cho ra kết quả tệ nhất có thể ảnh hưởng tới các phương pháp được lựa chọn. Ngoài ra việc loại bỏ outlier bằng phương pháp IQR cho ra kết quả không tốt có thể do việc loại bỏ nhiều outlier hơn (so với zscore) dẫn tới mất một số thông tin quan trọng trong dữ liệu.
 
-Do đó, ở các bước tiếp theo, nhóm lựa chọn cấu hình tiền xử lý gồm: loại bỏ giá trị khuyết (\texttt{drop}), chuẩn hoá \texttt{standard}, và xử lý ngoại lệ bằng \texttt{zscore} để tiến hành trực quan các kết quả\footnote{Ở đây không thực hiện tối ưu siêu tham số vì cho ra kết quả tệ hơn khi chưa sử dụng tối ưu, nguyên nhân có thể do overfitting so sánh 2 biểu đồ\ref{fig:compare_models} và \ref{fig:compare_models_optimized}}.
+Do đó, ở các bước tiếp theo, nhóm lựa chọn cấu hình tiền xử lý gồm: loại bỏ giá trị khuyết (\texttt{drop}), chuẩn hoá \texttt{standard}, và xử lý ngoại lệ bằng \texttt{zscore} để tiến hành trực quan các kết quả\footnote{Ở đây không thực hiện tối ưu siêu tham số vì cho ra kết quả tệ hơn khi chưa sử dụng tối ưu, nguyên nhân có thể do overfitting so sánh hai hình\ref{fig:compare_models} và \ref{fig:compare_models_optimized}}.
 
 
 \subsection{So sánh các mô hình học máy}
 
-Sau khi cố định quy trình tiền xử lý như trên, nhóm tiến hành tối ưu siêu tham số, huấn luyện và đánh giá \textbf{6 mô hình} khác nhau. Kết quả so sánh các mô hình dựa trên các metrics đánh giá được biểu diễn trong Hình~\ref{fig:compare_models}.
+Sau khi cố định quy trình tiền xử lý như trên, nhóm tiến hành tối ưu siêu tham số, huấn luyện và đánh giá \textbf{5 mô hình} khác nhau. Kết quả so sánh các mô hình dựa trên các metrics đánh giá được biểu diễn trong Hình~\ref{fig:compare_models}.
 
 \begin{figure}[htbp]
     \centering
@@ -568,7 +596,7 @@ Sau khi cố định quy trình tiền xử lý như trên, nhóm tiến hành t
     \label{fig:compare_models}
 \end{figure}
 
-Quan sát Hình~\ref{fig:compare_models}, \textbf{XGBoost Regression} là mô hình có hiệu năng tốt nhất trên cả 4 metrics, với $R^2$ đạt 0.8714 có thể nói rằng mô hình này dự đoán khá tốt với bộ dữ liệu hiện tại.
+Quan sát Hình~\ref{fig:compare_models}, \textbf{XGBoost Regression} là mô hình có hiệu năng tốt nhất trên cả 4 metrics, với $R^2$ đạt 0.8664 có thể nói rằng mô hình này dự đoán khá tốt với bộ dữ liệu hiện tại.
 
 \begin{figure}[htbp]
     \centering
@@ -577,7 +605,7 @@ Quan sát Hình~\ref{fig:compare_models}, \textbf{XGBoost Regression} là mô h�
     \label{fig:compare_models_optimized}
 \end{figure}
 
-Khi thực hiện tối ưu siêu tham số với hàm mục tiêu là tối đa hoá $R^2$, ta thu được kết quả như trong Hình~\ref{fig:compare_models_optimized}. Các mô hình có hiệu suất cao trước khi tối ưu như XGBoost, LightGBM không có sự cải thiện, mô hình Random Forest không hề có sự thay đổi.
+Khi thực hiện tối ưu siêu tham số với hàm mục tiêu là tối đa hoá $R^2$, ta thu được kết quả như trong Hình~\ref{fig:compare_models_optimized}. Chỉ có \textbf{LightGBM Regression} và \textbf{ElasticNet} là cải thiện hiệu năng, trong khi các mô hình còn lại đều giảm. Đáng kể nhất là \textbf{XGBoost Regression} giảm từ 0.8664 xuống còn 0.7754.
 
 \subsection{Phân tích đặc trưng quan trọng của các mô hình}
 

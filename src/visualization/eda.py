@@ -427,7 +427,7 @@ class EDA:
 		Notes
 		-----
 		- Sử dụng seaborn histplot với kde=True để tự động vẽ KDE
-		- Histogram được chuẩn hóa để tổng diện tích bằng 1
+		- Histogram hiển thị số lượng quan sát (count) theo từng bin
 		- KDE (Kernel Density Estimation) được tính tự động bởi seaborn
 		- Sử dụng 30 bins cho histogram
 		- Tất cả các subplots được vẽ trên cùng một figure
@@ -464,9 +464,12 @@ class EDA:
 		for idx, col in enumerate(numeric_cols):
 			ax = axes_flat[idx]
 			
-			# Vẽ histogram + KDE bằng seaborn
-			sns.histplot(data=self.data, x=col, kde=True, bins=30, 
-						color='skyblue', edgecolor='black', ax=ax)
+			# Vẽ histogram (stat='density' để trục tung là mật độ, khớp với KDE)
+			sns.histplot(data=self.data, x=col, kde=False, bins=30, 
+						color='skyblue', edgecolor='black', ax=ax, stat='density')
+			
+			# Vẽ KDE riêng màu đỏ, cut=0 để không vẽ lố ra ngoài miền dữ liệu (min-max)
+			sns.kdeplot(data=self.data, x=col, color='red', linewidth=2, ax=ax, cut=0)
 			
 			ax.set_title(f'{col}', fontsize=11, fontweight='bold')
 			ax.set_xlabel('Value', fontsize=9)
