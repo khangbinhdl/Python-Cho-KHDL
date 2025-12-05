@@ -6,8 +6,10 @@ import optuna
 from lightgbm import LGBMRegressor
 from numpy.typing import ArrayLike
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import ElasticNet, Lasso, Ridge
+from sklearn.linear_model import ElasticNet
 from sklearn.model_selection import cross_val_score
+from sklearn.tree import DecisionTreeRegressor
+from xgboost import XGBRegressor
 
 from src.utils.logging import get_logger
 
@@ -45,7 +47,8 @@ class BayesianOptimizer:
 		X_train: ArrayLike,
 		y_train: ArrayLike,
 		random_state: int = 42,
-		cv: int = 5
+		cv: int = 5,
+		n_jobs: int = 1
 	) -> None:
 		"""
 		Khởi tạo BayesianOptimizer.
@@ -60,11 +63,14 @@ class BayesianOptimizer:
 			Seed cho reproducibility. Mặc định là 42
 		cv : int, optional
 			Số fold cho cross-validation. Mặc định là 5
+		n_jobs : int, optional
+			Số jobs song song. Mặc định là 1
 		"""
 		self.X_train: ArrayLike = X_train
 		self.y_train: ArrayLike = y_train
 		self.random_state: int = random_state
 		self.cv: int = cv
+		self.n_jobs: int = n_jobs
 
 	def __str__(self) -> str:
 		"""
@@ -87,7 +93,7 @@ class BayesianOptimizer:
 		str
 			Chuỗi mô tả chi tiết
 		"""
-		return f"BayesianOptimizer(random_state={self.random_state}, cv={self.cv})"
+		return f"BayesianOptimizer(random_state={self.random_state}, cv={self.cv}, n_jobs={self.n_jobs})"
 
 	@staticmethod
 	def _log(message: str) -> None:
@@ -123,9 +129,9 @@ class BayesianOptimizer:
 		Các model được hỗ trợ:
 		- RandomForest: n_estimators, max_depth, min_samples_split, min_samples_leaf, max_features
 		- LightGBM: n_estimators, learning_rate, num_leaves, max_depth, min_child_samples, subsample, colsample_bytree, reg_alpha, reg_lambda
-		- Ridge: alpha
-		- Lasso: alpha
 		- ElasticNet: alpha, l1_ratio
+		- DecisionTree: max_depth, min_samples_split, min_samples_leaf, max_features
+		- XGBoost: n_estimators, learning_rate, max_depth, min_child_weight, subsample, colsample_bytree, reg_alpha, reg_lambda, gamma
 		"""
 		if model_name == 'LinearRegression':
 			return None
@@ -149,15 +155,26 @@ class BayesianOptimizer:
 				'reg_alpha': ('float', 1e-8, 10.0, True),
 				'reg_lambda': ('float', 1e-8, 10.0, True)
 			},
-			'Ridge': {
-				'alpha': ('float', 1e-3, 100.0, True)
-			},
-			'Lasso': {
-				'alpha': ('float', 1e-4, 10.0, True)
+			'XGBoost': {
+				'n_estimators': ('int', 100, 1000),
+				'learning_rate': ('float', 0.005, 0.3, True),
+				'max_depth': ('int', 3, 15),
+				'min_child_weight': ('int', 1, 20),
+				'subsample': ('float', 0.5, 1.0),
+				'colsample_bytree': ('float', 0.5, 1.0),
+				'reg_alpha': ('float', 1e-8, 10.0, True),
+				'reg_lambda': ('float', 1e-8, 10.0, True),
+				'gamma': ('float', 1e-8, 5.0, True)
 			},
 			'ElasticNet': {
 				'alpha': ('float', 1e-4, 10.0, True),
 				'l1_ratio': ('float', 0.0, 1.0)
+			},
+			'DecisionTree': {
+				'max_depth': ('int', 3, 30),
+				'min_samples_split': ('int', 2, 20),
+				'min_samples_leaf': ('int', 1, 10),
+				'max_features': ('categorical', ['sqrt', 'log2', None])
 			}
 		}
 		
@@ -167,7 +184,7 @@ class BayesianOptimizer:
 		self,
 		model_name: str,
 		trial: optuna.trial.Trial
-	) -> Optional[Union[RandomForestRegressor, LGBMRegressor, Ridge, Lasso, ElasticNet]]:
+	) -> Optional[Union[RandomForestRegressor, LGBMRegressor, XGBRegressor, ElasticNet, DecisionTreeRegressor]]:
 		"""
 		Tạo model instance với parameters từ Optuna trial.
 		
@@ -175,7 +192,7 @@ class BayesianOptimizer:
 		----------
 		model_name : str
 			Tên model cần tạo. Hỗ trợ: 'RandomForest', 'LightGBM',
-			'Ridge', 'Lasso', 'ElasticNet'.
+			'XGBoost', 'ElasticNet', 'DecisionTree'.
 		trial : optuna.trial.Trial
 			Optuna trial object để suggest parameters.
 			
@@ -212,18 +229,20 @@ class BayesianOptimizer:
 		
 		# Tạo model instance
 		if model_name == 'RandomForest':
-			params['n_jobs'] = 2
+			params['n_jobs'] = self.n_jobs
 			return RandomForestRegressor(**params)
 		elif model_name == 'LightGBM':
-			params['n_jobs'] = 2
+			params['n_jobs'] = self.n_jobs
 			params['verbose'] = -1
 			return LGBMRegressor(**params)
-		elif model_name == 'Ridge':
-			return Ridge(**params)
-		elif model_name == 'Lasso':
-			return Lasso(**params)
+		elif model_name == 'XGBoost':
+			params['n_jobs'] = self.n_jobs
+			params['verbosity'] = 0
+			return XGBRegressor(**params)
 		elif model_name == 'ElasticNet':
 			return ElasticNet(**params)
+		elif model_name == 'DecisionTree':
+			return DecisionTreeRegressor(**params)
 		else:
 			return None
 
@@ -234,7 +253,7 @@ class BayesianOptimizer:
 		Parameters
 		----------
 		model_name : str
-			Tên model cần optimize (VD: 'RandomForest', 'LightGBM', 'Ridge')
+			Tên model cần optimize (VD: 'RandomForest', 'LightGBM', 'XGBoost', 'ElasticNet', 'DecisionTree')
 		n_trials : int, optional
 			Số lần thử nghiệm (trials). Mặc định là 20
 			
@@ -250,7 +269,7 @@ class BayesianOptimizer:
 		Notes
 		-----
 		Sử dụng cross-validation với scoring='r2'.
-		Optimization direction là 'maximize' để tìm R² lớn nhất.
+		Optimization direction là 'maximize' để tìm R2 lớn nhất.
 		"""
 		# Skip LinearRegression
 		if model_name == 'LinearRegression':
@@ -271,28 +290,28 @@ class BayesianOptimizer:
 				if model is None:
 					return float('-inf')
 				
-				# Cross-validation scoring với R²
+				# Cross-validation scoring với R2
 				scores = cross_val_score(
 					model, self.X_train, self.y_train, 
 					cv=self.cv, 
 					scoring='r2', 
 					n_jobs=1
 				)
-				# Trả về R² trung bình
+				# Trả về R2 trung bình
 				return scores.mean()
 				
 			except Exception as e:
 				self._log(f"✗ Trial failed: {e}")
 				return float('-inf')
 
-		# Chạy optimization với direction='maximize' cho R²
+		# Chạy optimization với direction='maximize' cho R2
 		study = optuna.create_study(direction='maximize')
 		study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
 
 		best_params = study.best_params
 		best_score = study.best_value
 		
-		self._log(f"✓ Best R²: {best_score:.4f}")
+		self._log(f"✓ Best R2: {best_score:.4f}")
 		self._log(f"✓ Best Params: {best_params}")
 
 		return best_params

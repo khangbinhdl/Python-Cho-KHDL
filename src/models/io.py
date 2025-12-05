@@ -146,8 +146,8 @@ class ModelIO:
 
         Returns
         -------
-        str
-            Đường dẫn tuyệt đối của file đã lưu.
+        str or None
+            Đường dẫn tuyệt đối của file đã lưu.Trả về None nếu danh sách kết quả rỗng.
 
         Raises
         ------

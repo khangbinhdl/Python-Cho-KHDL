@@ -41,14 +41,14 @@ def parse_arguments() -> argparse.Namespace:
 	parser.add_argument('--random-state', type=int,
 						help='Random state để tái tạo kết quả (ghi đè config)')
 	parser.add_argument('--models', type=str,
-						help='Các model để train (all/RandomForest,LightGBM,Ridge,Lasso,ElasticNet,LinearRegression) (ghi đè config)')
+						help='Các model để train (all/ElasticNet,RandomForest,LightGBM,XGBoost,DecisionTree) (ghi đè config)')
 	parser.add_argument('--drop-features', type=str,
 						help='Các features cần drop, phân cách bởi dấu phẩy (ghi đè config)')
 	parser.add_argument('--clean-negative', action='store_true',
 						help='Bật xử lý giá trị âm (ghi đè config)')
 	parser.add_argument('--no-clean-negative', dest='clean_negative', action='store_false',
 						help='Tắt xử lý giá trị âm (ghi đè config)')
-	parser.add_argument('--categorical-encoding', type=str, choices=['onehot', 'label', 'ordinal'],
+	parser.add_argument('--categorical-encoding', type=str, choices=['onehot', 'label'],
 						help='Chiến lược encoding cho biến phân loại (ghi đè config)')
 	parser.set_defaults(clean_negative=None)
 	
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 	args = parse_arguments()
 	config = load_config(args.config, args)
 	
-	log_path = setup_logging(log_dir="outputs/logs", log_name="train")
+	log_path = setup_logging(log_dir=config.get('OUTPUT', 'log_dir'), log_name="train")
 	logger = get_logger("MAIN")
 	logger.info(f"Log file: {log_path}")
 	
@@ -90,23 +90,23 @@ if __name__ == "__main__":
 	# Chuyển đổi datetime nếu có (tách riêng khỏi auto_detect_columns)
 	preprocessor.convert_to_datetime()
 
+	# Drop cột rác và clean giá trị âm (từ config)
+	drop_features_list = [f.strip() for f in config.get('PREPROCESSING', 'drop_features').split(',') if f.strip()]
+	if drop_features_list:
+		logger.info(f"Dropping features: {drop_features_list}")
+		preprocessor.drop_features(drop_features_list)
+
 	# =========================================================================
 	# 2. EDA TRƯỚC KHI XỬ LÝ DỮ LIỆU
 	# =========================================================================
 
 	if config.getboolean('VISUALIZATION', 'enable_eda'):
 		eda_before = EDA(preprocessor.get_processed_data(), show_plots=False)
-		eda_before.perform_eda(save_path='outputs/plots/eda/before')
+		eda_before.perform_eda(corr_method='all', save_path=config.get('OUTPUT', 'eda_before_path'))
 
 	# =========================================================================
 	# 3. Chia dữ liệu TRAIN/TEST, TIẾN HÀNH XỬ LÝ DỮ LIỆU
 	# =========================================================================
-
-	# Drop cột rác và clean giá trị âm (từ config)
-	drop_features_list = [f.strip() for f in config.get('PREPROCESSING', 'drop_features').split(',') if f.strip()]
-	if drop_features_list:
-		logger.info(f"Dropping features: {drop_features_list}")
-		preprocessor.drop_features(drop_features_list)
 	
 	if config.getboolean('PREPROCESSING', 'clean_negative_values'):
 		logger.info("Cleaning negative values...")
@@ -115,13 +115,18 @@ if __name__ == "__main__":
 	# Loại bỏ duplicate trước khi chia train/test
 	preprocessor.remove_duplicates()
 
+	# Loại bỏ các hàng có target null (không có ý nghĩa)
+	preprocessor.drop_null_targets(target_column=target_col)
 	
 	# Lấy dữ liệu tạm thời (đã clean cơ bản)
 	current_data = preprocessor.get_processed_data()
 	preprocessor.save_data(config.get('PATHS', 'temp_data_file'))
 
 	logger.info("Initializing ModelTrainer to split data...")
-	trainer = ModelTrainer(random_state=config.getint('DATA', 'random_state'))
+	trainer = ModelTrainer(
+		random_state=config.getint('DATA', 'random_state'),
+		n_jobs=config.getint('OPTIMIZATION', 'n_jobs')
+	)
 	
 	# Nạp dữ liệu vào ModelTrainer
 	trainer.load_data(current_data, target_column=target_col)
@@ -197,7 +202,7 @@ if __name__ == "__main__":
 	
 	if config.getboolean('VISUALIZATION', 'enable_eda'):
 		eda_after = EDA(merged_df, show_plots=False)
-		eda_after.perform_eda(save_path='outputs/plots/eda/after')
+		eda_after.perform_eda(corr_method='all', save_path=config.get('OUTPUT', 'eda_after_path'))
 
 	# =========================================================================
 	# 5. HUẤN LUYỆN & ĐÁNH GIÁ

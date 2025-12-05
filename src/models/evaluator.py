@@ -44,8 +44,9 @@ class ModelEvaluator:
 
         Returns
         -------
-        dict
+        dict or None
             Dictionary chứa các metrics đánh giá (MSE, RMSE, MAE, R2).
+            Trả về None nếu xảy ra lỗi trong quá trình đánh giá mô hình.
         """
         try:
             y_pred = model.predict(X_test)

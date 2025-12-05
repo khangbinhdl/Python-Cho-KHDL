@@ -94,33 +94,65 @@ class EDA:
 		LOGGER.info("")      # một dòng trống có timestamp
 		LOGGER.info(SEP)     # separator có timestamp
 
-	def summary_statistics(self, save_path: Optional[str] = None) -> None:
+	def _plot_single_correlation(
+		self,
+		numeric_data: pd.DataFrame,
+		method: str,
+		save_path: Optional[str] = None
+	) -> None:
 		"""
-		In ra các thống kê mô tả cơ bản của các cột số
+		Vẽ một correlation heatmap cho phương pháp cụ thể
 		
-		Hiển thị các chỉ số thống kê như count, mean, std, min, max, 
-		và các phân vị (25%, 50%, 75%) cho tất cả các cột số trong DataFrame.
-		Bổ sung thông tin về kiểu dữ liệu, giá trị thiếu, trùng lặp, value counts và độ lệch.
-
 		Parameters
 		----------
+		numeric_data : DataFrame
+			Dữ liệu số để tính tương quan
+		method : str
+			Phương pháp tính tương quan ('pearson', 'spearman', 'kendall')
 		save_path : str, optional
-			Đường dẫn thư mục để lưu biểu đồ. Nếu None, chỉ hiển thị.
-			Mặc định là None
+			Đường dẫn thư mục để lưu biểu đồ
+		"""
+		correlation_matrix = numeric_data.corr(method=method)
+		plt.figure(figsize=(10, 8))
+		sns.heatmap(
+			correlation_matrix,
+			annot=True,
+			fmt='.2f',
+			cmap='coolwarm',
+			center=0,
+			square=True,
+			linewidths=0.5,
+			cbar_kws={"shrink": 0.8}
+		)
+		plt.title(f'Correlation Heatmap ({method.capitalize()})', fontsize=16, fontweight='bold')
+		plt.tight_layout()
+		
+		# Lưu biểu đồ nếu có đường dẫn
+		if save_path:
+			os.makedirs(save_path, exist_ok=True)
+			filename = f'{save_path}/correlation_heatmap_{method}.png'
+			plt.savefig(filename, dpi=300, bbox_inches='tight', facecolor='white')
+			self._log(f"✓ Correlation heatmap ({method}) saved to: {filename}")
+		
+		if self.show_plots:
+			plt.show()
+		else:
+			plt.close()
 
+	def _dataset_information(self) -> None:
+		"""
+		Hiển thị thông tin tổng quan về dataset
+		
+		Bao gồm số lượng dòng, cột, kiểu dữ liệu và bộ nhớ sử dụng.
+		
 		Raises
 		------
 		ValueError
 			Nếu dữ liệu chưa được nạp
-		
-		Notes
-		-----
-		Sử dụng phương thức describe() của pandas để tính toán các thống kê
 		"""
 		if self.data is None:
 			raise ValueError("Data not loaded. Call load_data() first.")
 		
-		# 1. Tổng quan info
 		self._sep()
 		self._log("DATASET INFORMATION")
 		self._log(SEP)
@@ -129,16 +161,50 @@ class EDA:
 		self.data.info(buf=buf)
 		for line in buf.getvalue().splitlines():
 			self._log(line)
+	
+	def _descriptive_statistics(self) -> None:
+		"""
+		Hiển thị thống kê mô tả cho các cột số
 		
-		# 2. Thống kê mô tả
+		Bao gồm count, mean, std, min, max và các phân vị (25%, 50%, 75%)
+		cho tất cả các cột có kiểu dữ liệu số.
+		
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+		
 		self._sep()
 		self._log("SUMMARY STATISTICS FOR NUMERIC COLUMNS")
 		self._log(SEP)
 		desc = self.data.describe().to_string()
 		for line in desc.splitlines():
 			self._log(line)
+	
+	def _missing_values_analysis(self, save_path: Optional[str] = None) -> None:
+		"""
+		Phân tích và trực quan hóa giá trị thiếu
 		
-		# 3. Missing values
+		Tính toán số lượng và tỷ lệ phần trăm giá trị thiếu cho từng cột,
+		sau đó vẽ biểu đồ barplot để trực quan hóa.
+		
+		Parameters
+		----------
+		save_path : str, optional
+			Đường dẫn thư mục để lưu biểu đồ. Nếu None, chỉ hiển thị.
+			Mặc định là None
+		
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+		
 		missing_counts = self.data.isnull().sum()
 		missing_percentages = (missing_counts / len(self.data)) * 100
 		missing_data = pd.DataFrame({
@@ -180,14 +246,41 @@ class EDA:
 			self._sep()
 			self._log("MISSING VALUES: No missing values found")
 			self._log(SEP)
+	
+	def _duplicate_rows_analysis(self) -> None:
+		"""
+		Phân tích số lượng dòng trùng lặp trong dataset
 		
-		# 4. Duplicate rows
+		Đếm và hiển thị số lượng dòng có giá trị trùng lặp hoàn toàn.
+		
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+		
 		duplicate_count = self.data.duplicated().sum()
 		self._sep()
 		self._log(f"DUPLICATE ROWS: {duplicate_count} rows")
 		self._log(SEP)
+	
+	def _value_counts_analysis(self) -> None:
+		"""
+		Hiển thị top 5 giá trị phổ biến nhất cho mỗi cột
 		
-		# 5. Value counts (Top 5 cho mỗi cột)
+		Phân tích tần suất xuất hiện của các giá trị trong từng cột,
+		hiển thị 5 giá trị có tần suất cao nhất.
+		
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+		
 		self._sep()
 		self._log("VALUE COUNTS (TOP 5 FOR EACH COLUMN)")
 		self._log(SEP)
@@ -196,8 +289,29 @@ class EDA:
 			top5 = self.data[col].value_counts().head(5).to_string()
 			for line in top5.splitlines():
 				self._log(line)
+	
+	def _skewness_analysis(self) -> None:
+		"""
+		Phân tích độ lệch (skewness) của các cột số
 		
-		# 6. Skewness cho các cột số
+		Tính toán hệ số skewness để đánh giá tính đối xứng của phân phối dữ liệu.
+		Giá trị dương cho thấy phân phối lệch phải, giá trị âm cho thấy phân phối lệch trái.
+		
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		
+		Notes
+		-----
+		- Skewness = 0: phân phối đối xứng hoàn hảo
+		- |Skewness| < 0.5: phân phối gần như đối xứng
+		- 0.5 < |Skewness| < 1: phân phối lệch vừa phải
+		- |Skewness| > 1: phân phối lệch mạnh
+		"""
+		if self.data is None:
+			raise ValueError("Data not loaded. Call load_data() first.")
+		
 		numeric_cols = self.data.select_dtypes(include=np.number).columns
 		if len(numeric_cols) > 0:
 			self._sep()
@@ -207,11 +321,41 @@ class EDA:
 			skewness_df = pd.DataFrame({'Column': skewness.index, 'Skewness': skewness.values})
 			for line in skewness_df.to_string(index=False).splitlines():
 				self._log(line)
+	
+	def summary_statistics(self, save_path: Optional[str] = None) -> None:
+		"""
+		In ra các thống kê mô tả cơ bản của dataset
+		
+		Thực hiện phân tích toàn diện bao gồm:
+		- Thông tin tổng quan dataset
+		- Thống kê mô tả các cột số
+		- Phân tích giá trị thiếu
+		- Phân tích dòng trùng lặp
+		- Phân tích tần suất giá trị
+		- Phân tích độ lệch phân phối
 
-			self._log("\nInterpretation:")
-			self._log("  - Highly skewed: |skewness| > 1")
-			self._log("  - Moderately skewed: 0.5 < |skewness| <= 1")
-			self._log("  - Fairly symmetric: |skewness| <= 0.5")
+		Parameters
+		----------
+		save_path : str, optional
+			Đường dẫn thư mục để lưu biểu đồ. Nếu None, chỉ hiển thị.
+			Mặc định là None
+
+		Raises
+		------
+		ValueError
+			Nếu dữ liệu chưa được nạp
+		
+		Notes
+		-----
+		Hàm này gọi tuần tự 6 hàm phân tích riêng biệt để cung cấp
+		cái nhìn tổng quan về dataset.
+		"""
+		self._dataset_information()                    # 1. Tổng quan info
+		self._descriptive_statistics()                 # 2. Thống kê mô tả
+		self._missing_values_analysis(save_path)       # 3. Missing values
+		self._duplicate_rows_analysis()                # 4. Duplicate rows
+		self._value_counts_analysis()                  # 5. Value counts
+		self._skewness_analysis()                      # 6. Skewness
 
 	def correlation_analysis(
 		self,
@@ -228,7 +372,7 @@ class EDA:
 		----------
 		method : str, optional
 			Phương pháp tính tương quan.
-			Các giá trị hợp lệ: 'pearson', 'spearman', 'kendall'.
+			Các giá trị hợp lệ: 'pearson', 'spearman', 'kendall', 'all'.
 			Mặc định là 'pearson'
 		save_path : str, optional
 			Đường dẫn thư mục để lưu biểu đồ. Nếu None, chỉ hiển thị.
@@ -253,33 +397,14 @@ class EDA:
 		numeric_data = self.data.select_dtypes(include=np.number)
 
 		if not numeric_data.empty:
-			correlation_matrix = numeric_data.corr(method=method)
-
-			# Vẽ heatmap cho ma trận tương quan sử dụng Seaborn
-			plt.figure(figsize=(10, 8))
-			sns.heatmap(correlation_matrix, 
-						annot=True,  # Hiển thị giá trị tương quan
-						fmt='.2f',   # Định dạng 2 chữ số thập phân
-						cmap='coolwarm',  # Bảng màu
-						center=0,    # Đặt trung tâm tại 0
-						square=True,  # Các ô vuông
-						linewidths=0.5,  # Đường viền giữa các ô
-						cbar_kws={"shrink": 0.8})  # Thanh màu
-			plt.title(f'Correlation Heatmap ({method.capitalize()})', fontsize=16, fontweight='bold')
-			plt.tight_layout()
-			
-			# Lưu biểu đồ nếu có đường dẫn
-			if save_path:
-				os.makedirs(save_path, exist_ok=True)
-				plt.savefig(f'{save_path}/correlation_heatmap.png', dpi=300, bbox_inches='tight', facecolor='white')
-				self._log(f"✓ Correlation heatmap saved to: {save_path}/correlation_heatmap.png")
-			
-			if self.show_plots:
-				plt.show()
+			# Nếu method='all', vẽ cả 3 loại correlation
+			if method == 'all':
+				for m in ['pearson', 'spearman', 'kendall']:
+					self._plot_single_correlation(numeric_data, m, save_path)
 			else:
-				plt.close()
+				self._plot_single_correlation(numeric_data, method, save_path)
 		else:
-			print("Không có cột số nào để tính toán tương quan.")
+			self._log("No numeric columns found for correlation analysis.")
 
 	def data_distribution(self, save_path: Optional[str] = None) -> None:
 		"""
@@ -302,7 +427,7 @@ class EDA:
 		Notes
 		-----
 		- Sử dụng seaborn histplot với kde=True để tự động vẽ KDE
-		- Histogram được chuẩn hóa để tổng diện tích bằng 1
+		- Histogram hiển thị số lượng quan sát (count) theo từng bin
 		- KDE (Kernel Density Estimation) được tính tự động bởi seaborn
 		- Sử dụng 30 bins cho histogram
 		- Tất cả các subplots được vẽ trên cùng một figure
@@ -339,9 +464,12 @@ class EDA:
 		for idx, col in enumerate(numeric_cols):
 			ax = axes_flat[idx]
 			
-			# Vẽ histogram + KDE bằng seaborn
-			sns.histplot(data=self.data, x=col, kde=True, bins=30, 
-						color='skyblue', edgecolor='black', ax=ax)
+			# Vẽ histogram (stat='density' để trục tung là mật độ, khớp với KDE)
+			sns.histplot(data=self.data, x=col, kde=False, bins=30, 
+						color='skyblue', edgecolor='black', ax=ax, stat='density')
+			
+			# Vẽ KDE riêng màu đỏ, cut=0 để không vẽ lố ra ngoài miền dữ liệu (min-max)
+			sns.kdeplot(data=self.data, x=col, color='red', linewidth=2, ax=ax, cut=0)
 			
 			ax.set_title(f'{col}', fontsize=11, fontweight='bold')
 			ax.set_xlabel('Value', fontsize=9)
@@ -470,7 +598,7 @@ class EDA:
 		----------
 		corr_method : str, optional
 			Phương pháp tính tương quan cho correlation_analysis.
-			Các giá trị hợp lệ: 'pearson', 'spearman', 'kendall'.
+			Các giá trị hợp lệ: 'pearson', 'spearman', 'kendall', 'all'.
 			Mặc định là 'pearson'
 		save_path : str, optional
 			Đường dẫn thư mục để lưu tất cả biểu đồ. Nếu None, chỉ hiển thị.

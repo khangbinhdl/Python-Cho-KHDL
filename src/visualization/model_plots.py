@@ -49,7 +49,14 @@ class ModelVisualizer:
 		Parameters
 		----------
 		save_path : str, optional
-			Đường dẫn lưu file. Nếu None, chỉ hiển thị
+		Đường dẫn file (bao gồm cả tên file) để lưu biểu đồ so sánh.
+    	Nếu None, chỉ hiển thị biểu đồ mà không lưu. Mặc định là None.
+   
+		Raises
+		------
+		ValueError
+    	Nếu evaluation_results rỗng hoặc không có key 'results'.
+
 		"""
 		if not self.evaluation_results or not self.evaluation_results.get('results'):
 			raise ValueError("No evaluation results found.")
@@ -93,7 +100,9 @@ class ModelVisualizer:
 		plt.tight_layout(rect=[0, 0, 1, 0.985])
 		
 		if save_path:
-			os.makedirs(os.path.dirname(save_path), exist_ok=True)
+			save_dir = os.path.dirname(save_path)
+			if save_dir:
+				os.makedirs(save_dir, exist_ok=True)
 			plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
 			self._log(f"✓ Plot saved: {save_path}")
 		plt.show()
@@ -104,14 +113,22 @@ class ModelVisualizer:
 		save_path: Optional[str] = None
 	) -> None:
 		"""
-		Vẽ biểu đồ feature importance.
+		Vẽ biểu đồ feature importance của model tốt nhất.
 		
 		Parameters
 		----------
 		importance_df : DataFrame
-			DataFrame với columns ['feature', 'importance'], đã sorted
+			DataFrame với columns ['feature', 'importance'],
+			Hàm sẽ tự sắp xếp theo 'importance'.
+   
 		save_path : str, optional
 			Đường dẫn lưu file
+   
+		Raises
+		------
+		ValueError
+    	Nếu importance_df là None hoặc rỗng.
+
 		"""
 		if importance_df is None or importance_df.empty:
 			raise ValueError("importance_df is empty")
@@ -143,7 +160,9 @@ class ModelVisualizer:
 		plt.tight_layout()
 		
 		if save_path:
-			os.makedirs(os.path.dirname(save_path), exist_ok=True)
+			save_dir = os.path.dirname(save_path)
+			if save_dir:
+				os.makedirs(save_dir, exist_ok=True)
 			plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
 			self._log(f"✓ Feature importance saved: {save_path}")
 		plt.show()
