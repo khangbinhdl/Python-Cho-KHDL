@@ -216,10 +216,24 @@ class DataTransformer:
                     val = mode.iloc[0] if not mode.empty else data[col].median()
                 new_learned[col] = val
         
+        # FIT: Học fallback cho strategy="drop" (dùng median)
+        if fit and strategy == "drop":
+            for col in cols_to_process:
+                val = data[col].median()
+                new_learned[col] = val
+        
         # TRANSFORM: Áp dụng
         if strategy == "drop":
-            if cols_to_process:
-                data = data.dropna(subset=cols_to_process)
+            if fit:
+                # Train: drop các hàng có missing
+                if cols_to_process:
+                    data = data.dropna(subset=cols_to_process)
+            else:
+                # Test: fill bằng fallback thay vì drop
+                for col in cols_to_process:
+                    val = new_learned.get(col)
+                    if val is not None:
+                        data[col] = data[col].fillna(val)
         elif strategy in ("mean", "median", "mode"):
             for col in cols_to_process:
                 val = new_learned.get(col)
@@ -283,10 +297,24 @@ class DataTransformer:
                     val = "Unknown"
                 new_learned[col] = val
         
+        # FIT: Học fallback cho strategy="drop" (dùng mode hoặc "Unknown")
+        if fit and strategy == "drop":
+            for col in cols_to_process:
+                mode = data[col].mode()
+                val = mode.iloc[0] if not mode.empty else "Unknown"
+                new_learned[col] = val
+        
         # TRANSFORM: Áp dụng
         if strategy == "drop":
-            if cols_to_process:
-                data = data.dropna(subset=cols_to_process)
+            if fit:
+                # Train: drop các hàng có missing
+                if cols_to_process:
+                    data = data.dropna(subset=cols_to_process)
+            else:
+                # Test: fill bằng fallback thay vì drop
+                for col in cols_to_process:
+                    val = new_learned.get(col, "Unknown")
+                    data[col] = data[col].fillna(val)
         elif strategy == "mode":
             for col in cols_to_process:
                 val = new_learned.get(col)
@@ -488,7 +516,11 @@ class DataTransformer:
             
         elif method == 'isolation_forest':
             if cols_to_process:
-                iso = IsolationForest(random_state=42)
+                iso = IsolationForest(
+                    n_estimators=200,
+                    contamination=0.05,
+                    random_state=42
+                )
                 yhat = iso.fit_predict(target[cols_to_process])
                 target = target[yhat == 1]
 
