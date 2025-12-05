@@ -50,7 +50,7 @@ class ModelTrainer:
     results : list
         Danh sách kết quả đánh giá các models.
     best_model_name : str or None (property)
-        Tên của model tốt nhất, được suy ra từ results (R² cao nhất).
+        Tên của model tốt nhất, được suy ra từ results (R2 cao nhất).
     best_model : object or None (property)
         Model có hiệu suất tốt nhất, được lấy từ trained_models[best_model_name].
     """
@@ -89,7 +89,7 @@ class ModelTrainer:
 
     @property
     def best_model_name(self) -> Optional[str]:
-        """Tên của model tốt nhất, suy ra từ results (R² cao nhất)."""
+        """Tên của model tốt nhất, suy ra từ results (R2 cao nhất)."""
         if not self.results:
             return None
         best_result = max(self.results, key=lambda x: x.get('r2_score', float('-inf')))
@@ -132,6 +132,12 @@ class ModelTrainer:
         Returns
         -------
         self
+        
+        Raises
+        ------
+        ValueError
+        Nếu data không phải là pandas DataFrame hoặc không tìm thấy target_column trong data.
+
         """
         if not isinstance(data, pd.DataFrame):
             raise ValueError("Data must be a pandas DataFrame")
@@ -165,6 +171,12 @@ class ModelTrainer:
         Returns
         -------
         train_df, test_df
+        
+        Raises
+        ------
+        ValueError
+        Nếu dữ liệu gốc chưa được nạp (self.data is None). Cần gọi load_data() trước.
+
         """
         if self.data is None:
             raise ValueError("Data not loaded. Call load_data() first.")
@@ -218,7 +230,7 @@ class ModelTrainer:
         Khởi tạo danh sách các mô hình Machine Learning.
         
         Khởi tạo các mô hình regression bao gồm:
-        ElasticNet, RandomForest, LightGBM, DecisionTree.
+        ElasticNet, RandomForest, LightGBM, XGBoost, DecisionTree.
         
         Returns
         -------
@@ -388,14 +400,14 @@ class ModelTrainer:
         Đánh giá tất cả các mô hình đã huấn luyện trên tập test.
         
         Sử dụng ModelEvaluator để tính toán các metrics đánh giá
-        (MSE, RMSE, MAE, R²) cho từng model.
+        (MSE, RMSE, MAE, R2) cho từng model.
         
         Returns
         -------
         dict
             Dictionary chứa:
             - 'results': list các dict kết quả đánh giá của từng model
-            - 'best_model_name': tên model có R² cao nhất
+            - 'best_model_name': tên model có R2 cao nhất
         
         Raises
         ------

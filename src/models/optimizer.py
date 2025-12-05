@@ -131,6 +131,7 @@ class BayesianOptimizer:
 		- LightGBM: n_estimators, learning_rate, num_leaves, max_depth, min_child_samples, subsample, colsample_bytree, reg_alpha, reg_lambda
 		- ElasticNet: alpha, l1_ratio
 		- DecisionTree: max_depth, min_samples_split, min_samples_leaf, max_features
+		- XGBoost: n_estimators, learning_rate, max_depth, min_child_weight, subsample, colsample_bytree, reg_alpha, reg_lambda, gamma
 		"""
 		if model_name == 'LinearRegression':
 			return None
@@ -252,7 +253,7 @@ class BayesianOptimizer:
 		Parameters
 		----------
 		model_name : str
-			Tên model cần optimize (VD: 'RandomForest', 'LightGBM', 'Ridge')
+			Tên model cần optimize (VD: 'RandomForest', 'LightGBM', 'XGBoost', 'ElasticNet', 'DecisionTree')
 		n_trials : int, optional
 			Số lần thử nghiệm (trials). Mặc định là 20
 			

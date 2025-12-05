@@ -49,7 +49,14 @@ class ModelVisualizer:
 		Parameters
 		----------
 		save_path : str, optional
-			Đường dẫn lưu file. Nếu None, chỉ hiển thị
+		Đường dẫn file (bao gồm cả tên file) để lưu biểu đồ so sánh.
+    	Nếu None, chỉ hiển thị biểu đồ mà không lưu. Mặc định là None.
+   
+		Raises
+		------
+		ValueError
+    	Nếu evaluation_results rỗng hoặc không có key 'results'.
+
 		"""
 		if not self.evaluation_results or not self.evaluation_results.get('results'):
 			raise ValueError("No evaluation results found.")
@@ -111,9 +118,17 @@ class ModelVisualizer:
 		Parameters
 		----------
 		importance_df : DataFrame
-			DataFrame với columns ['feature', 'importance'], đã sorted
+			DataFrame với columns ['feature', 'importance'],
+			Hàm sẽ tự sắp xếp theo 'importance'.
+   
 		save_path : str, optional
 			Đường dẫn lưu file
+   
+		Raises
+		------
+		ValueError
+    	Nếu importance_df là None hoặc rỗng.
+
 		"""
 		if importance_df is None or importance_df.empty:
 			raise ValueError("importance_df is empty")

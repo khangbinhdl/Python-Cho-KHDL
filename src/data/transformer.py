@@ -664,6 +664,12 @@ class DataTransformer:
         tuple
             (DataFrame, scaler, list) - DataFrame đã scale, scaler object,
             và danh sách các cột đã được scale.
+
+        Raises
+        ------
+        ValueError
+        Nếu strategy không thuộc {'standard', 'robust'}.
+
         """
         target = data.copy()
         if exclude_features is None: exclude_features = []
@@ -759,7 +765,7 @@ class DataTransformer:
             Danh sách tên các cột cần xóa.
         
         Returns
-        -------s
+        -------
         DataFrame
             DataFrame đã xóa các cột được chỉ định.
         """
