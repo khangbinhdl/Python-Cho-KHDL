@@ -11,6 +11,9 @@
 \usepackage{geometry}            % Tùy chỉnh lề trang
 \usepackage{hyperref}            % Tạo hyperlink và link mục lục
 \usepackage{float}               % Hỗ trợ tùy chọn float [H]
+\usepackage{tabularx}
+\usepackage{booktabs}
+\renewcommand{\tabularxcolumn}[1]{m{#1}}
 \geometry{a4paper, margin=2.5cm}
 
 
@@ -108,7 +111,7 @@ Weight Watchers Pnts & Điểm số theo hệ thống đánh giá dinh dưỡng 
 
 Các cột được loại bỏ:
 \begin{itemize}
-    \item \textbf{Company} và \textbf{item}: Đây là các đặc trưng không mang bất cứ ý nghĩa nào trong bài toán.
+    \item \textbf{Company} và \textbf{Item}: Đây là các đặc trưng không mang bất cứ ý nghĩa nào trong bài toán.
     \item \textbf{Calories} và \textbf{Calories from Fat}: Hai đặc trưng này có mối quan hệ chặt chẽ với nhau.
     \[
         \text{Calories from Fat} = \text{Total Fat (g)} \times 9 
@@ -169,13 +172,13 @@ Các cột được loại bỏ:
 \subsection{Phân tích dữ liệu}
 \indent \indent Bộ dữ liệu này có phân phối lệch phải với toàn bộ đặc trưng, chứa khá nhiều giá trị ngoại lai (outliers), ta sẽ phải xem xét để quyết định áp dụng các phương pháp xử lý phù hợp.
 
-Hình~\ref{fig:missing} minh họa số lượng giá trị khuyết trong từng đặc trưng, điều đáng chú ý là cột mục tiêu \textbf{saturated\_fat\_g} cũng có một lượng giá trị khuyết, ta sẽ phải bỏ các hàng bị thiếu này đi, ngoài ra khi xem xét kĩ hơn, các hàng này đều chứa giá trị thiếu ở các đặc trưng của nó.
+Hình~\ref{fig:missing} minh họa số lượng giá trị khuyết trong từng đặc trưng, điều đáng chú ý là cột mục tiêu \textbf{saturated\_fat\_g} cũng có một lượng giá trị khuyết, ta sẽ phải bỏ các hàng bị thiếu này đi, ngoài ra khi xem xét kĩ hơn, các hàng này đều chứa giá trị thiếu ở hầu hết các đặc trưng của nó đây chính là lỗi nhập liệu.
 
 Dựa trên heatmap tương quan ở Hình~\ref{fig:heatmap_pearson}, Hình~\ref{fig:heatmap_spearman} và Hình~\ref{fig:heatmap_kendall}, ta rút được một số nhận xét quan trọng sau:
 
 \begin{itemize}
     \item \textbf{cholesterol\_mg}, \textbf{sodium\_mg} và \textbf{protein\_g} là các đặc trưng có tương quan cao nhất với mục tiêu.
-    \item Đặc trưng \textbf{protein\_g} có tương quan khá cao với các đặc trưng khác, điều này có thể dẫn tới đa colinearity, ảnh hưởng tới hiệu năng mô hình.
+    \item Đặc trưng \textbf{protein\_g} có tương quan khá cao với các đặc trưng khác, điều này có thể dẫn tới đa cộng tuyến nếu không cẩn thận, ảnh hưởng tới hiệu năng mô hình.
 \end{itemize}
 
 Dựa trên ngữ nghĩa thực tế, ta sẽ \textbf{chuyển toàn bộ giá trị âm thành giá trị dương} (nếu có tại đây chính là lỗi nhập liệu—typo).
@@ -582,7 +585,7 @@ drop   & standard & isolation\_forest & 0.759182476 \\ \hline
 
 Dựa vào Sheet 5, ta nhận thấy mô hình Elastic Net luôn cho ra kết quả tệ nhất có thể ảnh hưởng tới các phương pháp được lựa chọn. Ngoài ra việc loại bỏ outlier bằng phương pháp IQR cho ra kết quả không tốt có thể do việc loại bỏ nhiều outlier hơn (so với zscore) dẫn tới mất một số thông tin quan trọng trong dữ liệu.
 
-Do đó, ở các bước tiếp theo, nhóm lựa chọn cấu hình tiền xử lý gồm: loại bỏ giá trị khuyết (\texttt{drop}), chuẩn hoá \texttt{standard}, và xử lý ngoại lệ bằng \texttt{zscore} để tiến hành trực quan các kết quả\footnote{Ở đây không thực hiện tối ưu siêu tham số vì cho ra kết quả tệ hơn khi chưa sử dụng tối ưu, nguyên nhân có thể do overfitting so sánh hai hình\ref{fig:compare_models} và \ref{fig:compare_models_optimized}}.
+Do đó, ở các bước tiếp theo, nhóm lựa chọn cấu hình tiền xử lý gồm: loại bỏ giá trị khuyết (\texttt{drop}), chuẩn hoá \texttt{standard}, và xử lý ngoại lệ bằng \texttt{zscore} để tiến hành trực quan các kết quả\footnote{Ở đây không thực hiện tối ưu siêu tham số vì cho ra kết quả tệ hơn khi chưa sử dụng tối ưu, nguyên nhân có thể do overfitting quan sát hai hình\ref{fig:compare_models} và \ref{fig:compare_models_optimized}}.
 
 
 \subsection{So sánh các mô hình học máy}
@@ -627,8 +630,66 @@ Kết quả trực quan hoá các đặc trưng quan trọng được thể hi�
 
 Từ Hình~\ref{fig:all_importance}, có tới 4 mô hình đồng thuận rằng các đặc trưng \textbf{cholesterol\_mg} là yếu tố quan trọng nhất ảnh hưởng đến hàm lượng \textbf{saturated\_fat\_g}. 
 
-Mặc dù \textbf{sugars\_g} không có độ tương quan cao với mục tiêu, trái lại được mô hình XGBoost đánh giá là quan trọng gấp 3 lần so với \textbf{fiber\_g} là đặc trưng có tương quan mạnh khi chúng ta phân tích ở Hình~\ref{fig:heatmap_pearson}, Hình~\ref{fig:heatmap_spearman} và Hình~\ref{fig:heatmap_kendall}. Có thể mô hình XGBoost đã phát hiện ra mối quan hệ phi tuyến phức tạp giữa \textbf{sugars\_g} và \textbf{saturated\_fat\_g} mà các mô hình tuyến tính không thể nắm bắt được, do đó nó có kết quả tốt nhất, điều này càng củng cố hơn khi ta phân tích đặc trưng ở Hình~\ref{fig:all_importance_optimized}, \textbf{sugars\_g} được đánh giá khá thấp.
+Mặc dù \textbf{sugars\_g} không có độ tương quan cao với mục tiêu, trái lại được mô hình XGBoost đánh giá là quan trọng gấp 3 lần so với \textbf{fiber\_g} là đặc trưng có tương quan mạnh khi chúng ta phân tích ở Hình~\ref{fig:heatmap_pearson}, Hình~\ref{fig:heatmap_spearman} và Hình~\ref{fig:heatmap_kendall}. Có thể mô hình XGBoost đã phát hiện ra mối quan hệ giữa \textbf{sugars\_g} và \textbf{saturated\_fat\_g} do đó nó có kết quả tốt nhất, điều này càng củng cố hơn khi ta phân tích đặc trưng ở Hình~\ref{fig:all_importance_optimized}, \textbf{sugars\_g} được đánh giá khá thấp hơn dẫn tới kết quả tệ.
 
 \section{Bảng công việc}
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.4} 
+    % Định nghĩa list mới tên là "dashlist" để code gọn hơn
+    % label=- : Dùng dấu gạch ngang
+    % nosep   : Bỏ khoảng cách thừa
+    % leftmargin=* : Căn lề tự động đẹp
+    % after=\strut : Đảm bảo dòng cuối không bị mất chân chữ
+    \newlist{dashlist}{itemize}{1}
+    \setlist[dashlist]{label=-, nosep, leftmargin=*, after=\strut}
+
+    \begin{tabularx}{\textwidth}{|
+        >{\centering\arraybackslash}m{4cm}|   
+        >{\centering\arraybackslash}m{2.5cm}| 
+        >{\raggedright\arraybackslash}X|      
+    }
+    \hline
+    \textbf{Tên} & \textbf{MSSV} & \multicolumn{1}{c|}{\textbf{Công việc}} \\ \hline
+    
+    % Hàng 1
+    Nguyễn Hoàng Anh Duy & 23280051 & 
+    \begin{dashlist}
+        \item Xây dựng phần tiền xử lí: DataPreprocessor
+        \item Xây dựng phần EDA: Visualization/EDA
+        \item Viết pipeline EDA
+        \item Làm slide thuyết trình
+        \item Bổ sung tham số (argparse)
+        \item Chỉnh sửa docstrings và annotations
+        \item Hỗ trợ chạy thực nghiệm
+    \end{dashlist}
+    \\ \hline
+
+    % Hàng 2
+    Nguyễn Hải Lâm & 23280068 & 
+    \begin{dashlist}
+        \item Xây dựng phần mô hình: ModelTrainer
+        \item Xây dựng phần trực quan kết quả: ModelVisualizer
+        \item Viết pipeline huấn luyện, tối ưu tham số
+        \item Giúp pipeline hỗ trợ truyền config và tham số linh hoạt (argparse)
+        \item Chỉnh sửa các phương thức, đảm bảo nguyên tắc vàng
+        \item Chỉnh sửa slide thuyết trình
+    \end{dashlist}
+    \\ \hline
+
+    % Hàng 3
+    Phạm Khang Bình & 23280043 & 
+    \begin{dashlist}
+        \item Tổng hợp, tổ chức lại các thuộc tính, phương thức và lớp
+        \item Tổ chức mã nguồn phù hợp
+        \item Chỉnh sửa docstrings và annotations
+        \item Viết pipeline cho toàn bộ chương trình, phần thực nghiệm
+        \item Viết báo cáo
+    \end{dashlist}
+    \\ \hline
+
+    \end{tabularx}
+\end{table}
+
 
 \end{document}
