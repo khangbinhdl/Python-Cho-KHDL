@@ -58,20 +58,32 @@ def load_config(
             config.set('DATA', 'test_size', str(args.test_size))
         if hasattr(args, 'random_state') and args.random_state:
             config.set('DATA', 'random_state', str(args.random_state))
-        if hasattr(args, 'optimize') and args.optimize:
-            config.set('OPTIMIZATION', 'enable_optimization', 'true')
-        if hasattr(args, 'eda') and args.eda:
-            config.set('VISUALIZATION', 'enable_eda', 'true')
+        if hasattr(args, 'optimize') and args.optimize is not None:
+            config.set('OPTIMIZATION', 'enable_optimization', str(args.optimize).lower())
+        if hasattr(args, 'eda') and args.eda is not None:
+            config.set('VISUALIZATION', 'enable_eda', str(args.eda).lower())
+        if hasattr(args, 'plot') and args.plot is not None:
+            config.set('VISUALIZATION', 'enable_plots', str(args.plot).lower())
         if hasattr(args, 'models') and args.models:
             config.set('MODEL', 'selected_models', args.models)
         
         # Preprocessing arguments
+        if hasattr(args, 'num_strategy') and args.num_strategy:
+            config.set('PREPROCESSING', 'num_strategy', args.num_strategy)
+        if hasattr(args, 'cat_strategy') and args.cat_strategy:
+            config.set('PREPROCESSING', 'cat_strategy', args.cat_strategy)
+        if hasattr(args, 'dt_strategy') and args.dt_strategy:
+            config.set('PREPROCESSING', 'dt_strategy', args.dt_strategy)
+        if hasattr(args, 'scaler') and args.scaler:
+            config.set('PREPROCESSING', 'scaler', args.scaler)
+        if hasattr(args, 'outlier') and args.outlier:
+            config.set('PREPROCESSING', 'outlier', args.outlier)
+        if hasattr(args, 'encoder') and args.encoder:
+            config.set('PREPROCESSING', 'encoder', args.encoder)
         if hasattr(args, 'drop_features') and args.drop_features:
             config.set('PREPROCESSING', 'drop_features', args.drop_features)
         if hasattr(args, 'clean_negative') and args.clean_negative is not None:
             config.set('PREPROCESSING', 'clean_negative_values', str(args.clean_negative).lower())
-        if hasattr(args, 'categorical_encoding') and args.categorical_encoding:
-            config.set('PREPROCESSING', 'categorical_encoding', args.categorical_encoding)
     
     return config
 

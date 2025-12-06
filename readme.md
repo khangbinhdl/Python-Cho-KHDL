@@ -30,7 +30,7 @@ Cuối kì/
 git clone https://github.com/khangbinhdl/Python-Cho-KHDL.git
 cd "Python-Cho-KHDL/Cuối kì"
 ```
-### 3.2. Cài đặt môi trường ảo (optional)
+### 3.2. Cài đặt môi trường ảo (khuyến khích)
 ```bash
 # Linux/Mac
 python3 -m venv venv
@@ -48,7 +48,29 @@ pip install -r requirements.txt
 ---
 
 ## 4. Cách sử dụng (argparse + config)
+### 4.1. Các tham số hỗ trợ
 
+| Tham số | Mô tả | Kiểu | Giá trị hợp lệ |
+|---------|-------|------|------------------|
+| `--config` | Đường dẫn file cấu hình | str | - |
+| `--data` | Đường dẫn file dữ liệu | str | - |
+| `--target` | Tên cột target | str | - |
+| `--test-size` | Tỷ lệ test set | float | 0.0-1.0 |
+| `--random-state` | Random seed | int | - |
+| `--models` | Models cần train | str | `all` hoặc danh sách (ElasticNet,RandomForest,LightGBM,XGBoost,DecisionTree) |
+| `--optimize` | Bật/tắt optimization | str | `true`, `false`, `1`, `0` |
+| `--eda` | Bật/tắt EDA plots | str | `true`, `false`, `1`, `0` |
+| `--plot` | Bật/tắt model visualization | str | `true`, `false`, `1`, `0` |
+| `--num-strategy` | Xử lý giá trị thiếu (biến số) | str | `drop`, `mean`, `median`, `mode`, `ffill`, `bfill` |
+| `--cat-strategy` | Xử lý giá trị thiếu (biến phân loại) | str | `drop`, `mode`, `constant`, `ffill`, `bfill` |
+| `--dt-strategy` | Xử lý giá trị thiếu (datetime) | str | `drop`, `ffill`, `bfill` |
+| `--scaler` | Phương pháp scaling | str | `standard`, `robust` |
+| `--outlier` | Phương pháp phát hiện outliers | str | `iqr`, `zscore`, `isolation_forest` |
+| `--encoder` | Phương pháp encoding categorical | str | `onehot`, `label` |
+| `--drop-features` | Các features cần loại bỏ | str | Danh sách phân cách bởi dấu phẩy |
+| `--clean-negative` | Xử lý giá trị âm | str | `true`, `false`, `1`, `0` |
+
+### 4.2. Một vài ví dụ
 Chạy mặc định:
 ```bash
 python scripts/train.py
@@ -61,12 +83,22 @@ python scripts/train.py --data "data/raw/FastFoodNutritionMenuV3.csv" --target "
 
 Bật tối ưu hyperparameters:
 ```bash
-python scripts/train.py --optimize
+python scripts/train.py --optimize true
 ```
 
-Chỉ train model cụ thể (ví dụ bật EDA từ CLI):
+Chỉ train model cụ thể (bật EDA và plot từ CLI):
 ```bash
-python scripts/train.py --models "RandomForest,LightGBM" --eda
+python scripts/train.py --models "RandomForest,LightGBM" --eda true --plot true
+```
+
+Tắt EDA và visualization:
+```bash
+python scripts/train.py --eda false --plot false
+```
+
+Chỉnh các phương pháp xử lý dữ liệu:
+```bash
+python scripts/train.py --num-strategy median --cat-strategy mode --scaler standard --outlier iqr --encoder onehot --clean-negative true
 ```
 
 Run experiment sweep:
@@ -74,25 +106,9 @@ Run experiment sweep:
 python scripts/experiment.py
 ```
 
-Các tham số hỗ trợ:
-| Tham số | Mô tả | Kiểu | Mặc định |
-|---------|-------|------|----------|
-| `--config` | Đường dẫn file config | str | `configs/default_config.ini` |
-| `--data` | Đường dẫn file dữ liệu | str | Từ config |
-| `--target` | Tên cột target | str | `saturated_fat_g` |
-| `--test-size` | Tỷ lệ test set (0.0-1.0) | float | 0.2 |
-| `--random-state` | Random seed | int | 42 |
-| `--models` | Models cần train | str | `all` |
-| `--optimize` | Bật optimization | flag | False |
-| `--eda` | Bật EDA plots | flag | True |
-| `--drop-features` | Các features cần loại bỏ | str | Từ config |
-| `--clean-negative` | Xử lý giá trị âm | bool | True |
-| `--categorical-encoding` | Phương pháp encoding | str | `onehot` |
 ---
 
-Ghi chú: EDA và model plots được bật theo mặc định (điều khiển bởi `configs/default_config.ini` - `VISUALIZATION.enable_eda` và `VISUALIZATION.enable_plots`). Để tắt một trong hai, chỉnh file config hoặc sửa giá trị tương ứng.
-
-## 6. Dataset
+## 5. Dataset
 - Nguồn: [Kaggle - Nutritional Fast Food Dataset](https://www.kaggle.com/datasets/tan5577/nutritonal-fast-food-dataset)
 - File: `data/raw/FastFoodNutritionMenuV3.csv`
 - Số hàng: 1147
@@ -119,7 +135,7 @@ Ghi chú: EDA và model plots được bật theo mặc định (điều khiển
 
 ---
 
-## 7. Models / Phương pháp
+## 6. Models / Phương pháp
 Các models được sử dụng:
 - ElasticNet.
 - RandomForest.
@@ -135,15 +151,23 @@ Các độ đo được sử dụng để đánh giá mô hình:
 
 ---
 
-## 8. Kết quả
-Kết quả so sánh hiệu năng các mô hình (với target là `saturated_fat_g`):
-![So sánh mô hình](outputs/plots/model_comparison.png)
-
-Biểu đồ tầm quan trọng các đặc trưng của XGBoost:
-![Feature Importance](outputs/plots/feature_importance.png)
+## 7. Kết quả
 
 Kết quả chi tiết được lưu trong thư mục `outputs/` bao gồm: 
 - Models đã huấn luyện.
 - Logs huấn luyện / thực nghiệm.
 - Plots EDA và đánh giá mô hình.
 - Bảng kết quả đánh giá mô hình / thực nghiệm.
+
+### 7.1. Trước khi tối ưu siêu tham số
+Kết quả so sánh hiệu năng các mô hình (với target là `saturated_fat_g`):
+![So sánh mô hình](outputs/plots/model_comparison.png)
+
+Biểu đồ tầm quan trọng đặc trưng của các thuật toán:
+![Feature Importance](outputs/plots/feature_importance_all_models.png)
+
+### 7.2. Sau khi tối ưu siêu tham số
+Kết quả so sánh hiệu năng các mô hình sau khi tối ưu siêu tham số (với target là `saturated_fat_g`):
+![So sánh mô hình sau tối ưu](outputs/plots/model_comparison_optimized.png) 
+Biểu đồ tầm quan trọng đặc trưng của các thuật toán sau tối ưu siêu tham số:
+![Feature Importance sau tối ưu](outputs/plots/feature_importance_all_models_optimized.png)

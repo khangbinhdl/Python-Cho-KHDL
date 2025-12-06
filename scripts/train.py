@@ -30,25 +30,34 @@ def parse_arguments() -> argparse.Namespace:
 						help='Đường dẫn tới file dữ liệu (ghi đè config)')
 	parser.add_argument('--target', type=str,
 						help='Tên cột target (ghi đè config)')
-	parser.add_argument('--optimize', action='store_true',
-						help='Bật tối ưu hóa hyperparameter')
-	parser.add_argument('--eda', action='store_true',
-						help='Bật EDA (ghi đè config VISUALIZATION.enable_eda)')
+	parser.add_argument('--optimize', type=lambda x: x.lower() in ('true', '1', 'yes'),
+						help='Bật/tắt tối ưu hóa hyperparameter (true/false) (ghi đè config)')
+	parser.add_argument('--eda', type=lambda x: x.lower() in ('true', '1', 'yes'),
+						help='Bật/tắt EDA (true/false) (ghi đè config VISUALIZATION.enable_eda)')
+	parser.add_argument('--plot', type=lambda x: x.lower() in ('true', '1', 'yes'),
+						help='Bật/tắt visualize (true/false) (ghi đè config VISUALIZATION.enable_plots)')
 	parser.add_argument('--test-size', type=float,
 						help='Tỷ lệ tập test (ghi đè config)')
 	parser.add_argument('--random-state', type=int,
 						help='Random state để tái tạo kết quả (ghi đè config)')
 	parser.add_argument('--models', type=str,
 						help='Các model để train (all/ElasticNet,RandomForest,LightGBM,XGBoost,DecisionTree) (ghi đè config)')
+	parser.add_argument('--num-strategy', type=str, choices=['drop', 'mean', 'median', 'mode', 'ffill', 'bfill'],
+						help='Chiến lược xử lý giá trị thiếu cho biến số (ghi đè config)')
+	parser.add_argument('--cat-strategy', type=str, choices=['drop', 'mode', 'constant', 'ffill', 'bfill'],
+						help='Chiến lược xử lý giá trị thiếu cho biến phân loại (ghi đè config)')
+	parser.add_argument('--dt-strategy', type=str, choices=['drop', 'ffill', 'bfill'],
+						help='Chiến lược xử lý giá trị thiếu cho biến datetime (ghi đè config)')
+	parser.add_argument('--scaler', type=str, choices=['standard', 'robust'],
+						help='Phương pháp scaling (ghi đè config)')
+	parser.add_argument('--outlier', type=str, choices=['iqr', 'zscore', 'isolation_forest'],
+						help='Phương pháp phát hiện outliers (ghi đè config)')
+	parser.add_argument('--encoder', type=str, choices=['onehot', 'label'],
+						help='Chiến lược encoding cho biến phân loại (ghi đè config)')
 	parser.add_argument('--drop-features', type=str,
 						help='Các features cần drop, phân cách bởi dấu phẩy (ghi đè config)')
-	parser.add_argument('--clean-negative', action='store_true',
-						help='Bật xử lý giá trị âm (ghi đè config)')
-	parser.add_argument('--no-clean-negative', dest='clean_negative', action='store_false',
-						help='Tắt xử lý giá trị âm (ghi đè config)')
-	parser.add_argument('--categorical-encoding', type=str, choices=['onehot', 'label'],
-						help='Chiến lược encoding cho biến phân loại (ghi đè config)')
-	parser.set_defaults(clean_negative=None)
+	parser.add_argument('--clean-negative', type=lambda x: x.lower() in ('true', '1', 'yes'),
+						help='Bật/tắt xử lý giá trị âm (true/false) (ghi đè config)')
 	
 	return parser.parse_args()
 
@@ -68,6 +77,12 @@ if __name__ == "__main__":
 	logger.info(f"Optimization enabled: {config.getboolean('OPTIMIZATION', 'enable_optimization')}")
 	logger.info(f"EDA enabled: {config.getboolean('VISUALIZATION', 'enable_eda')}")
 	logger.info(f"Visualization enabled: {config.getboolean('VISUALIZATION', 'enable_plots')}")
+	logger.info(f"Num strategy: {config.get('PREPROCESSING', 'num_strategy')}")
+	logger.info(f"Cat strategy: {config.get('PREPROCESSING', 'cat_strategy')}")
+	logger.info(f"DT strategy: {config.get('PREPROCESSING', 'dt_strategy')}")
+	logger.info(f"Scaler: {config.get('PREPROCESSING', 'scaler')}")
+	logger.info(f"Outlier method: {config.get('PREPROCESSING', 'outlier')}")
+	logger.info(f"Encoder: {config.get('PREPROCESSING', 'encoder')}")
 	
 	file_path = config.get('PATHS', 'data_file')
 	target_col = config.get('DATA', 'target_column')
@@ -80,8 +95,8 @@ if __name__ == "__main__":
 		num_strategy=config.get('PREPROCESSING', 'num_strategy'),
 		cat_strategy=config.get('PREPROCESSING', 'cat_strategy'), 
 		dt_strategy=config.get('PREPROCESSING', 'dt_strategy'),
-		scaling_strategy=config.get('PREPROCESSING', 'scaling_strategy'),
-		outlier_method=config.get('PREPROCESSING', 'outlier_method'),
+		scaling_strategy=config.get('PREPROCESSING', 'scaler'),
+		outlier_method=config.get('PREPROCESSING', 'outlier'),
 	)
 	preprocessor.load_data(file_path, auto_convert_numeric=True)
 	
@@ -135,7 +150,7 @@ if __name__ == "__main__":
 	logger.info("Processing Split Data (Preventing Leakage)...")
 	
 	# Lấy categorical encoding strategy từ config
-	categorical_encoding = config.get('PREPROCESSING', 'categorical_encoding')
+	encoder = config.get('PREPROCESSING', 'encoder')
 	
 	# DEBUG: Kiểm tra missing values trước khi xử lý
 	logger.info(f"Train NaN count before processing: {train_df.isna().sum().sum()}")
@@ -143,9 +158,9 @@ if __name__ == "__main__":
 
 	# --- Xử lý tập TRAIN (FIT & TRANSFORM) ---
 	# 1. Categorical encoding: Fit trên train
-	logger.info(f"Encoding categorical features with strategy: {categorical_encoding}")
+	logger.info(f"Encoding categorical features with strategy: {encoder}")
 	train_processed = preprocessor.encode_categorical(
-		data=train_df, strategy=categorical_encoding, fit=True
+		data=train_df, strategy=encoder, fit=True
 	)
 	
 	# 2. Outliers: Xóa outliers TRƯỚC khi impute để không làm sai lệch phân phối
@@ -173,7 +188,7 @@ if __name__ == "__main__":
 	# --- Xử lý tập TEST (CHỈ TRANSFORM) ---
 	# 1. Categorical encoding: Transform test với encoder đã fit
 	test_processed = preprocessor.encode_categorical(
-		data=test_df, strategy=categorical_encoding, fit=False
+		data=test_df, strategy=encoder, fit=False
 	)
 	
 	# 2. Missing: Dùng median đã học từ train -> điền vào test
