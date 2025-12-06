@@ -11,7 +11,7 @@
 ## 2. Cấu trúc thư mục
 
 ```
-Cuối kì/
+Python-Cho-KHDL/
 ├── src/                  # Source code
 ├── scripts/              # train.py, experiment.py
 ├── configs/              # default_config.ini
@@ -28,7 +28,7 @@ Cuối kì/
 ### 3.1. Clone repository:
 ```bash
 git clone https://github.com/khangbinhdl/Python-Cho-KHDL.git
-cd "Python-Cho-KHDL/Cuối kì"
+cd "Python-Cho-KHDL/"
 ```
 ### 3.2. Cài đặt môi trường ảo (khuyến khích)
 ```bash
