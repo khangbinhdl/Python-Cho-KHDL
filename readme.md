@@ -1,96 +1,36 @@
 # Fast Food Nutrition Prediction
+---
+## 1. Giới thiệu
 
-Dự đoán lượng Calories của các món ăn nhanh dựa trên thông tin dinh dưỡng.
+**Mục tiêu**: dự đoán khối lượng chất béo bão hòa (saturated fat) của các món ăn nhanh tại những chuỗi cửa hàng lớn, dựa trên các đặc trưng dinh dưỡng cơ bản, dễ dàng tính toán được của từng sản phẩm.
 
-## Link dataset
-[Kaggle - Nutritional Fast Food Dataset](https://www.kaggle.com/datasets/tan5577/nutritonal-fast-food-dataset)
+**Điểm đặc biệt**: có thể tái sử dụng cho các bộ dataset khác nhau liên quan tới regression *(cần chỉnh sửa cho phù hợp)*.
 
-## Cấu trúc Project
+---
+
+## 2. Cấu trúc thư mục
 
 ```
-Python-Cho-KHDL/
-│
-├── src/                        # Source code chính
-│   ├── data/                   # Data preprocessing
-│   │   ├── io.py              # Load/save data
-│   │   ├── transformer.py     # Data transformations
-│   │   └── preprocessor.py    # Orchestrator
-│   ├── models/                # Model training & evaluation
-│   │   ├── trainer.py         # Main trainer
-│   │   ├── evaluator.py       # Metrics calculation
-│   │   ├── io.py              # Model I/O
-│   │   └── optimizer.py       # Hyperparameter tuning
-│   ├── visualization/         # Plotting
-│   │   ├── eda.py             # Exploratory Data Analysis
-│   │   └── model_plots.py     # Model visualization
-│   └── utils/                 # Utilities
-│       ├── logging.py         # Centralized logging
-│       └── config.py          # Config loading
-│
-├── scripts/                   # Entry point scripts
-│   ├── train.py              # Main training pipeline
-│   └── experiment.py         # Grid search experiments
-│
-├── configs/                   # Configuration files
-│   ├── default_config.ini    # Cấu hình mặc định
-│   └── config.ini            # Cấu hình tùy chỉnh (optional)
-│
-├── data/                      # Data directory
-│   ├── raw/                   # Original data
-│   ├── processed/             # Cleaned data
-│   └── interim/               # Intermediate files
-│
-├── outputs/                   # Generated outputs
-│   ├── logs/                  # Log files
-│   ├── models/                # Saved models (.joblib)
-│   │   ├── LinearRegression.joblib
-│   │   ├── Ridge.joblib
-│   │   ├── Lasso.joblib
-│   │   ├── ElasticNet.joblib
-│   │   ├── RandomForest.joblib
-│   │   └── LightGBM.joblib
-│   ├── plots/                 # Visualizations
-│   │   ├── eda/              # EDA plots
-│   │   │   ├── before/       # Trước preprocessing
-│   │   │   │   ├── boxplot_all.png
-│   │   │   │   ├── correlation_heatmap.png
-│   │   │   │   ├── distribution_all.png
-│   │   │   │   └── missing_values.png
-│   │   │   └── after/        # Sau preprocessing
-│   │   │       ├── boxplot_all.png
-│   │   │       ├── correlation_heatmap.png
-│   │   │       └── distribution_all.png
-│   │   ├── model_comparison.png
-│   │   ├── model_comparison_all.png
-│   │   ├── feature_importance.png
-│   │   └── feature_importance_all_models.png
-│   └── results/               # Evaluation results
-│       ├── evaluation_results.csv
-│       ├── evaluation_results.json
-│       └── experiment_results.xlsx
-│
-├── docs/                      # Documentation
-│   └── report/                # LaTeX report
-│
-├── requirements.txt           # Python dependencies
-├── .gitignore                # Git ignore rules
-└── README.md                 # This file
+Cuối kì/
+├── src/                  # Source code
+├── scripts/              # train.py, experiment.py
+├── configs/              # default_config.ini
+├── data/                 # raw/interim/processed
+├── outputs/              # logs, models, plots, results
+├── docs/                 # report
+├── requirements.txt
+└── readme.md
 ```
 
-## Setup và Installation
+---
 
-### Yêu cầu hệ thống
-- Python 3.10+
-- pip
-- Git
-
-### Bước 1: Clone repository
+## 3. Cài đặt
+### 3.1. Clone repository:
 ```bash
-git clone https://github.com/khangbinhdl/Python-Cho-KHDL.git   
+git clone https://github.com/khangbinhdl/Python-Cho-KHDL.git
 cd "Python-Cho-KHDL/Cuối kì"
 ```
-
-### Bước 2: Setup virtual environment
+### 3.2. Cài đặt môi trường ảo (optional)
 ```bash
 # Linux/Mac
 python3 -m venv venv
@@ -100,126 +40,65 @@ source venv/bin/activate
 python -m venv venv
 venv\Scripts\activate
 ```
-
-### Bước 3: Install dependencies
+### 3.3. Cài đặt dependencies
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
+---
 
-## Hướng dẫn sử dụng
+## 4. Cách sử dụng (argparse + config)
 
-### 1. Chạy với cấu hình mặc định
+Chạy mặc định:
 ```bash
 python scripts/train.py
 ```
 
-### 2. Chạy với file config tùy chỉnh
+Ghi đè data và target:
 ```bash
-python scripts/train.py --config configs/my_config.ini
+python scripts/train.py --data "data/raw/FastFoodNutritionMenuV3.csv" --target "saturated_fat_g"
 ```
 
-### 3. Chạy với hyperparameter optimization
+Bật tối ưu hyperparameters:
 ```bash
 python scripts/train.py --optimize
 ```
 
-### 4. Chạy không có EDA visualization
+Chỉ train model cụ thể (ví dụ bật EDA từ CLI):
 ```bash
-python scripts/train.py --no-eda
+python scripts/train.py --models "RandomForest,LightGBM" --eda
 ```
 
-### 5. Chạy với model cụ thể
-```bash
-# Chạy chỉ RandomForest và LightGBM
-python scripts/train.py --models "RandomForest,LightGBM"
-
-# Chạy chỉ Ridge regression
-python scripts/train.py --models "Ridge"
-```
-
-### 6. Chạy grid search experiment
+Run experiment sweep:
 ```bash
 python scripts/experiment.py
 ```
 
-### 7. Kết hợp nhiều tham số
-```bash
-python scripts/train.py \
-    --optimize \
-    --no-eda \
-    --test-size 0.25 \
-    --random-state 999 \
-    --models "RandomForest,LightGBM"
-```
-
-## Các tham số dòng lệnh
-
+Các tham số hỗ trợ:
 | Tham số | Mô tả | Kiểu | Mặc định |
 |---------|-------|------|----------|
 | `--config` | Đường dẫn file config | str | `configs/default_config.ini` |
 | `--data` | Đường dẫn file dữ liệu | str | Từ config |
-| `--target` | Tên cột target | str | `calories` |
+| `--target` | Tên cột target | str | `saturated_fat_g` |
 | `--test-size` | Tỷ lệ test set (0.0-1.0) | float | 0.2 |
 | `--random-state` | Random seed | int | 42 |
 | `--models` | Models cần train | str | `all` |
 | `--optimize` | Bật optimization | flag | False |
-| `--no-eda` | Tắt EDA plots | flag | False |
-| `--no-viz` | Tắt tất cả visualization | flag | False |
+| `--eda` | Bật EDA plots | flag | True |
 | `--drop-features` | Các features cần loại bỏ | str | Từ config |
 | `--clean-negative` | Xử lý giá trị âm | bool | True |
 | `--categorical-encoding` | Phương pháp encoding | str | `onehot` |
+---
 
-## Outputs
+Ghi chú: EDA và model plots được bật theo mặc định (điều khiển bởi `configs/default_config.ini` - `VISUALIZATION.enable_eda` và `VISUALIZATION.enable_plots`). Để tắt một trong hai, chỉnh file config hoặc sửa giá trị tương ứng.
 
-### Logs
-```
-outputs/logs/pipeline_YYYYMMDD_HHMMSS.log
-```
-Chứa toàn bộ log của pipeline execution.
+## 6. Dataset
+- Nguồn: [Kaggle - Nutritional Fast Food Dataset](https://www.kaggle.com/datasets/tan5577/nutritonal-fast-food-dataset)
+- File: `data/raw/FastFoodNutritionMenuV3.csv`
+- Số hàng: 1147
+- Số cột: 14
 
-### Models
-```
-outputs/models/
-├── LinearRegression.joblib
-├── Ridge.joblib
-├── Lasso.joblib
-├── ElasticNet.joblib
-├── RandomForest.joblib
-└── LightGBM.joblib
-```
-
-### Plots
-```
-outputs/plots/
-├── eda/
-│   ├── before/
-│   │   ├── boxplot_all.png
-│   │   ├── correlation_heatmap.png
-│   │   ├── distribution_all.png
-│   │   └── missing_values.png
-│   └── after/
-│       ├── boxplot_all.png
-│       ├── correlation_heatmap.png
-│       └── distribution_all.png
-├── model_comparison.png
-├── model_comparison_all.png
-├── feature_importance.png
-└── feature_importance_all_models.png
-```
-
-### Results
-```
-outputs/results/
-├── evaluation_results.csv      # CSV format
-├── evaluation_results.json     # JSON format
-└── experiment_results.xlsx     # Excel format (grid search)
-```
-
-
-## Mô tả dữ liệu
-
-Dataset chứa **515 mẫu** với **14 features**:
+Ý nghĩa các cột được mô tả như sau:
 
 | Cột | Mô tả |
 |:----|:-----|
@@ -238,5 +117,33 @@ Dataset chứa **515 mẫu** với **14 features**:
 | **Protein (g)** | Lượng Protein (gram) trong một khẩu phần. |
 | **Weight Watchers Pnts** | Điểm số theo hệ thống tính điểm của chương trình ăn kiêng Weight Watchers (có thể đã lỗi thời hoặc chỉ áp dụng cho một số thị trường). |
 
-## Kết quả thực nghiệm
-[Experiment_results (Google Sheet)](https://docs.google.com/spreadsheets/d/1DugDKIYezPlDGXlfH01LJ1cdBhQisnCArAE03LLE0dM/edit?usp=sharing)
+---
+
+## 7. Models / Phương pháp
+Các models được sử dụng:
+- ElasticNet.
+- RandomForest.
+- LightGBM.
+- XGBoost.
+- DecisionTree.
+
+Các độ đo được sử dụng để đánh giá mô hình: 
+- MSE.
+- RMSE.
+- MAE.
+- R2.
+
+---
+
+## 8. Kết quả
+Kết quả so sánh hiệu năng các mô hình (với target là `saturated_fat_g`):
+![So sánh mô hình](outputs/plots/model_comparison.png)
+
+Biểu đồ tầm quan trọng các đặc trưng của XGBoost:
+![Feature Importance](outputs/plots/feature_importance.png)
+
+Kết quả chi tiết được lưu trong thư mục `outputs/` bao gồm: 
+- Models đã huấn luyện.
+- Logs huấn luyện / thực nghiệm.
+- Plots EDA và đánh giá mô hình.
+- Bảng kết quả đánh giá mô hình / thực nghiệm.

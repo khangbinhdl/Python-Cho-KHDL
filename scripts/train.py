@@ -32,10 +32,8 @@ def parse_arguments() -> argparse.Namespace:
 						help='Tên cột target (ghi đè config)')
 	parser.add_argument('--optimize', action='store_true',
 						help='Bật tối ưu hóa hyperparameter')
-	parser.add_argument('--no-eda', action='store_true',
-						help='Bỏ qua tạo EDA')
-	parser.add_argument('--no-viz', action='store_true',
-						help='Bỏ qua tạo biểu đồ visualization')
+	parser.add_argument('--eda', action='store_true',
+						help='Bật EDA (ghi đè config VISUALIZATION.enable_eda)')
 	parser.add_argument('--test-size', type=float,
 						help='Tỷ lệ tập test (ghi đè config)')
 	parser.add_argument('--random-state', type=int,

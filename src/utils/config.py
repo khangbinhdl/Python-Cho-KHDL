@@ -60,10 +60,8 @@ def load_config(
             config.set('DATA', 'random_state', str(args.random_state))
         if hasattr(args, 'optimize') and args.optimize:
             config.set('OPTIMIZATION', 'enable_optimization', 'true')
-        if hasattr(args, 'no_eda') and args.no_eda:
-            config.set('VISUALIZATION', 'enable_eda', 'false')
-        if hasattr(args, 'no_viz') and args.no_viz:
-            config.set('VISUALIZATION', 'enable_plots', 'false')
+        if hasattr(args, 'eda') and args.eda:
+            config.set('VISUALIZATION', 'enable_eda', 'true')
         if hasattr(args, 'models') and args.models:
             config.set('MODEL', 'selected_models', args.models)
         
