@@ -583,8 +583,87 @@ class EDA:
 		else:
 			plt.close()
 
+	def pairplot_analysis(
+		self,
+		target_column: str,
+		save_path: Optional[str] = None
+	) -> None:
+		"""
+		Vẽ biểu đồ scatter plot của các cột số với một cột target.
+
+		Parameters
+		----------
+		target_column : str
+			Tên cột sẽ được sử dụng làm trục Y (target).
+		save_path : str or None, optional
+			Đường dẫn thư mục để lưu biểu đồ. Nếu None, chỉ hiển thị.
+			Mặc định là None.
+		
+		Raises
+		------
+		ValueError
+			Nếu target_column không tồn tại trong dữ liệu.
+		"""
+		# Kiểm tra target column có tồn tại không
+		if target_column not in self.data.columns:
+			raise ValueError(f"Target column '{target_column}' not found in data")
+		
+		# Lấy các cột số
+		numeric_cols = self.data.select_dtypes(include=[np.number]).columns.tolist()
+		
+		# Lọc các cột không phải target
+		cols_to_plot = [col for col in numeric_cols if col != target_column]
+		
+		if len(cols_to_plot) == 0:
+			self._log(f"No numeric columns to plot (excluding target '{target_column}')")
+			return
+		
+		# Tính số hàng cần thiết cho grid 3 cột
+		n_cols_plot = len(cols_to_plot)
+		n_rows = (n_cols_plot + 2) // 3  # Làm tròn lên để có đủ chỗ
+		
+		# Tạo figure với kích thước cố định
+		figsize_height = n_rows * 4
+		fig, axes = plt.subplots(n_rows, 3, figsize=(15, figsize_height))
+		
+		# Nếu chỉ 1 hàng, axes sẽ là 1D array
+		if n_rows == 1:
+			axes = axes.reshape(1, -1)
+		
+		axes = axes.flatten()
+		
+		# Vẽ scatter plot cho từng cột
+		for idx, col in enumerate(cols_to_plot):
+			axes[idx].scatter(self.data[col], self.data[target_column], alpha=0.6, s=30)
+			axes[idx].set_xlabel(col, fontsize=10)
+			axes[idx].set_ylabel(target_column, fontsize=10)
+			axes[idx].set_title(f'{col} vs {target_column}', fontsize=11)
+			axes[idx].grid(True, alpha=0.3)
+		
+		# Ẩn các subplot thừa
+		for idx in range(n_cols_plot, len(axes)):
+			axes[idx].set_visible(False)
+		
+		# Tiêu đề chung
+		fig.suptitle(f'Pairplot: Numeric Features vs {target_column}', fontsize=14, fontweight='bold', y=0.995)
+		plt.tight_layout(rect=[0, 0, 1, 0.99])
+		
+		# Lưu biểu đồ nếu có đường dẫn
+		if save_path:
+			os.makedirs(save_path, exist_ok=True)
+			plt.savefig(f'{save_path}/pairplot.png', dpi=300, bbox_inches='tight', facecolor='white')
+			self._log(f"✓ Pairplot saved to: {save_path}/pairplot.png")
+		
+		if self.show_plots:
+			plt.show()
+		else:
+			plt.close()
+		
+		self._log(f"Pairplot created with {len(cols_to_plot)} features (grid: {n_rows}x3)")
+
 	def perform_eda(
 		self,
+		target_column: str = 'saturated_fat_g',
 		corr_method: str = 'pearson',
 		save_path: str = 'EDA'
 	) -> None:
@@ -596,6 +675,9 @@ class EDA:
 
 		Parameters
 		----------
+		target_column: str
+			Cột target của dữ liệu để vẽ trục Y.
+			Mặc định là 'saturated_fat_g'.
 		corr_method : str, optional
 			Phương pháp tính tương quan cho correlation_analysis.
 			Các giá trị hợp lệ: 'pearson', 'spearman', 'kendall', 'all'.
@@ -613,15 +695,17 @@ class EDA:
 		-----
 		Thứ tự thực hiện:
 		1. summary_statistics() - Thống kê mô tả
-		2. correlation_analysis() - Ma trận tương quan
-		3. data_distribution() - Histogram phân phối
-		4. boxplot_analysis() - Boxplot phát hiện ngoại lai
+		2. data_distribution() - Histogram phân phối
+		3. boxplot_analysis() - Boxplot phát hiện ngoại lai
+		4. pairplot_analysis() - Scatter plot với cột target
+		5. correlation_analysis() - Ma trận tương quan
 		"""
 		if self.data is None:
 			raise ValueError("Data not loaded. Call load_data() first.")
 		self._log("Starting full EDA pipeline...")
 		self.summary_statistics(save_path=save_path)                    # Thống kê mô tả
-		self.correlation_analysis(method=corr_method, save_path=save_path)  # Ma trận tương quan
 		self.data_distribution(save_path=save_path)                     # Histogram phân phối
+		self.pairplot_analysis(target_column=target_column, save_path=save_path)  # Scatter plot với target
+		self.correlation_analysis(method=corr_method, save_path=save_path)  # Ma trận tương quan
 		self.boxplot_analysis(save_path=save_path)                      # Boxplot phát hiện ngoại lai
 		self._log("EDA pipeline completed.")
