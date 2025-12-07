@@ -485,17 +485,20 @@ Class thực hiện \textit{Exploratory Data Analysis} (Phân tích Dữ liệu 
     \item[summary\_statistics(save\_path)] 
     Thực hiện phân tích toàn diện: thông tin dataset, thống kê mô tả các cột số, phân tích giá trị khuyết (với barplot), phân tích dòng trùng lặp, tần suất giá trị và độ lệch (skewness) của dữ liệu.
     
-    \item[correlation\_analysis(method, save\_path)] 
-    Tính toán ma trận tương quan và vẽ Heatmap. Hỗ trợ các phương pháp: \texttt{'pearson'}, \texttt{'spearman'}, \texttt{'kendall'} hoặc \texttt{'all'} để vẽ cả 3 loại, tương ứng với Hình~\ref{fig:heatmap_pearson}, \ref{fig:heatmap_spearman}, \ref{fig:heatmap_kendall}.
-    
     \item[data\_distribution(save\_path)] 
     Vẽ biểu đồ histogram kết hợp đường cong mật độ (KDE) cho tất cả các cột số trên cùng một figure với nhiều subplots, như Hình~\ref{fig:distribution}.
     
     \item[boxplot\_analysis(save\_path)] 
     Vẽ boxplot cho các đặc trưng số trên cùng một figure với nhiều subplots nhằm trực quan hóa ngoại lệ, như Hình~\ref{fig:boxplot}.
     
-    \item[perform\_eda(corr\_method, save\_path)] 
-    Phương thức tiện ích chạy toàn bộ quy trình EDA theo trình tự chuẩn: \texttt{summary\_statistics()}, \texttt{correlation\_analysis()}, \texttt{data\_distribution()}, \texttt{boxplot\_analysis()}.
+    \item[pairplot\_analysis(target\_column, save\_path)] 
+    Vẽ biểu đồ scatter plot so sánh các cột số với cột target, sắp xếp theo lưới 3 cột để dễ quan sát mối quan hệ giữa từng đặc trưng và biến mục tiêu, như Hình~\ref{fig:pairplot}.
+    
+    \item[correlation\_analysis(method, save\_path)] 
+    Tính toán ma trận tương quan và vẽ Heatmap. Hỗ trợ các phương pháp: \texttt{'pearson'}, \texttt{'spearman'}, \texttt{'kendall'} hoặc \texttt{'all'} để vẽ cả 3 loại, tương ứng với Hình~\ref{fig:heatmap_pearson}, \ref{fig:heatmap_spearman}, \ref{fig:heatmap_kendall}.
+    
+    \item[perform\_eda(target\_column, corr\_method, save\_path)] 
+    Phương thức tiện ích chạy toàn bộ quy trình EDA theo trình tự: \texttt{summary\_statistics()}, \texttt{data\_distribution()}, \texttt{pairplot\_analysis()}, \texttt{correlation\_analysis()}, \texttt{boxplot\_analysis()}.
 \end{methodlist}
 \end{classbox}
 
