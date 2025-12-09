@@ -268,7 +268,7 @@ Các cột được chọn để loại bỏ trước khi tiền xử lý bao g�
 \subsection{Phân tích dữ liệu}
 \indent \indent Bộ dữ liệu này có phân phối lệch phải với toàn bộ đặc trưng, chứa khá nhiều giá trị ngoại lai (outliers), ta sẽ phải xem xét để quyết định áp dụng các phương pháp xử lý phù hợp.
 
-Hình~\ref{fig:missing} minh họa số lượng giá trị khuyết trong từng đặc trưng, điều đáng chú ý là cột mục tiêu \textbf{saturated\_fat\_g} cũng có một lượng giá trị khuyết, ta sẽ phải bỏ các hàng bị thiếu này đi, ngoài ra khi xem xét kĩ hơn, các hàng này đều chứa giá trị thiếu ở hầu hết các đặc trưng của nó đây chính là lỗi nhập liệu.
+Hình~\ref{fig:missing} minh họa số lượng giá trị khuyết trong từng đặc trưng, điều đáng chú ý là cột mục tiêu \textbf{saturated\_fat\_g} cũng có một lượng giá trị khuyết, ta sẽ phải bỏ các hàng bị khuyết này đi, ngoài ra khi xem xét kĩ hơn, các hàng này đều chứa giá trị khuyết ở hầu hết các đặc trưng của nó đây chính là lỗi nhập liệu.
 
 Dựa trên heatmap tương quan ở Hình~\ref{fig:heatmap_pearson}, Hình~\ref{fig:heatmap_spearman} và Hình~\ref{fig:heatmap_kendall}, ta rút được một số nhận xét quan trọng sau:
 
@@ -351,11 +351,12 @@ Class chuyên trách việc Đọc/Ghi file và chuẩn hóa tên cột.
 \end{methodlist}
 \end{classbox}
 
-\subsubsection{src/data/transformer.py}
+\subsubsection{src/data/transformers/}
 
-\begin{classbox}{DataTransformer}
-Class chứa các thuật toán cốt lõi để xử lý dữ liệu như: xử lý giá trị thiếu, xử lý ngoại lai, chuẩn hóa, mã hóa, và chuyển đổi kiểu dữ liệu.
-\texttt{DataTransformer} hoạt động ở dạng các hàm thuần (pure functions/static methods) trên \texttt{DataFrame}.
+Package con chứa các class chuyên biệt để xử lý và biến đổi dữ liệu. Mỗi class đảm nhận một nhiệm vụ cụ thể, tuân theo nguyên tắc Single Responsibility.
+
+\begin{classbox}{TypeConverter}
+Class chuyên xử lý phát hiện và chuyển đổi kiểu dữ liệu.
 
 \vspace{0.2cm}
 \textbf{Methods:}
@@ -369,30 +370,70 @@ Class chứa các thuật toán cốt lõi để xử lý dữ liệu như: xử
     Nếu tỉ lệ giá trị chuyển đổi thành công vượt \texttt{threshold} (mặc định 80\%), cột đó sẽ được chuyển đổi thành kiểu số.
     
     \item[convert\_to\_datetime(data, columns, date\_format)] 
-    Chuyển đổi các cột được chỉ định sang kiểu \texttt{datetime} theo định dạng ngày tháng cung cấp, hỗ trợ chuẩn hóa dữ liệu thời gian.
-    
+    Chuyển đổi các cột được chỉ định sang kiểu \texttt{datetime} theo định dạng ngày tháng cung cấp.
+\end{methodlist}
+\end{classbox}
+
+\begin{classbox}{MissingValueHandler}
+Class chuyên xử lý giá trị thiếu (missing values) trong DataFrame.
+
+\vspace{0.2cm}
+\textbf{Methods:}
+\begin{methodlist}
+    \item[handle(data, strategies, learned\_values, exclude\_features, fit)] 
+    Xử lý giá trị khuyết theo chiến lược cấu hình cho từng loại cột (numeric, categorical, datetime). 
+    Hỗ trợ chế độ \texttt{fit=True} để học tham số từ train set và \texttt{fit=False} để áp dụng cho test set, tránh \textit{data leakage}.
+\end{methodlist}
+\end{classbox}
+
+\begin{classbox}{OutlierHandler}
+Class chuyên xử lý giá trị ngoại lai (outliers) trong DataFrame.
+
+\vspace{0.2cm}
+\textbf{Methods:}
+\begin{methodlist}
     \item[clean\_negative\_values(data)] 
     Thay thế tất cả giá trị âm trong các cột số bằng giá trị tuyệt đối của chúng. 
     Điều này bám sát quyết định xử lý ở Mục~\ref{sec:intro_dataset}, vì các chỉ số dinh dưỡng không nên mang giá trị âm.
     
-    \item[handle\_missing\_values(data, strategies, learned\_values, exclude\_features, fit)] 
-    Xử lý giá trị thiếu theo chiến lược cấu hình cho từng loại cột (numeric, categorical, datetime). 
-    Hỗ trợ chế độ \texttt{fit=True} để học tham số từ train set và \texttt{fit=False} để áp dụng cho test set, tránh \textit{data leakage}.
-    
-    \item[handle\_outliers(data, method, exclude\_features)] 
-    Phát hiện và loại bỏ các hàng chứa giá trị ngoại lai trong cột số sử dụng các phương pháp như \texttt{IQR}, \texttt{Z-score} hoặc \texttt{Isolation Forest}, phù hợp với phần mô tả ở Hình~\ref{fig:boxplot}.
-    
-    \item[encode\_categorical(data, strategy, encoders, fit)] 
+    \item[handle(data, method, exclude\_features)] 
+    Phát hiện và loại bỏ các hàng chứa giá trị ngoại lai trong cột số sử dụng các phương pháp như \texttt{IQR}, \texttt{Z-score} hoặc \texttt{Isolation Forest}.
+\end{methodlist}
+\end{classbox}
+
+\begin{classbox}{FeatureEncoder}
+Class chuyên mã hóa các cột categorical thành dạng số.
+
+\vspace{0.2cm}
+\textbf{Methods:}
+\begin{methodlist}
+    \item[encode(data, strategy, encoders, fit)] 
     Mã hóa các biến phân loại thành dạng số để mô hình có thể sử dụng. Hỗ trợ \texttt{Label Encoding} và \texttt{One-Hot Encoding} với cơ chế fit/transform riêng biệt cho train/test set.
-    
-    \item[scale\_features(data, strategy, scaler, exclude\_features, fit)] 
+\end{methodlist}
+\end{classbox}
+
+\begin{classbox}{FeatureScaler}
+Class chuyên chuẩn hóa (scaling) các cột số.
+
+\vspace{0.2cm}
+\textbf{Methods:}
+\begin{methodlist}
+    \item[scale(data, strategy, scaler, exclude\_features, fit)] 
     Chuẩn hóa dữ liệu số về cùng một khoảng (sử dụng \texttt{StandardScaler} hoặc \texttt{RobustScaler}), khớp với các chiến lược scaling đã trình bày trong Bảng~\ref{tab:top5_preprocess}.
-    
+\end{methodlist}
+\end{classbox}
+
+\begin{classbox}{DataCleaner}
+Class chuyên thực hiện các thao tác làm sạch dữ liệu cơ bản.
+
+\vspace{0.2cm}
+\textbf{Methods:}
+\begin{methodlist}
     \item[remove\_duplicates(data, subset)] 
-    Kiểm tra và loại bỏ các hàng trùng lặp hoàn toàn hoặc trùng trên một tập cột con (\texttt{subset}), giúp giảm nhiễu.
+    Kiểm tra và loại bỏ các hàng trùng lặp hoàn toàn hoặc trùng trên một tập cột con (\texttt{subset}).
     
     \item[drop\_null\_targets(data, target\_column)] 
-    Loại bỏ các hàng có giá trị target null, đảm bảo dữ liệu huấn luyện không chứa nhãn thiếu.
+    Loại bỏ các hàng có giá trị target null, đảm bảo dữ liệu huấn luyện không chứa nhãn bị khuyết.
     
     \item[drop\_features(data, features)] 
     Loại bỏ hoàn toàn các cột không cần thiết hoặc đã được xác định là gây ra \textit{data leakage}.
@@ -402,7 +443,7 @@ Class chứa các thuật toán cốt lõi để xử lý dữ liệu như: xử
 \subsubsection{src/data/preprocessor.py}
 
 \begin{classbox}{DataPreprocessor}
-Class đóng vai trò \textit{orchestrator} (bộ điều phối), kết hợp \texttt{DataIO} và \texttt{DataTransformer} để tạo thành một pipeline xử lý dữ liệu hoàn chỉnh. 
+Class đóng vai trò \textit{orchestrator} (bộ điều phối), kết hợp \texttt{DataIO} và các Transformer class (\texttt{TypeConverter}, \texttt{MissingValueHandler}, \texttt{OutlierHandler}, \texttt{FeatureEncoder}, \texttt{FeatureScaler}, \texttt{DataCleaner}) để tạo thành một pipeline xử lý dữ liệu hoàn chỉnh. 
 Class này lưu giữ trạng thái của dữ liệu trong quá trình biến đổi và hỗ trợ method chaining.
 
 \vspace{0.2cm}
@@ -427,7 +468,7 @@ Class này lưu giữ trạng thái của dữ liệu trong quá trình biến �
     Thực hiện làm sạch giá trị âm trên dữ liệu hiện có, đảm bảo tính hợp lý về mặt ngữ nghĩa dinh dưỡng.
     
     \item[handle\_missing\_values(data, exclude\_features, fit)] 
-    Xử lý giá trị thiếu theo chiến lược đã cấu hình. 
+    Xử lý giá trị khuyết theo chiến lược đã cấu hình. 
     Hỗ trợ chế độ \texttt{fit=True} (học tham số điền trên train set) và \texttt{fit=False} (áp dụng cùng tham số đó cho test set) để tránh \textit{data leakage}.
     
     \item[handle\_outliers(data, exclude\_features)] 
@@ -579,7 +620,7 @@ Class thực hiện \textit{Exploratory Data Analysis} (Phân tích Dữ liệu 
     Vẽ biểu đồ histogram kết hợp đường cong mật độ (KDE) cho tất cả các cột số trên cùng một figure với nhiều subplots, như Hình~\ref{fig:distribution}.
     
     \item[boxplot\_analysis(save\_path)] 
-    Vẽ boxplot cho các đặc trưng số trên cùng một figure với nhiều subplots nhằm trực quan hóa ngoại lệ, như Hình~\ref{fig:boxplot}.
+    Vẽ boxplot cho các đặc trưng số trên cùng một figure với nhiều subplots nhằm trực quan hóa giá trị ngoại lai, như Hình~\ref{fig:boxplot}.
     
     \item[pairplot\_analysis(target\_column, save\_path)] 
     Vẽ biểu đồ scatter plot so sánh các cột số với cột target, sắp xếp theo lưới 3 cột để dễ quan sát mối quan hệ giữa từng đặc trưng và biến mục tiêu, như Hình~\ref{fig:pairplot}.
@@ -620,7 +661,7 @@ Trong nghiên cứu này, bốn thư viện chính được sử dụng gồm \t
 
 \textbf{LightGBM} là thư viện chuyên dụng cho các mô hình cây tăng cường (Gradient Boosting), có tốc độ huấn luyện nhanh và hiệu quả cao với tập dữ liệu lớn. 
 
-\textbf{XGBoost} là thư viện học máy mạnh mẽ dựa trên cây quyết định, nổi tiếng với khả năng xử lý dữ liệu khuyết thiếu và tối ưu hóa hiệu suất tính toán.
+\textbf{XGBoost} là thư viện học máy mạnh mẽ dựa trên cây quyết định, nổi tiếng với khả năng xử lý dữ liệu khuyết và tối ưu hóa hiệu suất tính toán.
 
 \textbf{Optuna} là thư viện tối ưu siêu tham số tự động, hỗ trợ nhiều chiến lược tìm kiếm tiên tiến.
 
@@ -938,12 +979,67 @@ drop   & standard & isolation\_forest & 0.759182476 \\ \hline
 
 Dựa vào \texttt{Sheet 5}, ta nhận thấy mô hình Elastic Net luôn cho ra kết quả tệ nhất có thể ảnh hưởng tới các phương pháp được lựa chọn. Ngoài ra việc loại bỏ outlier bằng phương pháp IQR cho ra kết quả không tốt có thể do việc loại bỏ nhiều outlier hơn (so với zscore) dẫn tới mất một số thông tin quan trọng trong dữ liệu.
 
-Do đó, ta lựa chọn cấu hình tiền xử lý gồm: loại bỏ giá trị khuyết (\texttt{drop}), chuẩn hoá \texttt{standard}, và xử lý ngoại lệ bằng \texttt{zscore} để tiến hành tối ưu siêu tham số, trực quan các kết quả.
+Do đó, ta lựa chọn cấu hình tiền xử lý gồm: loại bỏ giá trị khuyết (\texttt{drop}), chuẩn hoá \texttt{standard}, và xử lý giá trị ngoại lai bằng \texttt{zscore} để tiến hành tối ưu siêu tham số, trực quan các kết quả.
+
+\subsection{Chi tiết quá trình tiền xử lý dữ liệu}
+
+Quy trình tiền xử lý được thực hiện theo các bước tuần tự sau:
+
+\subsubsection{Làm sạch dữ liệu cơ bản}
+
+Trước tiên, nhóm loại bỏ các dòng trùng lặp hoàn toàn và các dòng có giá trị target null:
+\begin{itemize}
+    \item \textbf{Dòng trùng lặp}: 138 dòng
+    \item \textbf{Dòng có target null}: 52 dòng
+    \item \textbf{Dòng còn lại}: $1127 - 138 - 52 = 937$ dòng
+\end{itemize}
+
+\subsubsection{Chia dữ liệu Train/Test}
+
+Dữ liệu được chia thành tập huấn luyện và kiểm tra với tỉ lệ 80/20:
+\begin{itemize}
+    \item \textbf{Tập train}: 765 dòng
+    \item \textbf{Tập test}: 192 dòng
+\end{itemize}
+
+\noindent Phân tích giá trị khuyết trong tập Train và Test:
+\begin{itemize}
+    \item \textbf{Tập train}: 26 dòng có giá trị khuyết
+    \item \textbf{Tập test}: 9 dòng có giá trị khuyết
+    
+\end{itemize}
+
+\subsubsection{Xử lý giá trị ngoại lai}
+
+Các giá trị ngoại lai được phát hiện và loại bỏ khỏi tập Train bằng phương pháp Z-score:
+\begin{itemize}
+    \item \textbf{Tập train}: 81 dòng giá trị ngoại lai được phát hiện và loại bỏ
+    \item \textbf{Tập test}: Không loại bỏ giá trị ngoại lai để duy trì tính chân thực của dữ liệu kiểm tra
+    
+\end{itemize}
+Sau khi loại bỏ giá trị ngoại lai, tập train không còn dòng nào có giá trị khuyết (các dòng này được xóa cùng lúc).
+\subsubsection{Xử lý giá trị khuyết}
+Như đã trình bày ở trên, sau khi loại bỏ giá trị ngoại lai, tập train không còn dòng nào có giá trị khuyết. Do đó, ta chỉ cần xử lý giá trị khuyết trong tập test. Các giá trị khuyết được điền bằng median của từng cột tương ứng trong tập train (sau khi loại bỏ giá trị ngoại lai).
+
+\subsubsection{Tóm tắt kết quả tiền xử lý}
+
+Sau khi hoàn tất toàn bộ quy trình tiền xử lý:
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Giai đoạn} & \textbf{Train} & \textbf{Test} \\ \hline
+Ban đầu & 765 & 192 \\ \hline
+Sau loại bỏ outliers & 684 & 192 \\ \hline
+Sau xử lý missing values & 684 & 192 \\ \hline
+\end{tabular}
+\caption{Số lượng dòng dữ liệu qua các giai đoạn tiền xử lý}
+\label{tab:preprocessing_summary}
+\end{table}
+
+\textbf{Dữ liệu cuối cùng}: 684 dòng train và 192 dòng test, sẵn sàng cho bước huấn luyện mô hình.
 
 \subsection{So sánh các mô hình học máy}
-
-Sau khi cố định quy trình tiền xử lý như trên, nhóm tiến hành tối ưu siêu tham số, huấn luyện và đánh giá \textbf{5 mô hình} khác nhau. Kết quả so sánh các mô hình dựa trên các metrics đánh giá được biểu diễn trong Hình~\ref{fig:compare_models}.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.75\linewidth]{../../outputs/plots/model_comparison.png}
@@ -963,9 +1059,6 @@ Quan sát Hình~\ref{fig:compare_models}, \textbf{XGBoost Regression} là mô h�
 Khi thực hiện tối ưu siêu tham số với hàm mục tiêu là tối đa hoá $R^2$, ta thu được kết quả như trong Hình~\ref{fig:compare_models_optimized}. Chỉ có \textbf{LightGBM Regression} và \textbf{ElasticNet} là cải thiện hiệu năng, trong khi các mô hình còn lại đều giảm. Đáng kể nhất là \textbf{XGBoost Regression} giảm từ 0.8664 xuống còn 0.7754. Nguyên nhân có thể do mô hình bị overfitting trong quá trình tối ưu siêu tham số (với 5-fold cross validation), dẫn tới hiệu năng trên tập Test giảm sút.
 
 \subsection{Phân tích đặc trưng quan trọng của các mô hình}
-
-Kết quả trực quan hoá các đặc trưng quan trọng được thể hiện trong Hình~\ref{fig:all_importance}.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{../../outputs/plots/feature_importance_all_models.png}
@@ -1005,7 +1098,7 @@ Mặc dù \textbf{sugars\_g} không có độ tương quan cao với mục tiêu
     \hline
     \textbf{Tên} & \textbf{MSSV} & \multicolumn{1}{c|}{\textbf{Công việc}} \\ \hline
 
-    % Hàng 3
+    % Hàng 1
     Phạm Khang Bình & 23280043 & 
     \begin{dashlist}
         \item Tổng hợp, tổ chức lại các thuộc tính, phương thức và lớp
@@ -1016,7 +1109,7 @@ Mặc dù \textbf{sugars\_g} không có độ tương quan cao với mục tiêu
     \end{dashlist}
     \\ \hline
     
-    % Hàng 1
+    % Hàng 2
     Nguyễn Hoàng Anh Duy & 23280051 & 
     \begin{dashlist}
         \item Xây dựng phần tiền xử lí: DataPreprocessor
@@ -1029,7 +1122,7 @@ Mặc dù \textbf{sugars\_g} không có độ tương quan cao với mục tiêu
     \end{dashlist}
     \\ \hline
 
-    % Hàng 2
+    % Hàng 3
     Nguyễn Hải Lâm & 23280068 & 
     \begin{dashlist}
         \item Xây dựng phần mô hình: ModelTrainer

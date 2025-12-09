@@ -38,12 +38,27 @@ Sử dụng các độ đo đánh giá mô hình hồi quy phổ biến: MAE, MS
 
 ```
 Python-Cho-KHDL/
-├── src/                  # Source code
-├── scripts/              # train.py, experiment.py
-├── configs/              # default_config.ini
-├── data/                 # raw/interim/processed
-├── outputs/              # logs, models, plots, results
-├── docs/                 # report
+├── src/                        # Source code
+│   ├── data/                   # Xử lý dữ liệu
+│   ├── models/                 # Mô hình học máy
+│   ├── utils/                  # Tiện ích
+│   └── visualization/          # Trực quan hóa
+├── scripts/                    # Scripts chạy chương trình
+│   ├── train.py                # Script huấn luyện chính
+│   └── experiment.py           # Script thực nghiệm
+├── configs/                    # Cấu hình
+│   └── default_config.ini      # File cấu hình mặc định
+├── data/                       # Dữ liệu (raw/interim/processed)
+├── outputs/                    # Kết quả đầu ra
+│   ├── logs/                   # Logs huấn luyện
+│   ├── models/                 # Models đã lưu (.joblib)
+│   ├── plots/                  # Biểu đồ
+│   │   └── eda/                # Biểu đồ EDA (before/after)
+│   └── results/                # Kết quả đánh giá (.csv, .json)
+├── notebooks/                  # Jupyter notebooks
+│   ├── eda.ipynb               # Notebook EDA
+│   └── model_visualize.ipynb   # Notebook visualization
+├── docs/                       # Tài liệu/báo cáo
 ├── requirements.txt
 └── readme.md
 ```
