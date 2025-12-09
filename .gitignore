@@ -1,0 +1,49 @@
+# Ignore outputs and data
+data/processed/
+data/interim/
+*.pkl
+
+# Ignore log files
+logs/
+*.log
+
+# Ignore Python cache / build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore Jupyter / temp files
+.ipynb_checkpoints/
+*.tmp
+
+# Ignore virtual environments
+venv/
+.env/
+.env.bak/
+.venv/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# LaTeX generated files
+*.aux
+*.bbl
+*.blg
+*.brf
+*.fls
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.nav
+*.snm
+*.vrb
+*.lof
+*.lot
+*.idx
+*.ilg
+*.ind
+*.dvi
