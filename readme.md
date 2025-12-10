@@ -77,10 +77,19 @@ cd "Python-Cho-KHDL/"
 python3 -m venv venv
 source venv/bin/activate
 
-# Windows
+# Windows (Command Prompt - cmd)
 python -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate.bat
+
+# Windows (PowerShell)
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 ```
+
+> **Lưu ý cho Windows PowerShell**: Nếu gặp lỗi "execution policy", chạy lệnh sau trước:
+> ```powershell
+> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+> ```
 ### 3.3. Cài đặt dependencies
 ```bash
 pip install --upgrade pip
