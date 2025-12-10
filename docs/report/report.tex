@@ -14,9 +14,37 @@
 \usepackage{tabularx}
 \usepackage{booktabs}
 \usepackage{tikz}
+\usepackage{listings}            % Hiển thị code/cấu trúc thư mục
 \usetikzlibrary{calc}
 \renewcommand{\tabularxcolumn}[1]{m{#1}}
 \geometry{a4paper, margin=2.5cm}
+
+% ---------------- Listings config ----------------
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    frame=single
+}
+\lstset{style=mystyle}
 
 
 % ---------------- Header & Footer ----------------
@@ -61,7 +89,7 @@
     colframe=sklearn-blue,
     coltitle=white,
     fonttitle=\bfseries\large,
-    title=Metrics: #1,
+    title=Metric: #1,
     boxrule=1pt,
     arc=4pt,
     left=5pt, right=5pt, top=5pt, bottom=5pt,
@@ -324,6 +352,35 @@ Phần này mô tả cấu trúc mã nguồn của project và giải thích \te
 Hệ thống được tổ chức trong thư mục \texttt{src/} và chia thành ba package chính:
 \textbf{src.data}, \textbf{src.models} và \textbf{src.visualization}. 
 Cách trình bày được thiết kế theo phong cách tài liệu kỹ thuật, giúp người đọc dễ dàng tra cứu khi muốn xem lại luồng xử lý của chương trình.
+
+\subsection{Cấu trúc thư mục dự án}
+
+\begin{lstlisting}[language=bash]
+Python-Cho-KHDL/
+|-- src/                        # Source code
+|   |-- data/                   # Xu ly du lieu
+|   |-- models/                 # Mo hinh hoc may
+|   |-- utils/                  # Tien ich
+|   +-- visualization/          # Truc quan hoa
+|-- scripts/                    # Scripts chay chuong trinh
+|   |-- train.py                # Script huan luyen chinh
+|   +-- experiment.py           # Script thuc nghiem
+|-- configs/                    # Cau hinh
+|   +-- default_config.ini      # File cau hinh mac dinh
+|-- data/                       # Du lieu (raw/interim/processed)
+|-- outputs/                    # Ket qua dau ra
+|   |-- logs/                   # Logs huan luyen
+|   |-- models/                 # Models da luu (.joblib)
+|   |-- plots/                  # Bieu do
+|   |   +-- eda/                # Bieu do EDA (before/after)
+|   +-- results/                # Ket qua danh gia (.csv, .json)
+|-- notebooks/                  # Jupyter notebooks
+|   |-- eda.ipynb               # Notebook EDA
+|   +-- model_visualize.ipynb   # Notebook visualization
+|-- docs/                       # Tai lieu/bao cao
+|-- requirements.txt
++-- readme.md
+\end{lstlisting}
 
 \subsection{Package: src.data}
 
@@ -991,7 +1048,7 @@ Trước tiên, nhóm loại bỏ các dòng trùng lặp hoàn toàn và các d
 \begin{itemize}
     \item \textbf{Dòng trùng lặp}: 138 dòng
     \item \textbf{Dòng có target null}: 52 dòng
-    \item \textbf{Dòng còn lại}: $1127 - 138 - 52 = 937$ dòng
+    \item \textbf{Dòng còn lại}: $1147 - 138 - 52 = 957$ dòng
 \end{itemize}
 
 \subsubsection{Chia dữ liệu Train/Test}
