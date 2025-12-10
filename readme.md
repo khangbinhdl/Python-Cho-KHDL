@@ -178,6 +178,10 @@ python scripts/experiment.py
 
 ## 6. Kết quả
 
+**Báo cáo chi tiết**: [docs/report/report.pdf](docs/report/report.pdf)
+
+**Kết quả thực nghiệm đầy đủ**: [Google Sheets](https://docs.google.com/spreadsheets/d/1DugDKIYezPlDGXlfH01LJ1cdBhQisnCArAE03LLE0dM/edit?usp=sharing)
+
 Kết quả chi tiết được lưu trong thư mục `outputs/` bao gồm: 
 - Models đã huấn luyện.
 - Logs huấn luyện / thực nghiệm.
