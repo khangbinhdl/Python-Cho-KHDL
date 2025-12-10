@@ -1,0 +1,5 @@
+09:27:31 [MAIN]: Log file: outputs/logs/train_2025-12-08_09-27-31.log
+09:27:31 [MAIN]: Using configuration file: configs/default_config.ini
+09:27:31 [MAIN]: Data file: data/raw/FastFoodNutritionMenuV3.csv
+09:27:31 [MAIN]: Target column: saturated_fat_g
+09:27:31 [MAIN]: Selected models: all

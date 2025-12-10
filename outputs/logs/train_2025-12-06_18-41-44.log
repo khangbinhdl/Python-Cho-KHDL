@@ -1,0 +1,328 @@
+18:41:44 [MAIN]: Log file: outputs/logs/train_2025-12-06_18-41-44.log
+18:41:44 [MAIN]: Using configuration file: configs/default_config.ini
+18:41:44 [MAIN]: Data file: data/raw/FastFoodNutritionMenuV3.csv
+18:41:44 [MAIN]: Target column: saturated_fat_g
+18:41:44 [MAIN]: Selected models: all
+18:41:44 [MAIN]: Optimization enabled: False
+18:41:44 [MAIN]: EDA enabled: True
+18:41:44 [MAIN]: Visualization enabled: True
+18:41:44 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+18:41:44 [DATA_IO]: Cleaning column names...
+18:41:44 [DATA_IO]: Column names cleaned successfully.
+18:41:44 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+18:41:44 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+18:41:44 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+18:41:44 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+18:41:44 [PREPROCESSOR]: Datetime cols: []
+18:41:44 [DATA_TRANSFORMER]: Converting columns to datetime...
+18:41:44 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+18:41:44 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+18:41:44 [PREPROCESSOR]: Datetime cols: []
+18:41:44 [MAIN]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+18:41:44 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+18:41:44 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+18:41:44 [PREPROCESSOR]: Categorical cols: []
+18:41:44 [PREPROCESSOR]: Datetime cols: []
+18:41:44 [EDA]: Starting full EDA pipeline...
+18:41:44 [EDA]: 
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]: DATASET INFORMATION
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]: <class 'pandas.core.frame.DataFrame'>
+18:41:44 [EDA]: RangeIndex: 1147 entries, 0 to 1146
+18:41:44 [EDA]: Data columns (total 7 columns):
+18:41:44 [EDA]:  #   Column           Non-Null Count  Dtype  
+18:41:44 [EDA]: ---  ------           --------------  -----  
+18:41:44 [EDA]:  0   saturated_fat_g  1079 non-null   float64
+18:41:44 [EDA]:  1   cholesterol_mg   1119 non-null   float64
+18:41:44 [EDA]:  2   sodium_mg        1132 non-null   float64
+18:41:44 [EDA]:  3   carbs_g          1078 non-null   float64
+18:41:44 [EDA]:  4   fiber_g          1064 non-null   float64
+18:41:44 [EDA]:  5   sugars_g         1118 non-null   float64
+18:41:44 [EDA]:  6   protein_g        1079 non-null   float64
+18:41:44 [EDA]: dtypes: float64(7)
+18:41:44 [EDA]: memory usage: 62.9 KB
+18:41:44 [EDA]: 
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]: SUMMARY STATISTICS FOR NUMERIC COLUMNS
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]:        saturated_fat_g  cholesterol_mg    sodium_mg      carbs_g      fiber_g     sugars_g    protein_g
+18:41:44 [EDA]: count      1079.000000     1119.000000  1132.000000  1078.000000  1064.000000  1118.000000  1079.000000
+18:41:44 [EDA]: mean          4.068119       40.647900   427.722615    38.946197     1.454887    24.067979     9.434662
+18:41:44 [EDA]: std           5.025099       68.058662   496.701818    31.654807     2.389581    32.369327    11.049859
+18:41:44 [EDA]: min           0.000000        0.000000     0.000000     0.000000     0.000000     0.000000     0.000000
+18:41:44 [EDA]: 25%           0.000000        0.000000    70.000000    17.000000     0.000000     2.000000     0.000000
+18:41:44 [EDA]: 50%           3.000000       20.000000   190.000000    34.000000     0.000000     8.000000     7.000000
+18:41:44 [EDA]: 75%           6.000000       50.000000   680.000000    52.000000     2.000000    40.000000    14.000000
+18:41:44 [EDA]: max          33.000000      575.000000  2890.000000   270.000000    31.000000   264.000000    71.000000
+18:41:44 [EDA]: 
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]: MISSING VALUES
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]:                  Missing_Count  Missing_Percentage
+18:41:44 [EDA]: fiber_g                     83            7.236269
+18:41:44 [EDA]: carbs_g                     69            6.015693
+18:41:44 [EDA]: saturated_fat_g             68            5.928509
+18:41:44 [EDA]: protein_g                   68            5.928509
+18:41:44 [EDA]: sugars_g                    29            2.528335
+18:41:44 [EDA]: cholesterol_mg              28            2.441151
+18:41:44 [EDA]: sodium_mg                   15            1.307759
+18:41:44 [EDA]: ✓ Missing values plot saved to: outputs/plots/eda/before/missing_values.png
+18:41:44 [EDA]: 
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]: DUPLICATE ROWS: 138 rows
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]: 
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]: VALUE COUNTS (TOP 5 FOR EACH COLUMN)
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]: --- saturated_fat_g ---
+18:41:44 [EDA]: saturated_fat_g
+18:41:44 [EDA]: 0.0    383
+18:41:44 [EDA]: 3.5     72
+18:41:44 [EDA]: 5.0     52
+18:41:44 [EDA]: 6.0     52
+18:41:44 [EDA]: 7.0     48
+18:41:44 [EDA]: --- cholesterol_mg ---
+18:41:44 [EDA]: cholesterol_mg
+18:41:44 [EDA]: 0.0     378
+18:41:44 [EDA]: 5.0      71
+18:41:44 [EDA]: 25.0     63
+18:41:44 [EDA]: 20.0     59
+18:41:44 [EDA]: 30.0     57
+18:41:44 [EDA]: --- sodium_mg ---
+18:41:44 [EDA]: sodium_mg
+18:41:44 [EDA]: 0.0      54
+18:41:44 [EDA]: 70.0     25
+18:41:44 [EDA]: 55.0     22
+18:41:44 [EDA]: 150.0    22
+18:41:44 [EDA]: 45.0     22
+18:41:44 [EDA]: --- carbs_g ---
+18:41:44 [EDA]: carbs_g
+18:41:44 [EDA]: 0.0     75
+18:41:44 [EDA]: 27.0    31
+18:41:44 [EDA]: 49.0    29
+18:41:44 [EDA]: 1.0     27
+18:41:44 [EDA]: 31.0    25
+18:41:44 [EDA]: --- fiber_g ---
+18:41:44 [EDA]: fiber_g
+18:41:44 [EDA]: 0.0    551
+18:41:44 [EDA]: 1.0    152
+18:41:44 [EDA]: 2.0    137
+18:41:44 [EDA]: 3.0     83
+18:41:44 [EDA]: 4.0     57
+18:41:44 [EDA]: --- sugars_g ---
+18:41:44 [EDA]: sugars_g
+18:41:44 [EDA]: 0.0    190
+18:41:44 [EDA]: 2.0     96
+18:41:44 [EDA]: 1.0     61
+18:41:44 [EDA]: 3.0     56
+18:41:44 [EDA]: 4.0     42
+18:41:44 [EDA]: --- protein_g ---
+18:41:44 [EDA]: protein_g
+18:41:44 [EDA]: 0.0    314
+18:41:44 [EDA]: 2.0     52
+18:41:44 [EDA]: 9.0     45
+18:41:44 [EDA]: 8.0     43
+18:41:44 [EDA]: 7.0     42
+18:41:44 [EDA]: 
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]: SKEWNESS FOR NUMERIC COLUMNS
+18:41:44 [EDA]: ============================================================
+18:41:44 [EDA]:          Column  Skewness
+18:41:44 [EDA]:         fiber_g  3.637785
+18:41:44 [EDA]:  cholesterol_mg  3.523484
+18:41:44 [EDA]:        sugars_g  1.994132
+18:41:44 [EDA]: saturated_fat_g  1.977672
+18:41:44 [EDA]:       protein_g  1.824163
+18:41:44 [EDA]:         carbs_g  1.715696
+18:41:44 [EDA]:       sodium_mg  1.589034
+18:41:44 [EDA]: Running correlation_analysis(method='all')
+18:41:44 [EDA]: ✓ Correlation heatmap (pearson) saved to: outputs/plots/eda/before/correlation_heatmap_pearson.png
+18:41:45 [EDA]: ✓ Correlation heatmap (spearman) saved to: outputs/plots/eda/before/correlation_heatmap_spearman.png
+18:41:45 [EDA]: ✓ Correlation heatmap (kendall) saved to: outputs/plots/eda/before/correlation_heatmap_kendall.png
+18:41:45 [EDA]: Plotting data distributions (Histogram + KDE) for numeric columns...
+18:41:46 [EDA]: ✓ Distribution plot saved to: outputs/plots/eda/before/distribution_all.png
+18:41:46 [EDA]: Boxplot analysis for numeric columns...
+18:41:47 [EDA]: ✓ Boxplot saved to: outputs/plots/eda/before/boxplot_all.png
+18:41:47 [EDA]: EDA pipeline completed.
+18:41:47 [MAIN]: Cleaning negative values...
+18:41:47 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+18:41:47 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+18:41:47 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+18:41:47 [DATA_IO]: Saving processed data to data/interim/temp_processed_data.csv...
+18:41:47 [DATA_IO]: Save successful.
+18:41:47 [MAIN]: Initializing ModelTrainer to split data...
+18:41:47 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=8
+18:41:47 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+18:41:47 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+18:41:47 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+18:41:47 [MODEL_TRAINER]: Split complete. Train shape: (813, 7), Test shape: (144, 7)
+18:41:47 [MAIN]: Processing Split Data (Preventing Leakage)...
+18:41:47 [MAIN]: Train NaN count before processing: 27
+18:41:47 [MAIN]: Test NaN count before processing: 8
+18:41:47 [MAIN]: Encoding categorical features with strategy: onehot
+18:41:47 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+18:41:47 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+18:41:47 [DATA_TRANSFORMER]: Removed 86 rows as outliers
+18:41:47 [MAIN]: Train size after outlier removal: 727
+18:41:47 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'drop', 'cat': 'drop', 'dt': 'drop'}
+18:41:47 [MAIN]: Train NaN count after missing handling: 0
+18:41:47 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+18:41:47 [MAIN]: Train NaN count after scaling: 0
+18:41:47 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+18:41:47 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'drop', 'cat': 'drop', 'dt': 'drop'}
+18:41:47 [MAIN]: Test NaN count after missing handling: 0
+18:41:47 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+18:41:47 [MAIN]: Test NaN count after scaling: 0
+18:41:47 [MAIN]: Train set size: 727
+18:41:47 [MAIN]: Test set size: 144
+18:41:47 [MAIN]: Merged set size: 871
+18:41:47 [EDA]: Starting full EDA pipeline...
+18:41:47 [EDA]: 
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]: DATASET INFORMATION
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]: <class 'pandas.core.frame.DataFrame'>
+18:41:47 [EDA]: RangeIndex: 871 entries, 0 to 870
+18:41:47 [EDA]: Data columns (total 7 columns):
+18:41:47 [EDA]:  #   Column           Non-Null Count  Dtype  
+18:41:47 [EDA]: ---  ------           --------------  -----  
+18:41:47 [EDA]:  0   saturated_fat_g  871 non-null    float64
+18:41:47 [EDA]:  1   cholesterol_mg   871 non-null    float64
+18:41:47 [EDA]:  2   sodium_mg        871 non-null    float64
+18:41:47 [EDA]:  3   carbs_g          871 non-null    float64
+18:41:47 [EDA]:  4   fiber_g          871 non-null    float64
+18:41:47 [EDA]:  5   sugars_g         871 non-null    float64
+18:41:47 [EDA]:  6   protein_g        871 non-null    float64
+18:41:47 [EDA]: dtypes: float64(7)
+18:41:47 [EDA]: memory usage: 47.8 KB
+18:41:47 [EDA]: 
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]: SUMMARY STATISTICS FOR NUMERIC COLUMNS
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]:        saturated_fat_g  cholesterol_mg   sodium_mg     carbs_g     fiber_g    sugars_g   protein_g
+18:41:47 [EDA]: count       871.000000      871.000000  871.000000  871.000000  871.000000  871.000000  871.000000
+18:41:47 [EDA]: mean          3.840987        0.028697    0.015217    0.000607    0.006902    0.000223    0.006154
+18:41:47 [EDA]: std           4.474606        1.190735    1.045936    1.031402    1.003883    1.017032    1.026461
+18:41:47 [EDA]: min           0.000000       -0.709391   -0.950378   -1.408762   -0.680418   -0.819324   -0.921488
+18:41:47 [EDA]: 25%           0.000000       -0.709391   -0.761414   -0.749237   -0.680418   -0.750756   -0.921488
+18:41:47 [EDA]: 50%           3.000000       -0.369426   -0.477967   -0.162991   -0.680418   -0.510769   -0.295393
+18:41:47 [EDA]: 75%           6.000000        0.197183    0.584958    0.459894    0.443818    0.569174    0.487226
+18:41:47 [EDA]: max          31.000000       12.322616    5.757860    5.662819    4.940765    4.151841    5.443810
+18:41:47 [EDA]: 
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]: MISSING VALUES: No missing values found
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]: 
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]: DUPLICATE ROWS: 0 rows
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]: 
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]: VALUE COUNTS (TOP 5 FOR EACH COLUMN)
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]: --- saturated_fat_g ---
+18:41:47 [EDA]: saturated_fat_g
+18:41:47 [EDA]: 0.0    305
+18:41:47 [EDA]: 3.5     59
+18:41:47 [EDA]: 6.0     43
+18:41:47 [EDA]: 7.0     43
+18:41:47 [EDA]: 4.5     40
+18:41:47 [EDA]: --- cholesterol_mg ---
+18:41:47 [EDA]: cholesterol_mg
+18:41:47 [EDA]: -0.709391    301
+18:41:47 [EDA]: -0.596070     59
+18:41:47 [EDA]: -0.029461     52
+18:41:47 [EDA]: -0.256104     51
+18:41:47 [EDA]: -0.142782     49
+18:41:47 [EDA]: --- sodium_mg ---
+18:41:47 [EDA]: sodium_mg
+18:41:47 [EDA]: -0.950378    26
+18:41:47 [EDA]: -0.596070    20
+18:41:47 [EDA]: -0.785034    19
+18:41:47 [EDA]: -0.820465    18
+18:41:47 [EDA]: -0.643311    18
+18:41:47 [EDA]: --- carbs_g ---
+18:41:47 [EDA]: carbs_g
+18:41:47 [EDA]: -1.408762    36
+18:41:47 [EDA]: -0.419474    27
+18:41:47 [EDA]:  0.386613    26
+18:41:47 [EDA]: -1.372122    23
+18:41:47 [EDA]: -0.346193    22
+18:41:47 [EDA]: --- fiber_g ---
+18:41:47 [EDA]: fiber_g
+18:41:47 [EDA]: -0.680418    460
+18:41:47 [EDA]: -0.118300    136
+18:41:47 [EDA]:  0.443818    115
+18:41:47 [EDA]:  1.005937     66
+18:41:47 [EDA]:  1.568055     45
+18:41:47 [EDA]: --- sugars_g ---
+18:41:47 [EDA]: sugars_g
+18:41:47 [EDA]: -0.819324    121
+18:41:47 [EDA]: -0.750756     78
+18:41:47 [EDA]: -0.785040     54
+18:41:47 [EDA]: -0.716472     44
+18:41:47 [EDA]: -0.682188     33
+18:41:47 [EDA]: --- protein_g ---
+18:41:47 [EDA]: protein_g
+18:41:47 [EDA]: -0.921488    250
+18:41:47 [EDA]: -0.712789     43
+18:41:47 [EDA]: -0.086694     37
+18:41:47 [EDA]:  0.017655     36
+18:41:47 [EDA]:  0.122004     33
+18:41:47 [EDA]: 
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]: SKEWNESS FOR NUMERIC COLUMNS
+18:41:47 [EDA]: ============================================================
+18:41:47 [EDA]:          Column  Skewness
+18:41:47 [EDA]:  cholesterol_mg  4.083893
+18:41:47 [EDA]:         fiber_g  1.823642
+18:41:47 [EDA]: saturated_fat_g  1.746315
+18:41:47 [EDA]:       protein_g  1.439746
+18:41:47 [EDA]:        sugars_g  1.435731
+18:41:47 [EDA]:       sodium_mg  1.411278
+18:41:47 [EDA]:         carbs_g  1.101241
+18:41:47 [EDA]: Running correlation_analysis(method='all')
+18:41:47 [EDA]: ✓ Correlation heatmap (pearson) saved to: outputs/plots/eda/after/correlation_heatmap_pearson.png
+18:41:47 [EDA]: ✓ Correlation heatmap (spearman) saved to: outputs/plots/eda/after/correlation_heatmap_spearman.png
+18:41:48 [EDA]: ✓ Correlation heatmap (kendall) saved to: outputs/plots/eda/after/correlation_heatmap_kendall.png
+18:41:48 [EDA]: Plotting data distributions (Histogram + KDE) for numeric columns...
+18:41:49 [EDA]: ✓ Distribution plot saved to: outputs/plots/eda/after/distribution_all.png
+18:41:49 [EDA]: Boxplot analysis for numeric columns...
+18:41:49 [EDA]: ✓ Boxplot saved to: outputs/plots/eda/after/boxplot_all.png
+18:41:49 [EDA]: EDA pipeline completed.
+18:41:49 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+18:41:49 [MODEL_TRAINER]: Ready for training. X_train: (727, 6), X_test: (144, 6)
+18:41:49 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+18:41:49 [MAIN]: Training all available models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+18:41:49 [MODEL_TRAINER]: Starting model training...
+18:41:49 [MODEL_TRAINER]: Training ElasticNet...
+18:41:49 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+18:41:49 [MODEL_TRAINER]: Training RandomForest...
+18:41:50 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+18:41:50 [MODEL_TRAINER]: Training LightGBM...
+18:41:50 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+18:41:50 [MODEL_TRAINER]: Training XGBoost...
+18:41:50 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+18:41:50 [MODEL_TRAINER]: Training DecisionTree...
+18:41:50 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+18:41:50 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+18:41:50 [MODEL_TRAINER]: Evaluating models...
+18:41:50 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.6999, MAE=2.3861, R2=0.5979
+18:41:50 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.3433, MAE=1.1286, R2=0.8387
+18:41:50 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.7431, MAE=1.3249, R2=0.7790
+18:41:50 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.2813, MAE=1.1779, R2=0.8471
+18:41:50 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.1623, MAE=1.1701, R2=0.8627
+18:41:50 [MODEL_IO]: ✓ Đã lưu kết quả tại: outputs/results/evaluation_results.csv
+18:41:50 [MODEL_IO]: ✓ Đã lưu kết quả tại: outputs/results/evaluation_results.json
+18:41:50 [MODEL_IO]: ✓ Đã lưu model 'ElasticNet' tại: outputs/models/ElasticNet.joblib
+18:41:50 [MODEL_IO]: ✓ Đã lưu model 'RandomForest' tại: outputs/models/RandomForest.joblib
+18:41:50 [MODEL_IO]: ✓ Đã lưu model 'LightGBM' tại: outputs/models/LightGBM.joblib
+18:41:50 [MODEL_IO]: ✓ Đã lưu model 'XGBoost' tại: outputs/models/XGBoost.joblib
+18:41:50 [MODEL_IO]: ✓ Đã lưu model 'DecisionTree' tại: outputs/models/DecisionTree.joblib
+18:41:50 [MODEL_VISUALIZE]: ✓ Plot saved: outputs/plots/model_comparison.png
+18:41:58 [MODEL_EVALUATOR]: Sử dụng feature_importances_ cho DecisionTree
+18:41:58 [MODEL_EVALUATOR]: ✓ Đã trích xuất feature importance cho DecisionTree
+18:41:58 [MODEL_VISUALIZE]: ✓ Feature importance saved: outputs/plots/feature_importance.png
+18:41:58 [MAIN]: Process Completed.

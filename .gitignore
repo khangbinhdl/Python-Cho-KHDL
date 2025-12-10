@@ -5,7 +5,7 @@ data/interim/
 
 # Ignore log files
 # logs/
-*.log
+# *.log
 
 # Ignore Python cache / build files
 __pycache__/
@@ -33,7 +33,7 @@ Thumbs.db
 *.blg
 *.brf
 *.fls
-*.log
+# *.log
 *.out
 *.toc
 *.synctex.gz

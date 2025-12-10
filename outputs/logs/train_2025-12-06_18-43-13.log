@@ -1,0 +1,217 @@
+18:43:13 [MAIN]: Log file: outputs/logs/train_2025-12-06_18-43-13.log
+18:43:13 [MAIN]: Using configuration file: configs/default_config.ini
+18:43:13 [MAIN]: Data file: data/raw/FastFoodNutritionMenuV3.csv
+18:43:13 [MAIN]: Target column: saturated_fat_g
+18:43:13 [MAIN]: Selected models: all
+18:43:13 [MAIN]: Optimization enabled: False
+18:43:13 [MAIN]: EDA enabled: True
+18:43:13 [MAIN]: Visualization enabled: True
+18:43:13 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+18:43:13 [DATA_IO]: Cleaning column names...
+18:43:13 [DATA_IO]: Column names cleaned successfully.
+18:43:13 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+18:43:13 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+18:43:13 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+18:43:13 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+18:43:13 [PREPROCESSOR]: Datetime cols: []
+18:43:13 [DATA_TRANSFORMER]: Converting columns to datetime...
+18:43:13 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+18:43:13 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+18:43:13 [PREPROCESSOR]: Datetime cols: []
+18:43:13 [MAIN]: Dropping features: ['calories', 'total_fat_g']
+18:43:13 [DATA_TRANSFORMER]: Dropping features: ['calories', 'total_fat_g']
+18:43:13 [PREPROCESSOR]: Numeric cols: ['calories_from_fat', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+18:43:13 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+18:43:13 [PREPROCESSOR]: Datetime cols: []
+18:43:13 [EDA]: Starting full EDA pipeline...
+18:43:13 [EDA]: 
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]: DATASET INFORMATION
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]: <class 'pandas.core.frame.DataFrame'>
+18:43:13 [EDA]: RangeIndex: 1147 entries, 0 to 1146
+18:43:13 [EDA]: Data columns (total 12 columns):
+18:43:13 [EDA]:  #   Column                Non-Null Count  Dtype  
+18:43:13 [EDA]: ---  ------                --------------  -----  
+18:43:13 [EDA]:  0   company               1147 non-null   object 
+18:43:13 [EDA]:  1   item                  1147 non-null   object 
+18:43:13 [EDA]:  2   calories_from_fat     630 non-null    float64
+18:43:13 [EDA]:  3   saturated_fat_g       1079 non-null   float64
+18:43:13 [EDA]:  4   trans_fat_g           1079 non-null   float64
+18:43:13 [EDA]:  5   cholesterol_mg        1119 non-null   float64
+18:43:13 [EDA]:  6   sodium_mg             1132 non-null   float64
+18:43:13 [EDA]:  7   carbs_g               1078 non-null   float64
+18:43:13 [EDA]:  8   fiber_g               1064 non-null   float64
+18:43:13 [EDA]:  9   sugars_g              1118 non-null   float64
+18:43:13 [EDA]:  10  protein_g             1079 non-null   float64
+18:43:13 [EDA]:  11  weight_watchers_pnts  876 non-null    float64
+18:43:13 [EDA]: dtypes: float64(10), object(2)
+18:43:13 [EDA]: memory usage: 107.7+ KB
+18:43:13 [EDA]: 
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]: SUMMARY STATISTICS FOR NUMERIC COLUMNS
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]:        calories_from_fat  saturated_fat_g  trans_fat_g  cholesterol_mg    sodium_mg      carbs_g      fiber_g     sugars_g    protein_g  weight_watchers_pnts
+18:43:13 [EDA]: count         630.000000      1079.000000  1079.000000     1119.000000  1132.000000  1078.000000  1064.000000  1118.000000  1079.000000            876.000000
+18:43:13 [EDA]: mean          117.555556         4.068119     0.140871       40.647900   427.722615    38.946197     1.454887    24.067979     9.434662            310.270548
+18:43:13 [EDA]: std           131.909575         5.025099     0.489773       68.058662   496.701818    31.654807     2.389581    32.369327    11.049859            238.635169
+18:43:13 [EDA]: min             0.000000         0.000000     0.000000        0.000000     0.000000     0.000000     0.000000     0.000000     0.000000              0.000000
+18:43:13 [EDA]: 25%             0.000000         0.000000     0.000000        0.000000    70.000000    17.000000     0.000000     2.000000     0.000000            142.750000
+18:43:13 [EDA]: 50%            80.000000         3.000000     0.000000       20.000000   190.000000    34.000000     0.000000     8.000000     7.000000            272.000000
+18:43:13 [EDA]: 75%           170.000000         6.000000     0.000000       50.000000   680.000000    52.000000     2.000000    40.000000    14.000000            430.000000
+18:43:13 [EDA]: max           750.000000        33.000000     4.500000      575.000000  2890.000000   270.000000    31.000000   264.000000    71.000000           1317.000000
+18:43:13 [EDA]: 
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]: MISSING VALUES
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]:                       Missing_Count  Missing_Percentage
+18:43:13 [EDA]: calories_from_fat               517           45.074106
+18:43:13 [EDA]: weight_watchers_pnts            271           23.626853
+18:43:13 [EDA]: fiber_g                          83            7.236269
+18:43:13 [EDA]: carbs_g                          69            6.015693
+18:43:13 [EDA]: saturated_fat_g                  68            5.928509
+18:43:13 [EDA]: trans_fat_g                      68            5.928509
+18:43:13 [EDA]: protein_g                        68            5.928509
+18:43:13 [EDA]: sugars_g                         29            2.528335
+18:43:13 [EDA]: cholesterol_mg                   28            2.441151
+18:43:13 [EDA]: sodium_mg                        15            1.307759
+18:43:13 [EDA]: ✓ Missing values plot saved to: outputs/plots/eda/before/missing_values.png
+18:43:13 [EDA]: 
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]: DUPLICATE ROWS: 7 rows
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]: 
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]: VALUE COUNTS (TOP 5 FOR EACH COLUMN)
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]: --- company ---
+18:43:13 [EDA]: company
+18:43:13 [EDA]: McDonald’s     328
+18:43:13 [EDA]: KFC            218
+18:43:13 [EDA]: Burger King    190
+18:43:13 [EDA]: Taco Bell      183
+18:43:13 [EDA]: Wendy’s        154
+18:43:13 [EDA]: --- item ---
+18:43:13 [EDA]: item
+18:43:13 [EDA]: 20 fl oz     11
+18:43:13 [EDA]: 29 fl oz     11
+18:43:13 [EDA]: 38 fl oz      9
+18:43:13 [EDA]: 16 fl oz      9
+18:43:13 [EDA]: Hamburger     3
+18:43:13 [EDA]: --- calories_from_fat ---
+18:43:13 [EDA]: calories_from_fat
+18:43:13 [EDA]: 0.0      175
+18:43:13 [EDA]: 80.0      30
+18:43:13 [EDA]: 70.0      28
+18:43:13 [EDA]: 50.0      27
+18:43:13 [EDA]: 160.0     20
+18:43:13 [EDA]: --- saturated_fat_g ---
+18:43:13 [EDA]: saturated_fat_g
+18:43:13 [EDA]: 0.0    383
+18:43:13 [EDA]: 3.5     72
+18:43:13 [EDA]: 5.0     52
+18:43:13 [EDA]: 6.0     52
+18:43:13 [EDA]: 7.0     48
+18:43:13 [EDA]: --- trans_fat_g ---
+18:43:13 [EDA]: trans_fat_g
+18:43:13 [EDA]: 0.0    954
+18:43:13 [EDA]: 0.5     48
+18:43:13 [EDA]: 1.0     33
+18:43:13 [EDA]: 1.5     19
+18:43:13 [EDA]: 2.0     13
+18:43:13 [EDA]: --- cholesterol_mg ---
+18:43:13 [EDA]: cholesterol_mg
+18:43:13 [EDA]: 0.0     378
+18:43:13 [EDA]: 5.0      71
+18:43:13 [EDA]: 25.0     63
+18:43:13 [EDA]: 20.0     59
+18:43:13 [EDA]: 30.0     57
+18:43:13 [EDA]: --- sodium_mg ---
+18:43:13 [EDA]: sodium_mg
+18:43:13 [EDA]: 0.0      54
+18:43:13 [EDA]: 70.0     25
+18:43:13 [EDA]: 55.0     22
+18:43:13 [EDA]: 150.0    22
+18:43:13 [EDA]: 45.0     22
+18:43:13 [EDA]: --- carbs_g ---
+18:43:13 [EDA]: carbs_g
+18:43:13 [EDA]: 0.0     75
+18:43:13 [EDA]: 27.0    31
+18:43:13 [EDA]: 49.0    29
+18:43:13 [EDA]: 1.0     27
+18:43:13 [EDA]: 31.0    25
+18:43:13 [EDA]: --- fiber_g ---
+18:43:13 [EDA]: fiber_g
+18:43:13 [EDA]: 0.0    551
+18:43:13 [EDA]: 1.0    152
+18:43:13 [EDA]: 2.0    137
+18:43:13 [EDA]: 3.0     83
+18:43:13 [EDA]: 4.0     57
+18:43:13 [EDA]: --- sugars_g ---
+18:43:13 [EDA]: sugars_g
+18:43:13 [EDA]: 0.0    190
+18:43:13 [EDA]: 2.0     96
+18:43:13 [EDA]: 1.0     61
+18:43:13 [EDA]: 3.0     56
+18:43:13 [EDA]: 4.0     42
+18:43:13 [EDA]: --- protein_g ---
+18:43:13 [EDA]: protein_g
+18:43:13 [EDA]: 0.0    314
+18:43:13 [EDA]: 2.0     52
+18:43:13 [EDA]: 9.0     45
+18:43:13 [EDA]: 8.0     43
+18:43:13 [EDA]: 7.0     42
+18:43:13 [EDA]: --- weight_watchers_pnts ---
+18:43:13 [EDA]: weight_watchers_pnts
+18:43:13 [EDA]: 0.0      67
+18:43:13 [EDA]: 5.0       8
+18:43:13 [EDA]: 178.0     6
+18:43:13 [EDA]: 266.0     6
+18:43:13 [EDA]: 278.0     6
+18:43:13 [EDA]: 
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]: SKEWNESS FOR NUMERIC COLUMNS
+18:43:13 [EDA]: ============================================================
+18:43:13 [EDA]:               Column  Skewness
+18:43:13 [EDA]:          trans_fat_g  4.692513
+18:43:13 [EDA]:              fiber_g  3.637785
+18:43:13 [EDA]:       cholesterol_mg  3.523484
+18:43:13 [EDA]:             sugars_g  1.994132
+18:43:13 [EDA]:      saturated_fat_g  1.977672
+18:43:13 [EDA]:            protein_g  1.824163
+18:43:13 [EDA]:              carbs_g  1.715696
+18:43:13 [EDA]:    calories_from_fat  1.616019
+18:43:13 [EDA]:            sodium_mg  1.589034
+18:43:13 [EDA]: weight_watchers_pnts  1.139470
+18:43:13 [EDA]: Running correlation_analysis(method='all')
+18:43:13 [EDA]: ✓ Correlation heatmap (pearson) saved to: outputs/plots/eda/before/correlation_heatmap_pearson.png
+18:43:14 [EDA]: ✓ Correlation heatmap (spearman) saved to: outputs/plots/eda/before/correlation_heatmap_spearman.png
+18:43:14 [EDA]: ✓ Correlation heatmap (kendall) saved to: outputs/plots/eda/before/correlation_heatmap_kendall.png
+18:43:14 [EDA]: Plotting data distributions (Histogram + KDE) for numeric columns...
+18:43:16 [EDA]: ✓ Distribution plot saved to: outputs/plots/eda/before/distribution_all.png
+18:43:16 [EDA]: Boxplot analysis for numeric columns...
+18:43:17 [EDA]: ✓ Boxplot saved to: outputs/plots/eda/before/boxplot_all.png
+18:43:17 [EDA]: EDA pipeline completed.
+18:43:17 [MAIN]: Cleaning negative values...
+18:43:17 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+18:43:17 [DATA_TRANSFORMER]: Removed 7 duplicate rows
+18:43:17 [DATA_TRANSFORMER]: Dropped 68 rows with null target 'saturated_fat_g'
+18:43:17 [DATA_IO]: Saving processed data to data/interim/temp_processed_data.csv...
+18:43:17 [DATA_IO]: Save successful.
+18:43:17 [MAIN]: Initializing ModelTrainer to split data...
+18:43:17 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=8
+18:43:17 [MODEL_TRAINER]: Data loaded: 1072 rows, 12 columns
+18:43:17 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+18:43:17 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+18:43:17 [MODEL_TRAINER]: Split complete. Train shape: (857, 12), Test shape: (215, 12)
+18:43:17 [MAIN]: Processing Split Data (Preventing Leakage)...
+18:43:17 [MAIN]: Train NaN count before processing: 565
+18:43:17 [MAIN]: Test NaN count before processing: 132
+18:43:17 [MAIN]: Encoding categorical features with strategy: onehot
+18:43:17 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+18:43:17 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+18:43:17 [DATA_TRANSFORMER]: Removed 857 rows as outliers
+18:43:17 [MAIN]: Train size after outlier removal: 0
+18:43:17 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'drop', 'cat': 'drop', 'dt': 'drop'}
+18:43:17 [MAIN]: Train NaN count after missing handling: 0
+18:43:17 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True

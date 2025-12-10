@@ -1,0 +1,1299 @@
+07:45:29 [EXPERIMENT]: Log file: outputs/logs/experiment_2025-12-05_07-45-29.log
+07:45:29 [EXPERIMENT]: === Run 1/24: num=mean, scale=robust, outlier=isolation_forest ===
+07:45:29 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:29 [DATA_IO]: Cleaning column names...
+07:45:29 [DATA_IO]: Column names cleaned successfully.
+07:45:29 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:29 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:29 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:29 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:29 [PREPROCESSOR]: Datetime cols: []
+07:45:29 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:29 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:29 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:29 [PREPROCESSOR]: Datetime cols: []
+07:45:29 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:29 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:29 [PREPROCESSOR]: Categorical cols: []
+07:45:29 [PREPROCESSOR]: Datetime cols: []
+07:45:29 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:29 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:29 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:29 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:29 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:29 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:29 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:29 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:29 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:29 [DATA_TRANSFORMER]: [Outlier] method='isolation_forest' - Removing outliers
+07:45:30 [DATA_TRANSFORMER]: Removed 39 rows as outliers
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:30 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:30 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:30 [MODEL_TRAINER]: Ready for training. X_train: (726, 6), X_test: (192, 6)
+07:45:30 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:30 [MODEL_TRAINER]: Starting model training...
+07:45:30 [MODEL_TRAINER]: Training ElasticNet...
+07:45:30 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:30 [MODEL_TRAINER]: Training RandomForest...
+07:45:30 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:30 [MODEL_TRAINER]: Training LightGBM...
+07:45:30 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:30 [MODEL_TRAINER]: Training XGBoost...
+07:45:30 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:30 [MODEL_TRAINER]: Training DecisionTree...
+07:45:30 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:30 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:30 [MODEL_TRAINER]: Evaluating models...
+07:45:30 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7401, MAE=2.4490, R2=0.5452
+07:45:30 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.1298, MAE=1.0586, R2=0.8525
+07:45:30 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.4115, MAE=1.1933, R2=0.8109
+07:45:30 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.1598, MAE=1.1273, R2=0.8483
+07:45:30 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.7512, MAE=1.3776, R2=0.7539
+07:45:30 [EXPERIMENT]: === Run 2/24: num=mean, scale=robust, outlier=iqr ===
+07:45:30 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:30 [DATA_IO]: Cleaning column names...
+07:45:30 [DATA_IO]: Column names cleaned successfully.
+07:45:30 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:30 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:30 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:30 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:30 [PREPROCESSOR]: Categorical cols: []
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:30 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:30 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:30 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:30 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:30 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:30 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:30 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:30 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:30 [DATA_TRANSFORMER]: [Outlier] method='iqr' - Removing outliers
+07:45:30 [DATA_TRANSFORMER]: Removed 176 rows as outliers
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:30 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:30 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:30 [MODEL_TRAINER]: Ready for training. X_train: (589, 6), X_test: (192, 6)
+07:45:30 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:30 [MODEL_TRAINER]: Starting model training...
+07:45:30 [MODEL_TRAINER]: Training ElasticNet...
+07:45:30 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:30 [MODEL_TRAINER]: Training RandomForest...
+07:45:30 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:30 [MODEL_TRAINER]: Training LightGBM...
+07:45:30 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:30 [MODEL_TRAINER]: Training XGBoost...
+07:45:30 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:30 [MODEL_TRAINER]: Training DecisionTree...
+07:45:30 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:30 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:30 [MODEL_TRAINER]: Evaluating models...
+07:45:30 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7234, MAE=2.4195, R2=0.5492
+07:45:30 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.5697, MAE=1.1824, R2=0.7853
+07:45:30 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.8316, MAE=1.3256, R2=0.7393
+07:45:30 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.6874, MAE=1.2833, R2=0.7652
+07:45:30 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.6724, MAE=1.2682, R2=0.7678
+07:45:30 [EXPERIMENT]: === Run 3/24: num=mean, scale=robust, outlier=zscore ===
+07:45:30 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:30 [DATA_IO]: Cleaning column names...
+07:45:30 [DATA_IO]: Column names cleaned successfully.
+07:45:30 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:30 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:30 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:30 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:30 [PREPROCESSOR]: Categorical cols: []
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:30 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:30 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:30 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:30 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:30 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:30 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:30 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:30 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:30 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+07:45:30 [DATA_TRANSFORMER]: Removed 81 rows as outliers
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:30 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:30 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:30 [MODEL_TRAINER]: Ready for training. X_train: (684, 6), X_test: (192, 6)
+07:45:30 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:30 [MODEL_TRAINER]: Starting model training...
+07:45:30 [MODEL_TRAINER]: Training ElasticNet...
+07:45:30 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:30 [MODEL_TRAINER]: Training RandomForest...
+07:45:30 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:30 [MODEL_TRAINER]: Training LightGBM...
+07:45:30 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:30 [MODEL_TRAINER]: Training XGBoost...
+07:45:30 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:30 [MODEL_TRAINER]: Training DecisionTree...
+07:45:30 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:30 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:30 [MODEL_TRAINER]: Evaluating models...
+07:45:30 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7486, MAE=2.4648, R2=0.5431
+07:45:30 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.2118, MAE=1.1430, R2=0.8409
+07:45:30 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.6439, MAE=1.3577, R2=0.7727
+07:45:30 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.0407, MAE=1.1079, R2=0.8646
+07:45:30 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8217, MAE=1.3932, R2=0.7411
+07:45:30 [EXPERIMENT]: === Run 4/24: num=mean, scale=standard, outlier=isolation_forest ===
+07:45:30 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:30 [DATA_IO]: Cleaning column names...
+07:45:30 [DATA_IO]: Column names cleaned successfully.
+07:45:30 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:30 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:30 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:30 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:30 [PREPROCESSOR]: Categorical cols: []
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:30 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:30 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:30 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:30 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:30 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:30 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:30 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:30 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:30 [DATA_TRANSFORMER]: [Outlier] method='isolation_forest' - Removing outliers
+07:45:30 [DATA_TRANSFORMER]: Removed 39 rows as outliers
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:30 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:30 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:30 [MODEL_TRAINER]: Ready for training. X_train: (726, 6), X_test: (192, 6)
+07:45:30 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:30 [MODEL_TRAINER]: Starting model training...
+07:45:30 [MODEL_TRAINER]: Training ElasticNet...
+07:45:30 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:30 [MODEL_TRAINER]: Training RandomForest...
+07:45:30 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:30 [MODEL_TRAINER]: Training LightGBM...
+07:45:30 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:30 [MODEL_TRAINER]: Training XGBoost...
+07:45:30 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:30 [MODEL_TRAINER]: Training DecisionTree...
+07:45:30 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:30 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:30 [MODEL_TRAINER]: Evaluating models...
+07:45:30 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5807, MAE=2.3333, R2=0.5831
+07:45:30 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.1417, MAE=1.0744, R2=0.8509
+07:45:30 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.4196, MAE=1.2034, R2=0.8096
+07:45:30 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.1598, MAE=1.1273, R2=0.8483
+07:45:30 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.7498, MAE=1.3776, R2=0.7542
+07:45:30 [EXPERIMENT]: === Run 5/24: num=mean, scale=standard, outlier=iqr ===
+07:45:30 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:30 [DATA_IO]: Cleaning column names...
+07:45:30 [DATA_IO]: Column names cleaned successfully.
+07:45:30 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:30 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:30 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:30 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:30 [PREPROCESSOR]: Categorical cols: []
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:30 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:30 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:30 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:30 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:30 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:30 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:30 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:30 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:30 [DATA_TRANSFORMER]: [Outlier] method='iqr' - Removing outliers
+07:45:30 [DATA_TRANSFORMER]: Removed 176 rows as outliers
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:30 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:30 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:30 [MODEL_TRAINER]: Ready for training. X_train: (589, 6), X_test: (192, 6)
+07:45:30 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:30 [MODEL_TRAINER]: Starting model training...
+07:45:30 [MODEL_TRAINER]: Training ElasticNet...
+07:45:30 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:30 [MODEL_TRAINER]: Training RandomForest...
+07:45:30 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:30 [MODEL_TRAINER]: Training LightGBM...
+07:45:30 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:30 [MODEL_TRAINER]: Training XGBoost...
+07:45:30 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:30 [MODEL_TRAINER]: Training DecisionTree...
+07:45:30 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:30 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:30 [MODEL_TRAINER]: Evaluating models...
+07:45:30 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5082, MAE=2.2656, R2=0.5998
+07:45:30 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.5854, MAE=1.1860, R2=0.7827
+07:45:30 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.8268, MAE=1.3217, R2=0.7402
+07:45:30 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.6874, MAE=1.2833, R2=0.7652
+07:45:30 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.6489, MAE=1.2578, R2=0.7719
+07:45:30 [EXPERIMENT]: === Run 6/24: num=mean, scale=standard, outlier=zscore ===
+07:45:30 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:30 [DATA_IO]: Cleaning column names...
+07:45:30 [DATA_IO]: Column names cleaned successfully.
+07:45:30 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:30 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:30 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:30 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:30 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:30 [PREPROCESSOR]: Categorical cols: []
+07:45:30 [PREPROCESSOR]: Datetime cols: []
+07:45:30 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:30 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:30 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:30 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:30 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:30 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:30 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:30 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:30 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:30 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+07:45:30 [DATA_TRANSFORMER]: Removed 81 rows as outliers
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:30 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:30 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mean', 'cat': 'mode', 'dt': 'drop'}
+07:45:30 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:30 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:30 [MODEL_TRAINER]: Ready for training. X_train: (684, 6), X_test: (192, 6)
+07:45:30 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:30 [MODEL_TRAINER]: Starting model training...
+07:45:30 [MODEL_TRAINER]: Training ElasticNet...
+07:45:30 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:30 [MODEL_TRAINER]: Training RandomForest...
+07:45:31 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:31 [MODEL_TRAINER]: Training LightGBM...
+07:45:31 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:31 [MODEL_TRAINER]: Training XGBoost...
+07:45:31 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:31 [MODEL_TRAINER]: Training DecisionTree...
+07:45:31 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:31 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:31 [MODEL_TRAINER]: Evaluating models...
+07:45:31 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5644, MAE=2.3350, R2=0.5869
+07:45:31 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.2150, MAE=1.1468, R2=0.8405
+07:45:31 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.6439, MAE=1.3577, R2=0.7727
+07:45:31 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.0407, MAE=1.1079, R2=0.8646
+07:45:31 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8289, MAE=1.4115, R2=0.7398
+07:45:31 [EXPERIMENT]: === Run 7/24: num=median, scale=robust, outlier=isolation_forest ===
+07:45:31 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:31 [DATA_IO]: Cleaning column names...
+07:45:31 [DATA_IO]: Column names cleaned successfully.
+07:45:31 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:31 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:31 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:31 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:31 [PREPROCESSOR]: Categorical cols: []
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:31 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:31 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:31 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:31 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:31 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:31 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:31 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:31 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:31 [DATA_TRANSFORMER]: [Outlier] method='isolation_forest' - Removing outliers
+07:45:31 [DATA_TRANSFORMER]: Removed 39 rows as outliers
+07:45:31 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:31 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:31 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:31 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:31 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:31 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:31 [MODEL_TRAINER]: Ready for training. X_train: (726, 6), X_test: (192, 6)
+07:45:31 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:31 [MODEL_TRAINER]: Starting model training...
+07:45:31 [MODEL_TRAINER]: Training ElasticNet...
+07:45:31 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:31 [MODEL_TRAINER]: Training RandomForest...
+07:45:31 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:31 [MODEL_TRAINER]: Training LightGBM...
+07:45:31 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:31 [MODEL_TRAINER]: Training XGBoost...
+07:45:31 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:31 [MODEL_TRAINER]: Training DecisionTree...
+07:45:31 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:31 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:31 [MODEL_TRAINER]: Evaluating models...
+07:45:31 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7427, MAE=2.4470, R2=0.5446
+07:45:31 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.1535, MAE=1.0491, R2=0.8492
+07:45:31 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.3822, MAE=1.2114, R2=0.8155
+07:45:31 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.1284, MAE=1.0837, R2=0.8527
+07:45:31 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8429, MAE=1.3255, R2=0.7372
+07:45:31 [EXPERIMENT]: === Run 8/24: num=median, scale=robust, outlier=iqr ===
+07:45:31 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:31 [DATA_IO]: Cleaning column names...
+07:45:31 [DATA_IO]: Column names cleaned successfully.
+07:45:31 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:31 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:31 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:31 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:31 [PREPROCESSOR]: Categorical cols: []
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:31 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:31 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:31 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:31 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:31 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:31 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:31 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:31 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:31 [DATA_TRANSFORMER]: [Outlier] method='iqr' - Removing outliers
+07:45:31 [DATA_TRANSFORMER]: Removed 176 rows as outliers
+07:45:31 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:31 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:31 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:31 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:31 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:31 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:31 [MODEL_TRAINER]: Ready for training. X_train: (589, 6), X_test: (192, 6)
+07:45:31 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:31 [MODEL_TRAINER]: Starting model training...
+07:45:31 [MODEL_TRAINER]: Training ElasticNet...
+07:45:31 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:31 [MODEL_TRAINER]: Training RandomForest...
+07:45:31 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:31 [MODEL_TRAINER]: Training LightGBM...
+07:45:31 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:31 [MODEL_TRAINER]: Training XGBoost...
+07:45:31 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:31 [MODEL_TRAINER]: Training DecisionTree...
+07:45:31 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:31 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:31 [MODEL_TRAINER]: Evaluating models...
+07:45:31 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7246, MAE=2.4205, R2=0.5489
+07:45:31 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.5618, MAE=1.1729, R2=0.7866
+07:45:31 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.8301, MAE=1.3236, R2=0.7396
+07:45:31 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.7068, MAE=1.3004, R2=0.7618
+07:45:31 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.6698, MAE=1.2656, R2=0.7683
+07:45:31 [EXPERIMENT]: === Run 9/24: num=median, scale=robust, outlier=zscore ===
+07:45:31 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:31 [DATA_IO]: Cleaning column names...
+07:45:31 [DATA_IO]: Column names cleaned successfully.
+07:45:31 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:31 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:31 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:31 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:31 [PREPROCESSOR]: Categorical cols: []
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:31 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:31 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:31 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:31 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:31 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:31 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:31 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:31 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:31 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+07:45:31 [DATA_TRANSFORMER]: Removed 81 rows as outliers
+07:45:31 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:31 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:31 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:31 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:31 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:31 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:31 [MODEL_TRAINER]: Ready for training. X_train: (684, 6), X_test: (192, 6)
+07:45:31 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:31 [MODEL_TRAINER]: Starting model training...
+07:45:31 [MODEL_TRAINER]: Training ElasticNet...
+07:45:31 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:31 [MODEL_TRAINER]: Training RandomForest...
+07:45:31 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:31 [MODEL_TRAINER]: Training LightGBM...
+07:45:31 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:31 [MODEL_TRAINER]: Training XGBoost...
+07:45:31 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:31 [MODEL_TRAINER]: Training DecisionTree...
+07:45:31 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:31 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:31 [MODEL_TRAINER]: Evaluating models...
+07:45:31 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7492, MAE=2.4618, R2=0.5430
+07:45:31 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.1937, MAE=1.1223, R2=0.8435
+07:45:31 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.6358, MAE=1.3377, R2=0.7741
+07:45:31 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.0270, MAE=1.0820, R2=0.8664
+07:45:31 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8062, MAE=1.3698, R2=0.7440
+07:45:31 [EXPERIMENT]: === Run 10/24: num=median, scale=standard, outlier=isolation_forest ===
+07:45:31 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:31 [DATA_IO]: Cleaning column names...
+07:45:31 [DATA_IO]: Column names cleaned successfully.
+07:45:31 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:31 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:31 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:31 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:31 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:31 [PREPROCESSOR]: Categorical cols: []
+07:45:31 [PREPROCESSOR]: Datetime cols: []
+07:45:31 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:31 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:31 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:31 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:31 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:31 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:31 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:31 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:31 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:31 [DATA_TRANSFORMER]: [Outlier] method='isolation_forest' - Removing outliers
+07:45:31 [DATA_TRANSFORMER]: Removed 39 rows as outliers
+07:45:31 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:31 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:31 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:31 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:31 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:31 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:31 [MODEL_TRAINER]: Ready for training. X_train: (726, 6), X_test: (192, 6)
+07:45:31 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:31 [MODEL_TRAINER]: Starting model training...
+07:45:31 [MODEL_TRAINER]: Training ElasticNet...
+07:45:31 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:31 [MODEL_TRAINER]: Training RandomForest...
+07:45:31 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:31 [MODEL_TRAINER]: Training LightGBM...
+07:45:31 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:31 [MODEL_TRAINER]: Training XGBoost...
+07:45:31 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:31 [MODEL_TRAINER]: Training DecisionTree...
+07:45:31 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:31 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:31 [MODEL_TRAINER]: Evaluating models...
+07:45:31 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5843, MAE=2.3324, R2=0.5823
+07:45:31 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.1481, MAE=1.0527, R2=0.8500
+07:45:31 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.3829, MAE=1.2045, R2=0.8154
+07:45:31 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.1284, MAE=1.0837, R2=0.8527
+07:45:31 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8335, MAE=1.3125, R2=0.7390
+07:45:31 [EXPERIMENT]: === Run 11/24: num=median, scale=standard, outlier=iqr ===
+07:45:31 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:31 [DATA_IO]: Cleaning column names...
+07:45:31 [DATA_IO]: Column names cleaned successfully.
+07:45:31 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:32 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:32 [PREPROCESSOR]: Categorical cols: []
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:32 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:32 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:32 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:32 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:32 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:32 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:32 [DATA_TRANSFORMER]: [Outlier] method='iqr' - Removing outliers
+07:45:32 [DATA_TRANSFORMER]: Removed 176 rows as outliers
+07:45:32 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:32 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:32 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:32 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:32 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:32 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:32 [MODEL_TRAINER]: Ready for training. X_train: (589, 6), X_test: (192, 6)
+07:45:32 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:32 [MODEL_TRAINER]: Starting model training...
+07:45:32 [MODEL_TRAINER]: Training ElasticNet...
+07:45:32 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:32 [MODEL_TRAINER]: Training RandomForest...
+07:45:32 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:32 [MODEL_TRAINER]: Training LightGBM...
+07:45:32 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:32 [MODEL_TRAINER]: Training XGBoost...
+07:45:32 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:32 [MODEL_TRAINER]: Training DecisionTree...
+07:45:32 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:32 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:32 [MODEL_TRAINER]: Evaluating models...
+07:45:32 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5093, MAE=2.2630, R2=0.5996
+07:45:32 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.5781, MAE=1.1775, R2=0.7839
+07:45:32 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.8303, MAE=1.3243, R2=0.7396
+07:45:32 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.7068, MAE=1.3004, R2=0.7618
+07:45:32 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.6462, MAE=1.2552, R2=0.7723
+07:45:32 [EXPERIMENT]: === Run 12/24: num=median, scale=standard, outlier=zscore ===
+07:45:32 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:32 [DATA_IO]: Cleaning column names...
+07:45:32 [DATA_IO]: Column names cleaned successfully.
+07:45:32 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:32 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:32 [PREPROCESSOR]: Categorical cols: []
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:32 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:32 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:32 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:32 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:32 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:32 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:32 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+07:45:32 [DATA_TRANSFORMER]: Removed 81 rows as outliers
+07:45:32 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:32 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:32 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:32 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'median', 'cat': 'mode', 'dt': 'drop'}
+07:45:32 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:32 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:32 [MODEL_TRAINER]: Ready for training. X_train: (684, 6), X_test: (192, 6)
+07:45:32 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:32 [MODEL_TRAINER]: Starting model training...
+07:45:32 [MODEL_TRAINER]: Training ElasticNet...
+07:45:32 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:32 [MODEL_TRAINER]: Training RandomForest...
+07:45:32 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:32 [MODEL_TRAINER]: Training LightGBM...
+07:45:32 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:32 [MODEL_TRAINER]: Training XGBoost...
+07:45:32 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:32 [MODEL_TRAINER]: Training DecisionTree...
+07:45:32 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:32 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:32 [MODEL_TRAINER]: Evaluating models...
+07:45:32 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5652, MAE=2.3331, R2=0.5867
+07:45:32 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.1971, MAE=1.1261, R2=0.8430
+07:45:32 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.6358, MAE=1.3377, R2=0.7741
+07:45:32 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.0270, MAE=1.0820, R2=0.8664
+07:45:32 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8134, MAE=1.3880, R2=0.7426
+07:45:32 [EXPERIMENT]: === Run 13/24: num=mode, scale=robust, outlier=isolation_forest ===
+07:45:32 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:32 [DATA_IO]: Cleaning column names...
+07:45:32 [DATA_IO]: Column names cleaned successfully.
+07:45:32 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:32 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:32 [PREPROCESSOR]: Categorical cols: []
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:32 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:32 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:32 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:32 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:32 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:32 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:32 [DATA_TRANSFORMER]: [Outlier] method='isolation_forest' - Removing outliers
+07:45:32 [DATA_TRANSFORMER]: Removed 39 rows as outliers
+07:45:32 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:32 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:32 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:32 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:32 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:32 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:32 [MODEL_TRAINER]: Ready for training. X_train: (726, 6), X_test: (192, 6)
+07:45:32 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:32 [MODEL_TRAINER]: Starting model training...
+07:45:32 [MODEL_TRAINER]: Training ElasticNet...
+07:45:32 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:32 [MODEL_TRAINER]: Training RandomForest...
+07:45:32 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:32 [MODEL_TRAINER]: Training LightGBM...
+07:45:32 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:32 [MODEL_TRAINER]: Training XGBoost...
+07:45:32 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:32 [MODEL_TRAINER]: Training DecisionTree...
+07:45:32 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:32 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:32 [MODEL_TRAINER]: Evaluating models...
+07:45:32 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7477, MAE=2.4487, R2=0.5433
+07:45:32 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.1572, MAE=1.0563, R2=0.8487
+07:45:32 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.3952, MAE=1.2261, R2=0.8135
+07:45:32 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.1637, MAE=1.0993, R2=0.8478
+07:45:32 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.9569, MAE=1.4297, R2=0.7157
+07:45:32 [EXPERIMENT]: === Run 14/24: num=mode, scale=robust, outlier=iqr ===
+07:45:32 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:32 [DATA_IO]: Cleaning column names...
+07:45:32 [DATA_IO]: Column names cleaned successfully.
+07:45:32 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:32 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:32 [PREPROCESSOR]: Categorical cols: []
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:32 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:32 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:32 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:32 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:32 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:32 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:32 [DATA_TRANSFORMER]: [Outlier] method='iqr' - Removing outliers
+07:45:32 [DATA_TRANSFORMER]: Removed 176 rows as outliers
+07:45:32 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:32 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:32 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:32 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:32 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:32 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:32 [MODEL_TRAINER]: Ready for training. X_train: (589, 6), X_test: (192, 6)
+07:45:32 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:32 [MODEL_TRAINER]: Starting model training...
+07:45:32 [MODEL_TRAINER]: Training ElasticNet...
+07:45:32 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:32 [MODEL_TRAINER]: Training RandomForest...
+07:45:32 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:32 [MODEL_TRAINER]: Training LightGBM...
+07:45:32 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:32 [MODEL_TRAINER]: Training XGBoost...
+07:45:32 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:32 [MODEL_TRAINER]: Training DecisionTree...
+07:45:32 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:32 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:32 [MODEL_TRAINER]: Evaluating models...
+07:45:32 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7275, MAE=2.4229, R2=0.5482
+07:45:32 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.5820, MAE=1.1799, R2=0.7832
+07:45:32 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.8402, MAE=1.3391, R2=0.7377
+07:45:32 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.6950, MAE=1.2821, R2=0.7638
+07:45:32 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.6344, MAE=1.2396, R2=0.7743
+07:45:32 [EXPERIMENT]: === Run 15/24: num=mode, scale=robust, outlier=zscore ===
+07:45:32 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:32 [DATA_IO]: Cleaning column names...
+07:45:32 [DATA_IO]: Column names cleaned successfully.
+07:45:32 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:32 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:32 [PREPROCESSOR]: Categorical cols: []
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:32 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:32 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:32 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:32 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:32 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:32 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:32 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+07:45:32 [DATA_TRANSFORMER]: Removed 81 rows as outliers
+07:45:32 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:32 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:32 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:32 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:32 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:32 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:32 [MODEL_TRAINER]: Ready for training. X_train: (684, 6), X_test: (192, 6)
+07:45:32 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:32 [MODEL_TRAINER]: Starting model training...
+07:45:32 [MODEL_TRAINER]: Training ElasticNet...
+07:45:32 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:32 [MODEL_TRAINER]: Training RandomForest...
+07:45:32 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:32 [MODEL_TRAINER]: Training LightGBM...
+07:45:32 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:32 [MODEL_TRAINER]: Training XGBoost...
+07:45:32 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:32 [MODEL_TRAINER]: Training DecisionTree...
+07:45:32 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:32 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:32 [MODEL_TRAINER]: Evaluating models...
+07:45:32 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7519, MAE=2.4595, R2=0.5423
+07:45:32 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.2176, MAE=1.1312, R2=0.8401
+07:45:32 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.6507, MAE=1.3602, R2=0.7716
+07:45:32 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.0475, MAE=1.0970, R2=0.8637
+07:45:32 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8598, MAE=1.4349, R2=0.7341
+07:45:32 [EXPERIMENT]: === Run 16/24: num=mode, scale=standard, outlier=isolation_forest ===
+07:45:32 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:32 [DATA_IO]: Cleaning column names...
+07:45:32 [DATA_IO]: Column names cleaned successfully.
+07:45:32 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:32 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:32 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:32 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:32 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:32 [PREPROCESSOR]: Categorical cols: []
+07:45:32 [PREPROCESSOR]: Datetime cols: []
+07:45:32 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:32 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:32 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:32 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:32 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:32 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:32 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:32 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:32 [DATA_TRANSFORMER]: [Outlier] method='isolation_forest' - Removing outliers
+07:45:32 [DATA_TRANSFORMER]: Removed 39 rows as outliers
+07:45:32 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:32 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:33 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:33 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:33 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:33 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:33 [MODEL_TRAINER]: Ready for training. X_train: (726, 6), X_test: (192, 6)
+07:45:33 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:33 [MODEL_TRAINER]: Starting model training...
+07:45:33 [MODEL_TRAINER]: Training ElasticNet...
+07:45:33 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:33 [MODEL_TRAINER]: Training RandomForest...
+07:45:33 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:33 [MODEL_TRAINER]: Training LightGBM...
+07:45:33 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:33 [MODEL_TRAINER]: Training XGBoost...
+07:45:33 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:33 [MODEL_TRAINER]: Training DecisionTree...
+07:45:33 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:33 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:33 [MODEL_TRAINER]: Evaluating models...
+07:45:33 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5884, MAE=2.3336, R2=0.5813
+07:45:33 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.1611, MAE=1.0538, R2=0.8481
+07:45:33 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.3984, MAE=1.2295, R2=0.8130
+07:45:33 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.1637, MAE=1.0993, R2=0.8478
+07:45:33 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.9410, MAE=1.3932, R2=0.7188
+07:45:33 [EXPERIMENT]: === Run 17/24: num=mode, scale=standard, outlier=iqr ===
+07:45:33 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:33 [DATA_IO]: Cleaning column names...
+07:45:33 [DATA_IO]: Column names cleaned successfully.
+07:45:33 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:33 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:33 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:33 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:33 [PREPROCESSOR]: Categorical cols: []
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:33 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:33 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:33 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:33 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:33 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:33 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:33 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:33 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:33 [DATA_TRANSFORMER]: [Outlier] method='iqr' - Removing outliers
+07:45:33 [DATA_TRANSFORMER]: Removed 176 rows as outliers
+07:45:33 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:33 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:33 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:33 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:33 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:33 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:33 [MODEL_TRAINER]: Ready for training. X_train: (589, 6), X_test: (192, 6)
+07:45:33 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:33 [MODEL_TRAINER]: Starting model training...
+07:45:33 [MODEL_TRAINER]: Training ElasticNet...
+07:45:33 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:33 [MODEL_TRAINER]: Training RandomForest...
+07:45:33 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:33 [MODEL_TRAINER]: Training LightGBM...
+07:45:33 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:33 [MODEL_TRAINER]: Training XGBoost...
+07:45:33 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:33 [MODEL_TRAINER]: Training DecisionTree...
+07:45:33 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:33 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:33 [MODEL_TRAINER]: Evaluating models...
+07:45:33 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5129, MAE=2.2624, R2=0.5988
+07:45:33 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.5977, MAE=1.1838, R2=0.7806
+07:45:33 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.8404, MAE=1.3398, R2=0.7377
+07:45:33 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.6950, MAE=1.2821, R2=0.7638
+07:45:33 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.6106, MAE=1.2292, R2=0.7784
+07:45:33 [EXPERIMENT]: === Run 18/24: num=mode, scale=standard, outlier=zscore ===
+07:45:33 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:33 [DATA_IO]: Cleaning column names...
+07:45:33 [DATA_IO]: Column names cleaned successfully.
+07:45:33 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:33 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:33 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:33 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:33 [PREPROCESSOR]: Categorical cols: []
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:33 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:33 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:33 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:33 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:33 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:33 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:33 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:33 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:33 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+07:45:33 [DATA_TRANSFORMER]: Removed 81 rows as outliers
+07:45:33 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:33 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:33 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:33 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'mode', 'cat': 'mode', 'dt': 'drop'}
+07:45:33 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:33 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:33 [MODEL_TRAINER]: Ready for training. X_train: (684, 6), X_test: (192, 6)
+07:45:33 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:33 [MODEL_TRAINER]: Starting model training...
+07:45:33 [MODEL_TRAINER]: Training ElasticNet...
+07:45:33 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:33 [MODEL_TRAINER]: Training RandomForest...
+07:45:33 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:33 [MODEL_TRAINER]: Training LightGBM...
+07:45:33 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:33 [MODEL_TRAINER]: Training XGBoost...
+07:45:33 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:33 [MODEL_TRAINER]: Training DecisionTree...
+07:45:33 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:33 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:33 [MODEL_TRAINER]: Evaluating models...
+07:45:33 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5675, MAE=2.3307, R2=0.5862
+07:45:33 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.2214, MAE=1.1356, R2=0.8396
+07:45:33 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.6507, MAE=1.3602, R2=0.7716
+07:45:33 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.0475, MAE=1.0970, R2=0.8637
+07:45:33 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8650, MAE=1.4479, R2=0.7331
+07:45:33 [EXPERIMENT]: === Run 19/24: num=drop, scale=robust, outlier=isolation_forest ===
+07:45:33 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:33 [DATA_IO]: Cleaning column names...
+07:45:33 [DATA_IO]: Column names cleaned successfully.
+07:45:33 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:33 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:33 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:33 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:33 [PREPROCESSOR]: Categorical cols: []
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:33 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:33 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:33 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:33 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:33 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:33 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:33 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:33 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:33 [DATA_TRANSFORMER]: [Outlier] method='isolation_forest' - Removing outliers
+07:45:33 [DATA_TRANSFORMER]: Removed 39 rows as outliers
+07:45:33 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:33 [DATA_TRANSFORMER]: Dropped 25 rows due to missing values
+07:45:33 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:33 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:33 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:33 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:33 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:33 [MODEL_TRAINER]: Ready for training. X_train: (701, 6), X_test: (192, 6)
+07:45:33 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:33 [MODEL_TRAINER]: Starting model training...
+07:45:33 [MODEL_TRAINER]: Training ElasticNet...
+07:45:33 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:33 [MODEL_TRAINER]: Training RandomForest...
+07:45:33 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:33 [MODEL_TRAINER]: Training LightGBM...
+07:45:33 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:33 [MODEL_TRAINER]: Training XGBoost...
+07:45:33 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:33 [MODEL_TRAINER]: Training DecisionTree...
+07:45:33 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:33 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:33 [MODEL_TRAINER]: Evaluating models...
+07:45:33 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7206, MAE=2.4431, R2=0.5499
+07:45:33 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.2941, MAE=1.1132, R2=0.8289
+07:45:33 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.3916, MAE=1.2105, R2=0.8140
+07:45:33 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.4390, MAE=1.1588, R2=0.8066
+07:45:33 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8548, MAE=1.4089, R2=0.7350
+07:45:33 [EXPERIMENT]: === Run 20/24: num=drop, scale=robust, outlier=iqr ===
+07:45:33 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:33 [DATA_IO]: Cleaning column names...
+07:45:33 [DATA_IO]: Column names cleaned successfully.
+07:45:33 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:33 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:33 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:33 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:33 [PREPROCESSOR]: Categorical cols: []
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:33 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:33 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:33 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:33 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:33 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:33 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:33 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:33 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:33 [DATA_TRANSFORMER]: [Outlier] method='iqr' - Removing outliers
+07:45:33 [DATA_TRANSFORMER]: Removed 176 rows as outliers
+07:45:33 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:33 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:33 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:33 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:33 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:33 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:33 [MODEL_TRAINER]: Ready for training. X_train: (589, 6), X_test: (192, 6)
+07:45:33 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:33 [MODEL_TRAINER]: Starting model training...
+07:45:33 [MODEL_TRAINER]: Training ElasticNet...
+07:45:33 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:33 [MODEL_TRAINER]: Training RandomForest...
+07:45:33 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:33 [MODEL_TRAINER]: Training LightGBM...
+07:45:33 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:33 [MODEL_TRAINER]: Training XGBoost...
+07:45:33 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:33 [MODEL_TRAINER]: Training DecisionTree...
+07:45:33 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:33 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:33 [MODEL_TRAINER]: Evaluating models...
+07:45:33 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7246, MAE=2.4205, R2=0.5489
+07:45:33 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.5618, MAE=1.1729, R2=0.7866
+07:45:33 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.8301, MAE=1.3236, R2=0.7396
+07:45:33 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.7068, MAE=1.3004, R2=0.7618
+07:45:33 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.6698, MAE=1.2656, R2=0.7683
+07:45:33 [EXPERIMENT]: === Run 21/24: num=drop, scale=robust, outlier=zscore ===
+07:45:33 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:33 [DATA_IO]: Cleaning column names...
+07:45:33 [DATA_IO]: Column names cleaned successfully.
+07:45:33 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:33 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:33 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:33 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:33 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:33 [PREPROCESSOR]: Categorical cols: []
+07:45:33 [PREPROCESSOR]: Datetime cols: []
+07:45:33 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:33 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:33 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:33 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:33 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:33 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:33 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:33 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:33 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:33 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+07:45:33 [DATA_TRANSFORMER]: Removed 81 rows as outliers
+07:45:33 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:33 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=True
+07:45:33 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:33 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:33 [DATA_TRANSFORMER]: [Scale] strategy='robust', fit=False
+07:45:33 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:33 [MODEL_TRAINER]: Ready for training. X_train: (684, 6), X_test: (192, 6)
+07:45:33 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:33 [MODEL_TRAINER]: Starting model training...
+07:45:33 [MODEL_TRAINER]: Training ElasticNet...
+07:45:33 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:33 [MODEL_TRAINER]: Training RandomForest...
+07:45:34 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:34 [MODEL_TRAINER]: Training LightGBM...
+07:45:34 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:34 [MODEL_TRAINER]: Training XGBoost...
+07:45:34 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:34 [MODEL_TRAINER]: Training DecisionTree...
+07:45:34 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:34 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:34 [MODEL_TRAINER]: Evaluating models...
+07:45:34 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.7492, MAE=2.4618, R2=0.5430
+07:45:34 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.1937, MAE=1.1223, R2=0.8435
+07:45:34 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.6358, MAE=1.3377, R2=0.7741
+07:45:34 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.0270, MAE=1.0820, R2=0.8664
+07:45:34 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8062, MAE=1.3698, R2=0.7440
+07:45:34 [EXPERIMENT]: === Run 22/24: num=drop, scale=standard, outlier=isolation_forest ===
+07:45:34 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:34 [DATA_IO]: Cleaning column names...
+07:45:34 [DATA_IO]: Column names cleaned successfully.
+07:45:34 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:34 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:34 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:34 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:34 [PREPROCESSOR]: Datetime cols: []
+07:45:34 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:34 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:34 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:34 [PREPROCESSOR]: Datetime cols: []
+07:45:34 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:34 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:34 [PREPROCESSOR]: Categorical cols: []
+07:45:34 [PREPROCESSOR]: Datetime cols: []
+07:45:34 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:34 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:34 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:34 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:34 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:34 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:34 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:34 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:34 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:34 [DATA_TRANSFORMER]: [Outlier] method='isolation_forest' - Removing outliers
+07:45:34 [DATA_TRANSFORMER]: Removed 39 rows as outliers
+07:45:34 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:34 [DATA_TRANSFORMER]: Dropped 25 rows due to missing values
+07:45:34 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:34 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:34 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:34 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:34 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:34 [MODEL_TRAINER]: Ready for training. X_train: (701, 6), X_test: (192, 6)
+07:45:34 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:34 [MODEL_TRAINER]: Starting model training...
+07:45:34 [MODEL_TRAINER]: Training ElasticNet...
+07:45:34 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:34 [MODEL_TRAINER]: Training RandomForest...
+07:45:34 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:34 [MODEL_TRAINER]: Training LightGBM...
+07:45:34 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:34 [MODEL_TRAINER]: Training XGBoost...
+07:45:34 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:34 [MODEL_TRAINER]: Training DecisionTree...
+07:45:34 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:34 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:34 [MODEL_TRAINER]: Evaluating models...
+07:45:34 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5519, MAE=2.3211, R2=0.5898
+07:45:34 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.2901, MAE=1.1024, R2=0.8295
+07:45:34 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.4180, MAE=1.2250, R2=0.8099
+07:45:34 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.4390, MAE=1.1588, R2=0.8066
+07:45:34 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8702, MAE=1.4297, R2=0.7321
+07:45:34 [EXPERIMENT]: === Run 23/24: num=drop, scale=standard, outlier=iqr ===
+07:45:34 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:34 [DATA_IO]: Cleaning column names...
+07:45:34 [DATA_IO]: Column names cleaned successfully.
+07:45:34 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:34 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:34 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:34 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:34 [PREPROCESSOR]: Datetime cols: []
+07:45:34 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:34 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:34 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:34 [PREPROCESSOR]: Datetime cols: []
+07:45:34 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:34 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:34 [PREPROCESSOR]: Categorical cols: []
+07:45:34 [PREPROCESSOR]: Datetime cols: []
+07:45:34 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:34 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:34 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:34 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:34 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:34 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:34 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:34 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:34 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:34 [DATA_TRANSFORMER]: [Outlier] method='iqr' - Removing outliers
+07:45:34 [DATA_TRANSFORMER]: Removed 176 rows as outliers
+07:45:34 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:34 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:34 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:34 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:34 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:34 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:34 [MODEL_TRAINER]: Ready for training. X_train: (589, 6), X_test: (192, 6)
+07:45:34 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:34 [MODEL_TRAINER]: Starting model training...
+07:45:34 [MODEL_TRAINER]: Training ElasticNet...
+07:45:34 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:34 [MODEL_TRAINER]: Training RandomForest...
+07:45:34 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:34 [MODEL_TRAINER]: Training LightGBM...
+07:45:34 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:34 [MODEL_TRAINER]: Training XGBoost...
+07:45:34 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:34 [MODEL_TRAINER]: Training DecisionTree...
+07:45:34 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:34 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:34 [MODEL_TRAINER]: Evaluating models...
+07:45:34 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5093, MAE=2.2630, R2=0.5996
+07:45:34 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.5781, MAE=1.1775, R2=0.7839
+07:45:34 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.8303, MAE=1.3243, R2=0.7396
+07:45:34 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.7068, MAE=1.3004, R2=0.7618
+07:45:34 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.6462, MAE=1.2552, R2=0.7723
+07:45:34 [EXPERIMENT]: === Run 24/24: num=drop, scale=standard, outlier=zscore ===
+07:45:34 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+07:45:34 [DATA_IO]: Cleaning column names...
+07:45:34 [DATA_IO]: Column names cleaned successfully.
+07:45:34 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+07:45:34 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:34 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:34 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:34 [PREPROCESSOR]: Datetime cols: []
+07:45:34 [DATA_TRANSFORMER]: Converting columns to datetime...
+07:45:34 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+07:45:34 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+07:45:34 [PREPROCESSOR]: Datetime cols: []
+07:45:34 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+07:45:34 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+07:45:34 [PREPROCESSOR]: Categorical cols: []
+07:45:34 [PREPROCESSOR]: Datetime cols: []
+07:45:34 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+07:45:34 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+07:45:34 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+07:45:34 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=1
+07:45:34 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+07:45:34 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+07:45:34 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+07:45:34 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+07:45:34 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+07:45:34 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+07:45:34 [DATA_TRANSFORMER]: Removed 81 rows as outliers
+07:45:34 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:34 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+07:45:34 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+07:45:34 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'drop', 'cat': 'mode', 'dt': 'drop'}
+07:45:34 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+07:45:34 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+07:45:34 [MODEL_TRAINER]: Ready for training. X_train: (684, 6), X_test: (192, 6)
+07:45:34 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+07:45:34 [MODEL_TRAINER]: Starting model training...
+07:45:34 [MODEL_TRAINER]: Training ElasticNet...
+07:45:34 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+07:45:34 [MODEL_TRAINER]: Training RandomForest...
+07:45:34 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+07:45:34 [MODEL_TRAINER]: Training LightGBM...
+07:45:34 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+07:45:34 [MODEL_TRAINER]: Training XGBoost...
+07:45:34 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+07:45:34 [MODEL_TRAINER]: Training DecisionTree...
+07:45:34 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+07:45:34 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+07:45:34 [MODEL_TRAINER]: Evaluating models...
+07:45:34 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.5652, MAE=2.3331, R2=0.5867
+07:45:34 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.1971, MAE=1.1261, R2=0.8430
+07:45:34 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.6358, MAE=1.3377, R2=0.7741
+07:45:34 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.0270, MAE=1.0820, R2=0.8664
+07:45:34 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8134, MAE=1.3880, R2=0.7426

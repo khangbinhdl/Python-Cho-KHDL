@@ -1,0 +1,79 @@
+20:01:34 [MAIN]: Log file: outputs/logs/train_2025-12-04_20-01-34.log
+20:01:34 [MAIN]: Using configuration file: configs/default_config.ini
+20:01:34 [MAIN]: Data file: data/raw/FastFoodNutritionMenuV3.csv
+20:01:34 [MAIN]: Target column: saturated_fat_g
+20:01:34 [MAIN]: Selected models: all
+20:01:34 [MAIN]: Optimization enabled: True
+20:01:34 [MAIN]: EDA enabled: False
+20:01:34 [MAIN]: Visualization enabled: True
+20:01:34 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+20:01:34 [DATA_IO]: Cleaning column names...
+20:01:34 [DATA_IO]: Column names cleaned successfully.
+20:01:34 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+20:01:34 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+20:01:34 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+20:01:34 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+20:01:34 [PREPROCESSOR]: Datetime cols: []
+20:01:34 [DATA_TRANSFORMER]: Converting columns to datetime...
+20:01:34 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+20:01:34 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+20:01:34 [PREPROCESSOR]: Datetime cols: []
+20:01:34 [MAIN]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+20:01:34 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+20:01:34 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+20:01:34 [PREPROCESSOR]: Categorical cols: []
+20:01:34 [PREPROCESSOR]: Datetime cols: []
+20:01:34 [MAIN]: Cleaning negative values...
+20:01:34 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+20:01:34 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+20:01:34 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+20:01:34 [DATA_IO]: Saving processed data to data/interim/temp_processed_data.csv...
+20:01:34 [DATA_IO]: Save successful.
+20:01:34 [MAIN]: Initializing ModelTrainer to split data...
+20:01:34 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=8
+20:01:34 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+20:01:34 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+20:01:34 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+20:01:34 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+20:01:34 [MAIN]: Processing Split Data (Preventing Leakage)...
+20:01:34 [MAIN]: Train NaN count before processing: 26
+20:01:34 [MAIN]: Test NaN count before processing: 9
+20:01:34 [MAIN]: Encoding categorical features with strategy: onehot
+20:01:34 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+20:01:34 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+20:01:34 [DATA_TRANSFORMER]: Removed 81 rows as outliers
+20:01:34 [MAIN]: Train size after outlier removal: 684
+20:01:34 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'drop', 'cat': 'drop', 'dt': 'drop'}
+20:01:34 [MAIN]: Train NaN count after missing handling: 0
+20:01:34 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+20:01:34 [MAIN]: Train NaN count after scaling: 0
+20:01:34 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+20:01:34 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'drop', 'cat': 'drop', 'dt': 'drop'}
+20:01:34 [DATA_TRANSFORMER]: Dropped 9 rows due to missing values
+20:01:34 [MAIN]: Test NaN count after missing handling: 0
+20:01:34 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+20:01:34 [MAIN]: Test NaN count after scaling: 0
+20:01:34 [MAIN]: Train set size: 684
+20:01:34 [MAIN]: Test set size: 183
+20:01:34 [MAIN]: Merged set size: 867
+20:01:34 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+20:01:34 [MODEL_TRAINER]: Ready for training. X_train: (684, 6), X_test: (183, 6)
+20:01:34 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+20:01:34 [MAIN]: Training all available models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+20:01:34 [MAIN]: Optimizing ElasticNet...
+20:01:34 [MODEL_TRAINER]: Starting optimization for ElasticNet...
+20:01:34 [OPTIMIZATION]: --- Optuna: Optimizing ElasticNet (300 trials) ---
+20:01:37 [OPTIMIZATION]: ✓ Best MSE: 6.8112
+20:01:37 [OPTIMIZATION]: ✓ Best Params: {'alpha': 0.014205792617126818, 'l1_ratio': 0.9999927560675544}
+20:01:37 [MODEL_TRAINER]: ✓ ElasticNet parameters optimized successfully
+20:01:37 [MODEL_TRAINER]:   Best params: {'alpha': 0.014205792617126818, 'l1_ratio': 0.9999927560675544}
+20:01:37 [MAIN]: Optimizing RandomForest...
+20:01:37 [MODEL_TRAINER]: Starting optimization for RandomForest...
+20:01:37 [OPTIMIZATION]: --- Optuna: Optimizing RandomForest (300 trials) ---
+20:06:17 [OPTIMIZATION]: ✓ Best MSE: 3.4498
+20:06:17 [OPTIMIZATION]: ✓ Best Params: {'n_estimators': 352, 'max_depth': 13, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_features': 'sqrt'}
+20:06:17 [MODEL_TRAINER]: ✓ RandomForest parameters optimized successfully
+20:06:17 [MODEL_TRAINER]:   Best params: {'n_estimators': 352, 'max_depth': 13, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_features': 'sqrt'}
+20:06:17 [MAIN]: Optimizing LightGBM...
+20:06:17 [MODEL_TRAINER]: Starting optimization for LightGBM...
+20:06:17 [OPTIMIZATION]: --- Optuna: Optimizing LightGBM (300 trials) ---

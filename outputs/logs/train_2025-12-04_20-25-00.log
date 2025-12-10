@@ -1,0 +1,92 @@
+20:25:00 [MAIN]: Log file: outputs/logs/train_2025-12-04_20-25-00.log
+20:25:00 [MAIN]: Using configuration file: configs/default_config.ini
+20:25:00 [MAIN]: Data file: data/raw/FastFoodNutritionMenuV3.csv
+20:25:00 [MAIN]: Target column: saturated_fat_g
+20:25:00 [MAIN]: Selected models: all
+20:25:00 [MAIN]: Optimization enabled: False
+20:25:00 [MAIN]: EDA enabled: False
+20:25:00 [MAIN]: Visualization enabled: True
+20:25:00 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+20:25:00 [DATA_IO]: Cleaning column names...
+20:25:00 [DATA_IO]: Column names cleaned successfully.
+20:25:00 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+20:25:00 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+20:25:00 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+20:25:00 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+20:25:00 [PREPROCESSOR]: Datetime cols: []
+20:25:00 [DATA_TRANSFORMER]: Converting columns to datetime...
+20:25:00 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+20:25:00 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+20:25:00 [PREPROCESSOR]: Datetime cols: []
+20:25:00 [MAIN]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+20:25:00 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+20:25:00 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+20:25:00 [PREPROCESSOR]: Categorical cols: []
+20:25:00 [PREPROCESSOR]: Datetime cols: []
+20:25:00 [MAIN]: Cleaning negative values...
+20:25:00 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+20:25:00 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+20:25:00 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+20:25:00 [DATA_IO]: Saving processed data to data/interim/temp_processed_data.csv...
+20:25:00 [DATA_IO]: Save successful.
+20:25:00 [MAIN]: Initializing ModelTrainer to split data...
+20:25:00 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=8
+20:25:00 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+20:25:00 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+20:25:00 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+20:25:00 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+20:25:00 [MAIN]: Processing Split Data (Preventing Leakage)...
+20:25:00 [MAIN]: Train NaN count before processing: 26
+20:25:00 [MAIN]: Test NaN count before processing: 9
+20:25:00 [MAIN]: Encoding categorical features with strategy: onehot
+20:25:00 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+20:25:00 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+20:25:00 [DATA_TRANSFORMER]: Removed 81 rows as outliers
+20:25:00 [MAIN]: Train size after outlier removal: 684
+20:25:00 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'drop', 'cat': 'drop', 'dt': 'drop'}
+20:25:00 [MAIN]: Train NaN count after missing handling: 0
+20:25:00 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+20:25:00 [MAIN]: Train NaN count after scaling: 0
+20:25:00 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+20:25:00 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'drop', 'cat': 'drop', 'dt': 'drop'}
+20:25:00 [DATA_TRANSFORMER]: Dropped 9 rows due to missing values
+20:25:00 [MAIN]: Test NaN count after missing handling: 0
+20:25:00 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+20:25:00 [MAIN]: Test NaN count after scaling: 0
+20:25:00 [MAIN]: Train set size: 684
+20:25:00 [MAIN]: Test set size: 183
+20:25:00 [MAIN]: Merged set size: 867
+20:25:00 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+20:25:00 [MODEL_TRAINER]: Ready for training. X_train: (684, 6), X_test: (183, 6)
+20:25:00 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+20:25:00 [MAIN]: Training all available models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+20:25:00 [MODEL_TRAINER]: Starting model training...
+20:25:00 [MODEL_TRAINER]: Training ElasticNet...
+20:25:00 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+20:25:00 [MODEL_TRAINER]: Training RandomForest...
+20:25:00 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+20:25:00 [MODEL_TRAINER]: Training LightGBM...
+20:25:00 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+20:25:00 [MODEL_TRAINER]: Training XGBoost...
+20:25:00 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+20:25:00 [MODEL_TRAINER]: Training DecisionTree...
+20:25:00 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+20:25:00 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+20:25:00 [MODEL_TRAINER]: Evaluating models...
+20:25:00 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.6215, MAE=2.3730, R2=0.5913
+20:25:00 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.2155, MAE=1.1201, R2=0.8470
+20:25:00 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.6667, MAE=1.3377, R2=0.7784
+20:25:00 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.0310, MAE=1.0813, R2=0.8714
+20:25:00 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8100, MAE=1.3934, R2=0.7539
+20:25:00 [MODEL_IO]: ✓ Đã lưu kết quả tại: outputs/results/evaluation_results.csv
+20:25:00 [MODEL_IO]: ✓ Đã lưu kết quả tại: outputs/results/evaluation_results.json
+20:25:00 [MODEL_IO]: ✓ Đã lưu model 'ElasticNet' tại: outputs/models/ElasticNet.joblib
+20:25:00 [MODEL_IO]: ✓ Đã lưu model 'RandomForest' tại: outputs/models/RandomForest.joblib
+20:25:00 [MODEL_IO]: ✓ Đã lưu model 'LightGBM' tại: outputs/models/LightGBM.joblib
+20:25:00 [MODEL_IO]: ✓ Đã lưu model 'XGBoost' tại: outputs/models/XGBoost.joblib
+20:25:00 [MODEL_IO]: ✓ Đã lưu model 'DecisionTree' tại: outputs/models/DecisionTree.joblib
+20:25:01 [MODEL_VISUALIZE]: ✓ Plot saved: outputs/plots/model_comparison.png
+20:25:03 [MODEL_EVALUATOR]: Sử dụng feature_importances_ cho XGBoost
+20:25:03 [MODEL_EVALUATOR]: ✓ Đã trích xuất feature importance cho XGBoost
+20:25:03 [MODEL_VISUALIZE]: ✓ Feature importance saved: outputs/plots/feature_importance.png
+20:25:04 [MAIN]: Process Completed.

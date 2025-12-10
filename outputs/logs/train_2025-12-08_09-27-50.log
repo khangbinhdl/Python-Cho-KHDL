@@ -1,0 +1,132 @@
+09:27:50 [MAIN]: Log file: outputs/logs/train_2025-12-08_09-27-50.log
+09:27:50 [MAIN]: Using configuration file: configs/default_config.ini
+09:27:50 [MAIN]: Data file: data/raw/FastFoodNutritionMenuV3.csv
+09:27:50 [MAIN]: Target column: saturated_fat_g
+09:27:50 [MAIN]: Selected models: all
+09:27:50 [MAIN]: Optimization enabled: True
+09:27:50 [MAIN]: EDA enabled: False
+09:27:50 [MAIN]: Visualization enabled: True
+09:27:50 [MAIN]: Num strategy: drop
+09:27:50 [MAIN]: Cat strategy: drop
+09:27:50 [MAIN]: DT strategy: drop
+09:27:50 [MAIN]: Scaler: standard
+09:27:50 [MAIN]: Outlier method: zscore
+09:27:50 [MAIN]: Encoder: onehot
+09:27:50 [DATA_IO]: Loading data from data/raw/FastFoodNutritionMenuV3.csv...
+09:27:50 [DATA_IO]: Cleaning column names...
+09:27:50 [DATA_IO]: Column names cleaned successfully.
+09:27:50 [DATA_TRANSFORMER]: Auto-detecting numeric columns (threshold=80%)...
+09:27:50 [DATA_TRANSFORMER]: Auto-converted 12 columns to numeric: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+09:27:50 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+09:27:50 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+09:27:50 [PREPROCESSOR]: Datetime cols: []
+09:27:50 [DATA_TRANSFORMER]: Converting columns to datetime...
+09:27:50 [PREPROCESSOR]: Numeric cols: ['calories', 'calories_from_fat', 'total_fat_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g', 'weight_watchers_pnts']
+09:27:50 [PREPROCESSOR]: Categorical cols: ['company', 'item']
+09:27:50 [PREPROCESSOR]: Datetime cols: []
+09:27:50 [MAIN]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+09:27:50 [DATA_TRANSFORMER]: Dropping features: ['calories_from_fat', 'weight_watchers_pnts', 'company', 'item', 'total_fat_g', 'calories', 'trans_fat_g']
+09:27:50 [PREPROCESSOR]: Numeric cols: ['saturated_fat_g', 'cholesterol_mg', 'sodium_mg', 'carbs_g', 'fiber_g', 'sugars_g', 'protein_g']
+09:27:50 [PREPROCESSOR]: Categorical cols: []
+09:27:50 [PREPROCESSOR]: Datetime cols: []
+09:27:50 [MAIN]: Cleaning negative values...
+09:27:50 [DATA_TRANSFORMER]: Cleaning negative values in all numeric columns...
+09:27:50 [DATA_TRANSFORMER]: Removed 138 duplicate rows
+09:27:50 [DATA_TRANSFORMER]: Dropped 52 rows with null target 'saturated_fat_g'
+09:27:50 [DATA_IO]: Saving processed data to data/interim/temp_processed_data.csv...
+09:27:50 [DATA_IO]: Save successful.
+09:27:50 [MAIN]: Initializing ModelTrainer to split data...
+09:27:50 [MODEL_TRAINER]: ModelTrainer initialized with random_state=42, n_jobs=5
+09:27:50 [MODEL_TRAINER]: Data loaded: 957 rows, 7 columns
+09:27:50 [MODEL_TRAINER]: Target column: 'saturated_fat_g'
+09:27:50 [MODEL_TRAINER]: Splitting data into Train and Test sets...
+09:27:50 [MODEL_TRAINER]: Split complete. Train shape: (765, 7), Test shape: (192, 7)
+09:27:50 [MAIN]: Processing Split Data (Preventing Leakage)...
+09:27:50 [MAIN]: Train NaN count before processing: 26
+09:27:50 [MAIN]: Test NaN count before processing: 9
+09:27:50 [MAIN]: Encoding categorical features with strategy: onehot
+09:27:50 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=True
+09:27:50 [DATA_TRANSFORMER]: [Outlier] method='zscore' - Removing outliers
+09:27:50 [DATA_TRANSFORMER]: Removed 81 rows as outliers
+09:27:50 [MAIN]: Train size after outlier removal: 684
+09:27:50 [DATA_TRANSFORMER]: Handling missing values fit=True | strategies={'num': 'drop', 'cat': 'drop', 'dt': 'drop'}
+09:27:50 [MAIN]: Train NaN count after missing handling: 0
+09:27:50 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=True
+09:27:50 [MAIN]: Train NaN count after scaling: 0
+09:27:50 [DATA_TRANSFORMER]: [Encode] strategy='onehot', fit=False
+09:27:50 [DATA_TRANSFORMER]: Handling missing values fit=False | strategies={'num': 'drop', 'cat': 'drop', 'dt': 'drop'}
+09:27:50 [MAIN]: Test NaN count after missing handling: 0
+09:27:50 [DATA_TRANSFORMER]: [Scale] strategy='standard', fit=False
+09:27:50 [MAIN]: Test NaN count after scaling: 0
+09:27:50 [MAIN]: Train set size: 684
+09:27:50 [MAIN]: Test set size: 192
+09:27:50 [MAIN]: Merged set size: 876
+09:27:50 [MODEL_TRAINER]: Setting processed training data (separating X and y)...
+09:27:50 [MODEL_TRAINER]: Ready for training. X_train: (684, 6), X_test: (192, 6)
+09:27:50 [MODEL_TRAINER]: Initialized 5 models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+09:27:50 [MAIN]: Training all available models: ['ElasticNet', 'RandomForest', 'LightGBM', 'XGBoost', 'DecisionTree']
+09:27:50 [MAIN]: Optimizing ElasticNet...
+09:27:50 [MODEL_TRAINER]: Starting optimization for ElasticNet...
+09:27:50 [OPTIMIZATION]: --- Optuna: Optimizing ElasticNet (800 trials) ---
+09:27:57 [OPTIMIZATION]: ✓ Best R2: 0.6060
+09:27:57 [OPTIMIZATION]: ✓ Best Params: {'alpha': 0.008828066610836703, 'l1_ratio': 0.9499807984799014}
+09:27:57 [MODEL_TRAINER]: ✓ ElasticNet parameters optimized successfully
+09:27:57 [MODEL_TRAINER]:   Best params: {'alpha': 0.008828066610836703, 'l1_ratio': 0.9499807984799014}
+09:27:57 [MAIN]: Optimizing RandomForest...
+09:27:57 [MODEL_TRAINER]: Starting optimization for RandomForest...
+09:27:57 [OPTIMIZATION]: --- Optuna: Optimizing RandomForest (800 trials) ---
+09:33:29 [OPTIMIZATION]: ✓ Best R2: 0.8069
+09:33:29 [OPTIMIZATION]: ✓ Best Params: {'n_estimators': 140, 'max_depth': 20, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_features': 0.3, 'bootstrap': False, 'ccp_alpha': 2.373052425120861e-06}
+09:33:29 [MODEL_TRAINER]: ✓ RandomForest parameters optimized successfully
+09:33:29 [MODEL_TRAINER]:   Best params: {'n_estimators': 140, 'max_depth': 20, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_features': 0.3, 'bootstrap': False, 'ccp_alpha': 2.373052425120861e-06}
+09:33:29 [MAIN]: Optimizing LightGBM...
+09:33:29 [MODEL_TRAINER]: Starting optimization for LightGBM...
+09:33:29 [OPTIMIZATION]: --- Optuna: Optimizing LightGBM (800 trials) ---
+09:49:09 [OPTIMIZATION]: ✓ Best R2: 0.8168
+09:49:09 [OPTIMIZATION]: ✓ Best Params: {'n_estimators': 1625, 'learning_rate': 0.01115344662186354, 'num_leaves': 51, 'max_depth': 12, 'min_child_samples': 23, 'subsample': 0.8575394711152978, 'colsample_bytree': 0.6568884323776014, 'reg_alpha': 6.578567411644731e-05, 'reg_lambda': 2.789767840717222, 'min_split_gain': 0.052773787483617995}
+09:49:09 [MODEL_TRAINER]: ✓ LightGBM parameters optimized successfully
+09:49:09 [MODEL_TRAINER]:   Best params: {'n_estimators': 1625, 'learning_rate': 0.01115344662186354, 'num_leaves': 51, 'max_depth': 12, 'min_child_samples': 23, 'subsample': 0.8575394711152978, 'colsample_bytree': 0.6568884323776014, 'reg_alpha': 6.578567411644731e-05, 'reg_lambda': 2.789767840717222, 'min_split_gain': 0.052773787483617995}
+09:49:09 [MAIN]: Optimizing XGBoost...
+09:49:09 [MODEL_TRAINER]: Starting optimization for XGBoost...
+09:49:09 [OPTIMIZATION]: --- Optuna: Optimizing XGBoost (800 trials) ---
+09:55:23 [OPTIMIZATION]: ✓ Best R2: 0.8254
+09:55:23 [OPTIMIZATION]: ✓ Best Params: {'n_estimators': 901, 'learning_rate': 0.04970964564896811, 'max_depth': 9, 'min_child_weight': 5, 'subsample': 0.9556395589734519, 'colsample_bytree': 0.6245226710447308, 'reg_alpha': 0.5553676318246953, 'reg_lambda': 2.7757521221391914, 'gamma': 0.09666095125837343}
+09:55:23 [MODEL_TRAINER]: ✓ XGBoost parameters optimized successfully
+09:55:23 [MODEL_TRAINER]:   Best params: {'n_estimators': 901, 'learning_rate': 0.04970964564896811, 'max_depth': 9, 'min_child_weight': 5, 'subsample': 0.9556395589734519, 'colsample_bytree': 0.6245226710447308, 'reg_alpha': 0.5553676318246953, 'reg_lambda': 2.7757521221391914, 'gamma': 0.09666095125837343}
+09:55:23 [MAIN]: Optimizing DecisionTree...
+09:55:23 [MODEL_TRAINER]: Starting optimization for DecisionTree...
+09:55:23 [OPTIMIZATION]: --- Optuna: Optimizing DecisionTree (800 trials) ---
+09:55:33 [OPTIMIZATION]: ✓ Best R2: 0.7615
+09:55:33 [OPTIMIZATION]: ✓ Best Params: {'max_depth': 8, 'min_samples_split': 9, 'min_samples_leaf': 4, 'max_features': 0.8, 'splitter': 'best', 'ccp_alpha': 0.014142219978634454}
+09:55:33 [MODEL_TRAINER]: ✓ DecisionTree parameters optimized successfully
+09:55:33 [MODEL_TRAINER]:   Best params: {'max_depth': 8, 'min_samples_split': 9, 'min_samples_leaf': 4, 'max_features': 0.8, 'splitter': 'best', 'ccp_alpha': 0.014142219978634454}
+09:55:33 [MODEL_TRAINER]: Starting model training...
+09:55:33 [MODEL_TRAINER]: Training ElasticNet...
+09:55:33 [MODEL_TRAINER]: ✓ ElasticNet trained successfully
+09:55:33 [MODEL_TRAINER]: Training RandomForest...
+09:55:33 [MODEL_TRAINER]: ✓ RandomForest trained successfully
+09:55:33 [MODEL_TRAINER]: Training LightGBM...
+09:55:33 [MODEL_TRAINER]: ✓ LightGBM trained successfully
+09:55:33 [MODEL_TRAINER]: Training XGBoost...
+09:55:33 [MODEL_TRAINER]: ✓ XGBoost trained successfully
+09:55:33 [MODEL_TRAINER]: Training DecisionTree...
+09:55:33 [MODEL_TRAINER]: ✓ DecisionTree trained successfully
+09:55:33 [MODEL_TRAINER]: Training completed. 5/5 models trained successfully
+09:55:33 [MODEL_TRAINER]: Evaluating models...
+09:55:33 [MODEL_EVALUATOR]: ✓ ElasticNet evaluated: RMSE=3.3275, MAE=2.0519, R2=0.6400
+09:55:33 [MODEL_EVALUATOR]: ✓ RandomForest evaluated: RMSE=2.5402, MAE=1.2267, R2=0.7902
+09:55:33 [MODEL_EVALUATOR]: ✓ LightGBM evaluated: RMSE=2.5375, MAE=1.2755, R2=0.7906
+09:55:33 [MODEL_EVALUATOR]: ✓ XGBoost evaluated: RMSE=2.6654, MAE=1.3139, R2=0.7690
+09:55:33 [MODEL_EVALUATOR]: ✓ DecisionTree evaluated: RMSE=2.8438, MAE=1.4801, R2=0.7370
+09:55:33 [MODEL_IO]: ✓ Đã lưu kết quả tại: outputs/results/evaluation_results.csv
+09:55:33 [MODEL_IO]: ✓ Đã lưu kết quả tại: outputs/results/evaluation_results.json
+09:55:33 [MODEL_IO]: ✓ Đã lưu model 'ElasticNet' tại: outputs/models/ElasticNet.joblib
+09:55:33 [MODEL_IO]: ✓ Đã lưu model 'RandomForest' tại: outputs/models/RandomForest.joblib
+09:55:33 [MODEL_IO]: ✓ Đã lưu model 'LightGBM' tại: outputs/models/LightGBM.joblib
+09:55:33 [MODEL_IO]: ✓ Đã lưu model 'XGBoost' tại: outputs/models/XGBoost.joblib
+09:55:33 [MODEL_IO]: ✓ Đã lưu model 'DecisionTree' tại: outputs/models/DecisionTree.joblib
+09:55:34 [MODEL_VISUALIZE]: ✓ Plot saved: outputs/plots/model_comparison.png
+10:02:56 [MODEL_EVALUATOR]: Sử dụng feature_importances_ cho LightGBM
+10:02:56 [MODEL_EVALUATOR]: ✓ Đã trích xuất feature importance cho LightGBM
+10:02:57 [MODEL_VISUALIZE]: ✓ Feature importance saved: outputs/plots/feature_importance.png
+10:02:58 [MAIN]: Process Completed.
